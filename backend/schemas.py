@@ -42,6 +42,11 @@ class ComponentFeasibility(BaseModel):
     reason: str = Field(description="Detailed technical reason for the status based on VRAM or compute limitations")
     suggested_substitute: str = Field(description="Actionable suggestion to make it feasible (e.g. LoRA, smaller backbone, freeze)")
 
+class AlternativePlatform(BaseModel):
+    platform_name: str = Field(description="Name of the cloud platform (e.g. 'Google Colab', 'Kaggle Kernels', 'Groq API', 'RunPod')")
+    description: str = Field(description="Brief details of what this platform offers (e.g. free GPU, free credits, LPU speed)")
+    how_to_use: str = Field(description="Actionable step-by-step guidance on how to run this project on this platform")
+
 class FeasibilityReport(BaseModel):
     overall_status: str = Field(description="Overall project feasibility status: 'FEASIBLE', 'WARNING', 'IMPOSSIBLE'")
     components_analysis: List[ComponentFeasibility] = Field(description="List of feasibility analysis reports for each component")
@@ -49,4 +54,16 @@ class FeasibilityReport(BaseModel):
     training_reason: str = Field(description="Detailed reason for the training status based on timeline and epoch calculations")
     training_substitute: str = Field(description="Suggested swap for training parameters (e.g. reduce batch size, use gradient accumulation)")
     recommendations: List[str] = Field(description="Actionable summary of recommendations to compile the project")
+    alternatives: List[AlternativePlatform] = Field(description="List of free or low-cost alternative cloud platforms with setup guidance")
+
+class Milestone(BaseModel):
+    id: int = Field(description="Step sequence number (e.g. 1, 2, 3, etc.)")
+    name: str = Field(description="Name of the build milestone (e.g., 'Data Pipeline & Parser Validation')")
+    objectives: List[str] = Field(description="Core technical tasks or objectives for this step")
+    components_involved: List[str] = Field(description="Names of components built, integrated, or tested in this step")
+    estimated_complexity: str = Field(description="Complexity: 'LOW' / 'MEDIUM' / 'HIGH'")
+    dependency_rationale: str = Field(description="Explanation of why this step occurs here (e.g., must load dataset before building models, must test locally before scaling)")
+
+class BuildSequence(BaseModel):
+    milestones: List[Milestone] = Field(description="Ordered list of build milestones, prioritizing low-cost validation over high-compute training")
 
