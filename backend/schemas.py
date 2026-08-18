@@ -35,3 +35,18 @@ class ComponentGraph(BaseModel):
 class PipelineOutput(BaseModel):
     metadata: PaperMetadata = Field(description="Structured metadata of the research paper")
     component_graph: ComponentGraph = Field(description="Structured component graph with gap-filled parameters")
+
+class ComponentFeasibility(BaseModel):
+    component_name: str = Field(description="The name of the component being analyzed (e.g., 'Swin Transformer (RFN)')")
+    status: str = Field(description="Feasibility status: 'FEASIBLE', 'WARNING', 'IMPOSSIBLE'")
+    reason: str = Field(description="Detailed technical reason for the status based on VRAM or compute limitations")
+    suggested_substitute: str = Field(description="Actionable suggestion to make it feasible (e.g. LoRA, smaller backbone, freeze)")
+
+class FeasibilityReport(BaseModel):
+    overall_status: str = Field(description="Overall project feasibility status: 'FEASIBLE', 'WARNING', 'IMPOSSIBLE'")
+    components_analysis: List[ComponentFeasibility] = Field(description="List of feasibility analysis reports for each component")
+    training_status: str = Field(description="Training regime feasibility status: 'FEASIBLE', 'WARNING', 'IMPOSSIBLE'")
+    training_reason: str = Field(description="Detailed reason for the training status based on timeline and epoch calculations")
+    training_substitute: str = Field(description="Suggested swap for training parameters (e.g. reduce batch size, use gradient accumulation)")
+    recommendations: List[str] = Field(description="Actionable summary of recommendations to compile the project")
+
