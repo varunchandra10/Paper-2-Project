@@ -5,7 +5,7 @@ import sys
 # Add parent directory to path to allow importing from backend
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from schemas import ComponentGraph
-from gap_agent import graph
+from agents.gap_agent import graph
 
 def test_gap_agent():
     input_json_path = "backend/papers/vlcd_paper_components.json"

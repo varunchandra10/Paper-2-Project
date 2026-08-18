@@ -1,6 +1,6 @@
 .venv*
 *.pyc
-
+open_models.md
 __pycache__/
 
 /backend/papers
