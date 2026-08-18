@@ -31,3 +31,7 @@ class Component(BaseModel):
 
 class ComponentGraph(BaseModel):
     components: List[Component] = Field(description="List of all structural architecture components extracted from the paper")
+
+class PipelineOutput(BaseModel):
+    metadata: PaperMetadata = Field(description="Structured metadata of the research paper")
+    component_graph: ComponentGraph = Field(description="Structured component graph with gap-filled parameters")
