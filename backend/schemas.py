@@ -67,3 +67,7 @@ class Milestone(BaseModel):
 class BuildSequence(BaseModel):
     milestones: List[Milestone] = Field(description="Ordered list of build milestones, prioritizing low-cost validation over high-compute training")
 
+class AdaptationReport(BaseModel):
+    markdown_content: str = Field(description="The complete synthesized portfolio-grade markdown proposal report including all required sections.")
+
+
