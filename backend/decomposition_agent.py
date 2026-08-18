@@ -2,23 +2,9 @@ import os
 import json
 import sys
 from typing import List, Dict, TypedDict
-from pydantic import BaseModel, Field
 from langchain_ollama import ChatOllama
 from langgraph.graph import StateGraph, START, END
-
-# Define Pydantic models for structured architecture graph
-class Component(BaseModel):
-    name: str = Field(description="The name of the component, e.g., 'Swin Transformer Encoder', 'Side Fusion Network', 'Bridging Module'")
-    type: str = Field(description="The category of the component. Must be one of: 'encoder', 'fusion', 'decoder', 'loss', 'training'")
-    description: str = Field(description="A brief description of what this component does in the paper's architecture")
-    inputs: List[str] = Field(description="List of input data streams, feature maps, or tensors it accepts")
-    outputs: List[str] = Field(description="List of outputs or tensors it produces")
-    hyperparameters: Dict[str, str] = Field(
-        description="Key-value pairs of hyperparameters mentioned in the text (e.g. channels, batch size, learning rates, epochs, optimizer, etc.)"
-    )
-
-class ComponentGraph(BaseModel):
-    components: List[Component] = Field(description="List of all structural architecture components extracted from the method section")
+from schemas import Component, ComponentGraph
 
 # Define LangGraph State
 class AgentState(TypedDict):
@@ -44,6 +30,15 @@ def run_decomposition_agent(parsed_sections: dict, model_name: str = "qwen2.5-co
                 experiments_content = parsed_sections[key]
                 break
 
+    # Truncate Experiments section to only keep subsection A (Implementation Details)
+    # This removes redundant evaluation metrics and dataset descriptions, saving context tokens
+    if experiments_content:
+        cutoff = experiments_content.find("B. Evaluation")
+        if cutoff == -1:
+            cutoff = experiments_content.find("B. ")
+        if cutoff != -1:
+            experiments_content = experiments_content[:cutoff]
+
     if not method_content:
         raise ValueError("Error: Method section (e.g., 'III. METHOD') was not found in the parsed paper sections.")
 
@@ -55,21 +50,28 @@ def run_decomposition_agent(parsed_sections: dict, model_name: str = "qwen2.5-co
     # Prompt instructing the LLM
     prompt = (
         "You are an expert machine learning architect. Your task is to analyze the METHOD and EXPERIMENTS sections of a research paper "
-        "and decompose its architecture into a structured component graph.\n\n"
+        "and decompose its architecture into its specific, named sub-components (a component graph).\n\n"
         f"--- METHOD SECTION CONTENT ---\n{method_content}\n\n"
         f"--- EXPERIMENTS SECTION CONTENT ---\n{experiments_content}\n\n"
         "Instructions:\n"
-        "Identify and extract all core components. Categorize each component type as one of:\n"
-        "- 'encoder' (e.g., visual encoders, backbones)\n"
-        "- 'fusion' (e.g., cross-attention modules, feature fusions, bridges)\n"
-        "- 'decoder' (e.g., mask heads, segmentation decoders)\n"
-        "- 'loss' (e.g., cross-entropy losses, custom distance metrics)\n"
-        "- 'training' (e.g., optimizer, learning rate schedule, batch size, training epochs)\n\n"
-        "For each component, extract its name, description, inputs, outputs, and any mentioned hyperparameters.\n\n"
+        "1. Identify and extract each specific, named sub-component defined in the paper. "
+        "Do NOT group them into generic category names (like 'Encoder' or 'Fusion'). Instead, extract specific components "
+        "such as 'Swin Transformer (RFN)', 'RemoteCLIP / CLIP Image Encoder', 'Side Fusion Network (SFN)', 'Bridging Module', 'Context Optimization (CoOp)', 'Change Feature Calculation (CFC) module', 'Swin Transformer Decoder', 'Cross-Entropy Loss', 'Optimizer', etc.\n\n"
+        "2. Categorize each component's 'type' field as one of:\n"
+        "- 'encoder' (e.g., visual backbones, text encoders)\n"
+        "- 'fusion' (e.g., cross-attention, feature fusion modules, bridging modules, context decoders)\n"
+        "- 'decoder' (e.g., segmentation decoders, mask heads)\n"
+        "- 'loss' (e.g., custom losses, cross-entropy)\n"
+        "- 'training' (e.g., optimizer, learning rate scheduler, training steps)\n\n"
+        "3. For each component, extract its specific paper-defined name, description, inputs, outputs, and its parameters.\n\n"
+        "For each parameter, extract: \n"
+        "- 'value': The concrete value/number (e.g., '24', '0.001', '512', or 'Not specified' if not found in the text).\n"
+        "- 'confidence': 'CONFIRMED' if the value is explicitly stated in the text. Use 'ASSUMED' if the value is not explicitly stated (and you had to set it to 'Not specified' or use standard defaults).\n"
+        "- 'rationale': A brief explanation of how you found the value or why it is marked as 'Not specified'.\n\n"
         "CRITICAL WARNING:\n"
         "- Extract only CONCRETE values and numbers mentioned in the text (e.g., batch_size: '24', learning_rate: '0.001', epochs: '250', width: '512').\n"
         "- Do NOT use template variables or placeholders like '{batch_size}', '{learning_rate}', or '{width}'.\n"
-        "- If a hyperparameter value is not mentioned in the text, use 'Not specified' or omit it, but NEVER generate curly-brace placeholders."
+        "- If a hyperparameter value is not mentioned in the text, use 'Not specified' and set confidence to 'ASSUMED', but NEVER generate curly-brace placeholders."
     )
 
     print("Sending request to local Ollama for structured method decomposition...")

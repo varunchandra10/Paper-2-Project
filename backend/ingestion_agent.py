@@ -2,21 +2,9 @@ import os
 import json
 import sys
 from typing import List, TypedDict
-from pydantic import BaseModel, Field
 from langchain_ollama import ChatOllama
 from langgraph.graph import StateGraph, START, END
-
-# Define Pydantic schema for structured output
-class SectionInfo(BaseModel):
-    title: str = Field(description="The exact title of the section (e.g., 'I. INTRODUCTION', 'III. METHOD')")
-    character_count: int = Field(description="Length of the section content in characters")
-
-class PaperMetadata(BaseModel):
-    title: str = Field(description="The official title of the research paper")
-    authors: List[str] = Field(description="List of author names extracted from the paper")
-    abstract: str = Field(description="The full abstract of the paper")
-    sections_found: List[SectionInfo] = Field(description="List of all sections parsed in the paper")
-    primary_contribution: str = Field(description="A concise summary (2-3 sentences) of the paper's primary contribution")
+from schemas import SectionInfo, PaperMetadata
 
 # Define LangGraph State
 class AgentState(TypedDict):

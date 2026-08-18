@@ -4,6 +4,7 @@ import sys
 
 # Add parent directory to path to allow importing from backend
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from schemas import ComponentGraph
 from decomposition_agent import graph
 
 def test_decomposition():
@@ -41,8 +42,13 @@ def test_decomposition():
             print(f"    Description: {comp.description}")
             print(f"    Inputs: {comp.inputs}")
             print(f"    Outputs: {comp.outputs}")
-            if comp.hyperparameters:
-                print(f"    Hyperparameters: {comp.hyperparameters}")
+            if comp.parameters:
+                print("    Parameters:")
+                for param_name, details in comp.parameters.items():
+                    print(f"        - {param_name}:")
+                    print(f"            Value: {details.value}")
+                    print(f"            Confidence: {details.confidence}")
+                    print(f"            Rationale: {details.rationale}")
                 
         print(f"\nSaved structured component graph to: {output_path}")
     else:

@@ -44,3 +44,47 @@ Ran `backend/ingestion_agent.py` on the parsed JSON output from Day 1:
   * **Primary Contribution:** Successfully summarized the core idea (proposed VLCD visual-language change detection method and state-of-the-art results on three datasets) in 2 sentences.
   * **Sections Found:** Cleanly mapped all 6 major sections and their exact character counts.
 
+---
+
+## 📅 Day 3 — Method Decomposition Agent
+
+### Implementation Details
+We implemented the Method Decomposition Agent to extract a structured component graph from the paper's main architectural descriptions:
+* **Pydantic Graph Structure:** Defined `Component` and `ComponentGraph` models mapping components (name, type, description, inputs, outputs, hyperparameters) and their connections.
+* **Context Fusing:** Configured the agent to receive both the `Method` and `Experiments` sections, allowing the local LLM to extract both structural blocks and training parameters.
+* **Prompt Enforcements:** Added rules to strictly extract concrete hyperparameters (e.g. batch size `24`, epochs `250`) and prevent the LLM from outputting template variable placeholders (like `"{batch_size}"`).
+* **Test Isolation:** Relocated testing scripts into a modular `backend/tests/` folder for clean verification and future regression testing.
+
+### Verification Results
+Ran `python backend/tests/test_decomposition.py` on the parsed sections:
+* **Output File:** Successfully generated the architectural graph in [`vlcd_paper_components.json`](file:///c:/Users/kvcsu_ht23nk8/OneDrive/Desktop/all_Projects/Projects/agentic_projects/Paper-2-Project/backend/papers/vlcd_paper_components.json).
+* **Extraction Quality:** Correctly isolated 9 distinct components, mapping their inputs, outputs, and exact hyperparameters (e.g. `optimizer: 'AdamW'`, `learning_rate: '0.001'`, `batch_size: '24'`).
+
+---
+
+## 📅 Day 4 — Validation Checkpoint 1 🔒
+
+### Validation Process
+We manually cross-referenced the component graph outputted in `vlcd_paper_components.json` on Day 3 against the ground-truth VLCD paper specifications.
+
+### Results
+* **Core Components Isolated:** Correctly identified the frozen base encoder `RemoteCLIP / CLIP Image Encoder`, the visual backbone `Swin Transformer (RFN)`, and the parameter-efficient adapter layers `Side Fusion Network (SFN)`.
+* **Sub-Modules Mapped:** Correctly identified the intermediate `Bridging Module`, text prompt learning `Context Optimization (CoOp)`, and pixel-level relevance map computation `Change Feature Calculation (CFC) module`.
+* **Validation Outcome:** **PASS**. The LLM correctly mapped the inputs and outputs of each module and cleanly extracted concrete hyperparameters.
+
+---
+
+## 📅 Day 5 — Gap-Finding Agent
+
+### Implementation Details
+We developed the Gap-Finding Agent to scan the decomposed component graph for missing or unspecified hyperparameters, query web search and code APIs, and reason about confidence levels:
+* **Centralized Schemas:** Created [`backend/schemas.py`](file:///c:/Users/kvcsu_ht23nk8/OneDrive/Desktop/all_Projects/Projects/agentic_projects/Paper-2-Project/backend/schemas.py) to centralize all Pydantic models. Modified the `Component` model to store hyperparameters in a structured `parameters` dictionary mapping names to `ParameterDetails` objects (containing `value`, `confidence`, and `rationale` fields).
+* **Gap-Finding Logic:** Created [`backend/gap_agent.py`](file:///c:/Users/kvcsu_ht23nk8/OneDrive/Desktop/all_Projects/Projects/agentic_projects/Paper-2-Project/backend/gap_agent.py). This script parses the component graph, flags unspecified parameters, constructs targeted queries, and queries the Tavily (web search) and GitHub (code search) APIs.
+* **Offline Fallback & Package-Free env Loader:** Integrated a custom environment loader to parse `.env` files for keys without external dependencies. Programmed local LLM decoding rules to fallback to standard machine learning defaults (e.g. Swin-T default patch size) if search keys are missing, preventing runtime crashes.
+* **Harness & Automation:** Created [`backend/tests/test_gap.py`](file:///c:/Users/kvcsu_ht23nk8/OneDrive/Desktop/all_Projects/Projects/agentic_projects/Paper-2-Project/backend/tests/test_gap.py) to test the agent, and template [`backend/.env.example`](file:///c:/Users/kvcsu_ht23nk8/OneDrive/Desktop/all_Projects/Projects/agentic_projects/Paper-2-Project/backend/.env.example).
+
+### Verification Results
+Ran `python backend/tests/test_gap.py`:
+* **Output File:** Successfully generated the gap-filled component graph in [`vlcd_paper_gap_filled.json`](file:///c:/Users/kvcsu_ht23nk8/OneDrive/Desktop/all_Projects/Projects/agentic_projects/Paper-2-Project/backend/papers/vlcd_paper_gap_filled.json).
+* **Tagging Accuracy:** Confirmed parameters like word embedding width `512` as `CONFIRMED`, successfully resolved prompt length `M = 100` as `CONFIRMED` based on search context, and kept unknown modules tagged as `ASSUMED` with fallback rationales, matching our expected test outcomes.
+
