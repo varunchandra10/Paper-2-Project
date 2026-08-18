@@ -4,3 +4,9 @@
 __pycache__/
 
 /backend/papers
+
+.env
+.env*
+*.env
+backend/.env
+backend/.env*
