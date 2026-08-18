@@ -8,7 +8,7 @@ import multiprocessing
 # Add parent directory to path to allow importing from backend
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from schemas import PipelineOutput
-from feasibility_agent import graph
+from agents.feasibility_agent import graph
 
 from utils import detect_gpu, detect_system_ram
 

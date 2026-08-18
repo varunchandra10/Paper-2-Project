@@ -1,4 +1,4 @@
-# Validation Checkpoint 1 — Core Architecture Verification
+# Validation Checkpoint 1 - Core Architecture Verification
 
 This document records the manual cross-reference check of the Method Decomposition Agent's output graph against the ground-truth thesis implementation specifications (`VLCD → E-SGCD`).
 

@@ -5,7 +5,7 @@ import sys
 # Add parent directory to path to allow importing from backend
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from schemas import PipelineOutput, FeasibilityReport
-from sequencing_agent import graph
+from agents.sequencing_agent import graph
 
 def test_sequencing():
     input_pipeline_path = "backend/papers/vlcd_full_pipeline_output.json"
