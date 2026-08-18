@@ -140,6 +140,13 @@ def test_feasibility():
         for idx, rec in enumerate(report.recommendations, 1):
             print(f"  [{idx}] {rec}")
             
+        if report.alternatives:
+            print("\n💡 Suggested Cloud Alternatives (To run or scale your project for free):")
+            for idx, alt in enumerate(report.alternatives, 1):
+                print(f"  [{idx}] Platform: {alt.platform_name}")
+                print(f"      Description: {alt.description}")
+                print(f"      How to Use: {alt.how_to_use}")
+            
         print(f"\nSaved feasibility report JSON to: {output_path}")
     else:
         print("Error: Feasibility validation returned empty report.", file=sys.stderr)

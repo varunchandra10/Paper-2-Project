@@ -36,7 +36,9 @@ def run_feasibility_agent(component_graph: ComponentGraph, constraints: dict, mo
         "   - 'IMPOSSIBLE': Cannot run due to complete lack of hardware support (e.g. requires >24GB VRAM but user has 4GB VRAM).\n"
         "4. For any component marked with WARNING or IMPOSSIBLE, provide a concrete 'suggested_substitute' "
         "(e.g., 'Freeze Swin backbone and use SFN/adapter layers instead of full fine-tuning', 'Reduce batch size to 4 and use gradient accumulation', 'Substitute Swin Transformer with a lighter ResNet-18 or Swin-T backbone').\n"
-        "5. Compile the findings into a list of actionable recommendations."
+        "5. Compile the findings into a list of actionable recommendations.\n"
+        "6. Suggest a list of free or low-cost cloud alternatives (like Google Colab, Kaggle Kernels, or Groq LPU) where the user can run this project if their local hardware is limited. "
+        "For each platform, provide its description (VRAM / CPU specs / free credits) and step-by-step setup instructions to run this project."
     )
     
     print("Sending request to local Ollama for feasibility validation...")

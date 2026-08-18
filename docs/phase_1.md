@@ -103,4 +103,48 @@ Ran `python backend/tests/test_pipeline.py`:
 * **Output File:** Successfully generated the consolidated results in [`vlcd_full_pipeline_output.json`](file:///c:/Users/kvcsu_ht23nk8/OneDrive/Desktop/all_Projects/Projects/agentic_projects/Paper-2-Project/backend/papers/vlcd_full_pipeline_output.json).
 * **Audit Success:** Audited the output and verified that **zero unconfirmed values are stated as facts** (8 parameters are explicitly confirmed from the paper context, 0 are inferred, and 6 unspecified architectural blocks are properly tracked under the `ASSUMED` confidence tier with clear rationales).
 
+---
+
+## 📅 Day 7 — Feasibility Agent
+
+### Implementation Details
+We implemented the Feasibility Agent to validate architectural demands against hardware profiles:
+* **Feasibility Schema:** Added `ComponentFeasibility` and `FeasibilityReport` to `schemas.py` using structured flat list Pydantic structures to avoid GPU JIT compilation crashes.
+* **Validator Node:** Created [`backend/feasibility_agent.py`](file:///c:/Users/kvcsu_ht23nk8/OneDrive/Desktop/all_Projects/Projects/agentic_projects/Paper-2-Project/backend/feasibility_agent.py) which evaluates the components and training parameters of `ComponentGraph` against a constraints dictionary.
+* **Dynamic Hardware Profiler:** Updated [`backend/tests/test_feasibility.py`](file:///c:/Users/kvcsu_ht23nk8/OneDrive/Desktop/all_Projects/Projects/agentic_projects/Paper-2-Project/backend/tests/test_feasibility.py) to dynamically query system specs. It queries PyTorch CUDA properties and falls back to `nvidia-smi` and PowerShell CIM queries to fetch the exact GPU name, VRAM, system RAM, and CPU count on Windows 11.
+
+### Verification Results
+Ran `python backend/tests/test_feasibility.py`:
+* **Output File:** Successfully generated [`vlcd_feasibility_report.json`](file:///c:/Users/kvcsu_ht23nk8/OneDrive/Desktop/all_Projects/Projects/agentic_projects/Paper-2-Project/backend/papers/vlcd_feasibility_report.json).
+* **Validation Outcome:** **PASS**. Successfully detected system specs (RTX 5050 Laptop GPU, 8.0 GB VRAM, 23.6 GB System RAM, 16 CPU cores) and flagged visual backbone compute bottlenecks, recommending substitutions.
+
+---
+
+## 📅 Day 8 — Validation Checkpoint 2 (Strongest Evidence) 🔒
+
+### Validation Process
+We conducted a strict comparison between the agent's output (`vlcd_feasibility_report.json`) and your real thesis notes (`RemoteCLIP → lightweight head swap`) to identify agreement and divergence.
+
+### Results
+* **Audit File:** Created [`docs/validation_checkpoint_2.md`](file:///c:/Users/kvcsu_ht23nk8/OneDrive/Desktop/all_Projects/Projects/agentic_projects/Paper-2-Project/docs/validation_checkpoint_2.md) detailing the comparison table.
+* **Core Agreement:** **PASS**. The agent independently identified the backbone VRAM constraint and recommended substituting the CNN-transformer BiT backbone with a lightweight backbone (`Swin-T` or `ResNet-18`) and simplifying the decoder.
+* **Divergence Noted:** The agent suggested unfreezing the CLIP text encoder for training; however, the real thesis methodology correctly keeps it frozen to preserve memory. This correction will be enforced during the sequencing phase.
+
+---
+
+## 📅 Day 9 — Build Sequencing Agent
+
+### Implementation Details
+We implemented the Build Sequencing Agent to compile a dependency-ordered series of implementation milestones:
+* **Sequencing Schema:** Added `Milestone` and `BuildSequence` Pydantic models to `schemas.py`.
+* **Build Sequencing Node:** Created [`backend/sequencing_agent.py`](file:///c:/Users/kvcsu_ht23nk8/OneDrive/Desktop/all_Projects/Projects/agentic_projects/Paper-2-Project/backend/sequencing_agent.py). This node prompts `qwen2.5-coder:1.5b` to convert the component graph and feasibility report into structured milestones following the "cheap/quick validation first" principle.
+* **Test Runner:** Created [`backend/tests/test_sequencing.py`](file:///c:/Users/kvcsu_ht23nk8/OneDrive/Desktop/all_Projects/Projects/agentic_projects/Paper-2-Project/backend/tests/test_sequencing.py) to parse the inputs and write the structured build plan.
+
+### Verification Results
+Ran `python backend/tests/test_sequencing.py`:
+* **Output File:** Successfully generated the plan in [`vlcd_build_sequence.json`](file:///c:/Users/kvcsu_ht23nk8/OneDrive/Desktop/all_Projects/Projects/agentic_projects/Paper-2-Project/backend/papers/vlcd_build_sequence.json).
+* **Validation Outcome:** **PASS**. The generated plan schedules 5 ordered milestones. It prioritizes low-cost tasks (like Milestone 1: Data Parsing & PyTorch Loaders and Milestone 2: Loss Function Checks) before moving to loaded backbone setups (Milestone 3), lightweight adapter integrations (Milestone 4), and high-compute training runs (Milestone 5).
+
+
+
 
