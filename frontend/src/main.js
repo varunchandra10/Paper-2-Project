@@ -1,4 +1,4 @@
-const { app, BrowserWindow, screen, ipcMain } = require('electron');
+const { app, BrowserWindow, screen, ipcMain, globalShortcut, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -71,57 +71,237 @@ function getTaskbarPosition() {
     return null;
 }
 
-// --- Window Creation ---
-function createMascotWindow() {
-    const primaryDisplay = screen.getPrimaryDisplay();
-    const { width: screenWidth, height: screenHeight } = primaryDisplay.size;
-    const workArea = primaryDisplay.workArea;
-    const scaleFactor = primaryDisplay.scaleFactor || 1.0;
+// --- Window Creation & DPI/Multi-Monitor Management ---
+let currentDisplayId = null;
+let currentScaleFactor = 1.0;
 
-    // Default dimensions for the mascot (DPI aware)
-    const mascotWidth = Math.round(150 * scaleFactor);
-    const mascotHeight = Math.round(180 * scaleFactor);
+function positionMascotDefault(nearestDisplay) {
+    if (!mascotWindow) return;
 
-    // Initial positioning: Default to bottom-right
-    let posX = screenWidth - mascotWidth - Math.round(20 * scaleFactor);
-    let posY = screenHeight - mascotHeight - Math.round(60 * scaleFactor);
+    const scaleFactor = nearestDisplay.scaleFactor || 1.0;
+    const { width: screenWidth, height: screenHeight, x: displayX, y: displayY } = nearestDisplay.bounds;
 
-    // Dynamic positioning using Win32 API
+    currentDisplayId = nearestDisplay.id;
+    currentScaleFactor = scaleFactor;
+
+    const mascotWidth = Math.round(120 * scaleFactor);
+    const mascotHeight = Math.round(144 * scaleFactor);
+
+    // Initial position on monitor: Bottom-Right
+    let posX = displayX + screenWidth - mascotWidth - Math.round(20 * scaleFactor);
+    let posY = displayY + screenHeight - mascotHeight - Math.round(60 * scaleFactor);
+
     const taskbar = getTaskbarPosition();
-    if (taskbar) {
-        // If taskbar is on the right side, position just to the left of it
+    const primaryDisplay = screen.getPrimaryDisplay();
+
+    // Win32 API taskbar checks apply to primary display
+    if (taskbar && nearestDisplay.id === primaryDisplay.id) {
         if (taskbar.edge === 2) {
             posX = taskbar.left - mascotWidth - Math.round(10 * scaleFactor);
-            posY = screenHeight - mascotHeight - Math.round(20 * scaleFactor);
+            posY = displayY + screenHeight - mascotHeight - Math.round(20 * scaleFactor);
         } else {
-            // Taskbar is at bottom, top, or left. Mascot stays on the right side of the screen.
-            posX = screenWidth - mascotWidth - Math.round(20 * scaleFactor);
+            posX = displayX + screenWidth - mascotWidth - Math.round(20 * scaleFactor);
             if (taskbar.edge === 3) {
-                // Bottom taskbar
                 posY = taskbar.top - mascotHeight;
             } else {
-                // Top or Left taskbar
-                posY = screenHeight - mascotHeight - Math.round(20 * scaleFactor);
+                posY = displayY + screenHeight - mascotHeight - Math.round(20 * scaleFactor);
             }
         }
     } else {
-        // Fallback using cross-platform workArea
+        // Fallback or secondary display using workArea (excludes native taskbars)
+        const workArea = nearestDisplay.workArea;
         posX = workArea.x + workArea.width - mascotWidth - Math.round(10 * scaleFactor);
         posY = workArea.y + workArea.height - mascotHeight;
     }
 
-    mascotWindow = new BrowserWindow({
-        width: mascotWidth,
-        height: mascotHeight,
+    mascotWindow.setBounds({
         x: posX,
         y: posY,
-        type: 'toolbar', // Prevents showing window control menus on taskbar
+        width: mascotWidth,
+        height: mascotHeight
+    });
+}
+
+function handleMonitorChange(nearestDisplay) {
+    if (!mascotWindow) return;
+
+    const scaleFactor = nearestDisplay.scaleFactor || 1.0;
+
+    // Check if we've already scaled/positioned for this display and scale
+    if (nearestDisplay.id === currentDisplayId && scaleFactor === currentScaleFactor) {
+        return;
+    }
+
+    currentDisplayId = nearestDisplay.id;
+    currentScaleFactor = scaleFactor;
+
+    const mascotWidth = Math.round(120 * scaleFactor);
+    const mascotHeight = Math.round(144 * scaleFactor);
+    const bounds = mascotWindow.getBounds();
+
+    // Resize window to match the new monitor DPI scale while keeping its custom drag coordinates
+    mascotWindow.setBounds({
+        x: bounds.x,
+        y: bounds.y,
+        width: mascotWidth,
+        height: mascotHeight
+    });
+}
+
+// --- Global IPC Listeners (Single Registration) ---
+ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) {
+        win.setIgnoreMouseEvents(ignore, options);
+    }
+});
+
+ipcMain.on('drag-window', (event, delta) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) {
+        const bounds = win.getBounds();
+        const targetWidth = Math.round(120 * currentScaleFactor);
+        const targetHeight = Math.round(144 * currentScaleFactor);
+        
+        // Move window but strictly lock dimensions to target size
+        win.setBounds({
+            x: bounds.x + delta.deltaX,
+            y: bounds.y + delta.deltaY,
+            width: targetWidth,
+            height: targetHeight
+        });
+    }
+});
+
+ipcMain.on('drag-end', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) {
+        const bounds = win.getBounds();
+        console.log(`[Drag End] Final bounds: [${bounds.x}, ${bounds.y}, ${bounds.width}, ${bounds.height}]`);
+        const centerPoint = {
+            x: bounds.x + bounds.width / 2,
+            y: bounds.y + bounds.height / 2
+        };
+        const activeDisplay = screen.getDisplayNearestPoint(centerPoint);
+        handleMonitorChange(activeDisplay);
+    }
+});
+
+ipcMain.on('toggle-panel', () => {
+    togglePanel();
+});
+
+ipcMain.on('upload-pdf', (event, { filePath, type }) => {
+    try {
+        if (!filePath || typeof filePath !== 'string') {
+            throw new Error("Invalid or empty file path received.");
+        }
+        const uploadsDir = path.join(__dirname, 'uploads');
+        if (!fs.existsSync(uploadsDir)) {
+            fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+
+        const filename = path.basename(filePath);
+        const destPath = path.join(uploadsDir, filename);
+
+        // Copy file locally to uploads folder
+        fs.copyFileSync(filePath, destPath);
+
+        event.reply('upload-status', { success: true, filename, type });
+    } catch (err) {
+        console.error("File upload/copy error:", err);
+        event.reply('upload-status', { success: false, error: err.message, type });
+    }
+});
+
+ipcMain.on('open-file-selector', (event, type) => {
+    const isDocx = (type === 'docx');
+    const dialogFilters = isDocx 
+        ? [ { name: 'Word Documents', extensions: ['docx', 'doc'] } ]
+        : [ { name: 'PDF Papers', extensions: ['pdf'] } ];
+
+    dialog.showOpenDialog({
+        properties: ['openFile'],
+        filters: dialogFilters
+    }).then(result => {
+        if (!result.canceled && result.filePaths.length > 0) {
+            const filePath = result.filePaths[0];
+            const filename = path.basename(filePath);
+
+            try {
+                const uploadsDir = path.join(__dirname, 'uploads');
+                if (!fs.existsSync(uploadsDir)) {
+                    fs.mkdirSync(uploadsDir, { recursive: true });
+                }
+
+                const destPath = path.join(uploadsDir, filename);
+                fs.copyFileSync(filePath, destPath);
+
+                event.reply('upload-status', { success: true, filename, type });
+            } catch (err) {
+                event.reply('upload-status', { success: false, error: err.message, type });
+            }
+        }
+    }).catch(err => {
+        console.error("File dialog error:", err);
+        event.reply('upload-status', { success: false, error: err.message, type });
+    });
+});
+
+// --- Sidebar Control Panel Window ---
+let panelWindow = null;
+
+function getPanelPosition(scaleFactor, workArea) {
+    const panelWidth = Math.round(340 * scaleFactor);
+    const panelHeight = Math.round(480 * scaleFactor);
+
+    if (mascotWindow) {
+        try {
+            const mascotBounds = mascotWindow.getBounds();
+            // Center the panel horizontally relative to the mascot
+            let posX = mascotBounds.x + Math.round((mascotBounds.width - panelWidth) / 2);
+            // Clamp horizontal bounds within the screen workArea
+            posX = Math.min(posX, workArea.x + workArea.width - panelWidth - Math.round(10 * scaleFactor));
+            posX = Math.max(posX, workArea.x + Math.round(10 * scaleFactor));
+
+            // Position directly above the mascot's head (with an 8px spacing gap)
+            let posY = mascotBounds.y - panelHeight - Math.round(8 * scaleFactor);
+            // If it goes off the top of the monitor, push it down but keep it within bounds
+            if (posY < workArea.y) {
+                posY = workArea.y + Math.round(10 * scaleFactor);
+            }
+
+            return { x: posX, y: posY, width: panelWidth, height: panelHeight };
+        } catch (e) {
+            console.error("Failed to read mascot bounds during panel positioning:", e);
+        }
+    }
+
+    // Default Fallback: Bottom-right of screen
+    return {
+        x: workArea.x + workArea.width - panelWidth - Math.round(10 * scaleFactor),
+        y: workArea.y + workArea.height - panelHeight - Math.round(10 * scaleFactor),
+        width: panelWidth,
+        height: panelHeight
+    };
+}
+
+function createPanelWindow() {
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const workArea = primaryDisplay.workArea;
+    const scaleFactor = primaryDisplay.scaleFactor || 1.0;
+
+    const bounds = getPanelPosition(scaleFactor, workArea);
+
+    panelWindow = new BrowserWindow({
+        width: bounds.width,
+        height: bounds.height,
+        x: bounds.x,
+        y: bounds.y,
         frame: false,
-        transparent: true,
-        alwaysOnTop: true,
         resizable: false,
-        skipTaskbar: true,
-        hasShadow: false,
+        alwaysOnTop: true,
+        show: false, // Start hidden
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
@@ -129,18 +309,93 @@ function createMascotWindow() {
         }
     });
 
-    mascotWindow.loadFile(path.join(__dirname, 'mascot.html'));
+    // Make the panel standard floating level, so the mascot ('screen-saver') overlays it
+    panelWindow.setAlwaysOnTop(true, 'floating');
 
-    // Handle mouse pass-through regions programmatically
-    ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
-        const win = BrowserWindow.fromWebContents(event.sender);
-        if (win) {
-            win.setIgnoreMouseEvents(ignore, options);
+    panelWindow.loadFile(path.join(__dirname, 'panel.html'));
+
+    panelWindow.on('closed', () => {
+        panelWindow = null;
+    });
+}
+
+function togglePanel() {
+    if (!panelWindow) {
+        createPanelWindow();
+    }
+
+    if (panelWindow.isVisible()) {
+        panelWindow.hide();
+    } else {
+        // Calculate fresh position relative to the mascot's current coordinates
+        const primaryDisplay = screen.getPrimaryDisplay();
+        const workArea = primaryDisplay.workArea;
+        const scaleFactor = primaryDisplay.scaleFactor || 1.0;
+        
+        const bounds = getPanelPosition(scaleFactor, workArea);
+
+        panelWindow.setBounds({
+            x: bounds.x,
+            y: bounds.y,
+            width: bounds.width,
+            height: bounds.height
+        });
+
+        panelWindow.show();
+        panelWindow.focus();
+    }
+}
+
+// --- Mascot Window Instantiation ---
+function createMascotWindow() {
+    // Spawn nearest to where the mouse cursor is located
+    const cursorPoint = screen.getCursorScreenPoint();
+    const nearestDisplay = screen.getDisplayNearestPoint(cursorPoint);
+    const scaleFactor = nearestDisplay.scaleFactor || 1.0;
+
+    const mascotWidth = Math.round(120 * scaleFactor);
+    const mascotHeight = Math.round(144 * scaleFactor);
+
+    mascotWindow = new BrowserWindow({
+        width: mascotWidth,
+        height: mascotHeight,
+        frame: false,
+        transparent: true,
+        alwaysOnTop: true,
+        resizable: false,
+        skipTaskbar: true,
+        hasShadow: false,
+        type: 'toolbar',
+        webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true,
+            preload: path.join(__dirname, 'preload.js')
         }
     });
 
+    // Initial default positioning
+    positionMascotDefault(nearestDisplay);
+
+    mascotWindow.loadFile(path.join(__dirname, 'mascot.html'));
+
+    // Monitor display settings (resolution / DPI changes)
+    const metricsListener = () => {
+        if (mascotWindow) {
+            const bounds = mascotWindow.getBounds();
+            const centerPoint = {
+                x: bounds.x + bounds.width / 2,
+                y: bounds.y + bounds.height / 2
+            };
+            const activeDisplay = screen.getDisplayNearestPoint(centerPoint);
+            currentDisplayId = null; // Force recalculation
+            handleMonitorChange(activeDisplay);
+        }
+    };
+    screen.on('display-metrics-changed', metricsListener);
+
     // Cleanup
     mascotWindow.on('closed', () => {
+        screen.off('display-metrics-changed', metricsListener);
         mascotWindow = null;
     });
 }
@@ -190,11 +445,21 @@ app.whenReady().then(() => {
     createMascotWindow();
     startActiveWindowPolling();
 
+    // Register global hotkey shortcut to toggle control panel
+    globalShortcut.register('CommandOrControl+Shift+P', () => {
+        togglePanel();
+    });
+
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
             createMascotWindow();
         }
     });
+});
+
+app.on('will-quit', () => {
+    // Unregister all global shortcut hooks
+    globalShortcut.unregisterAll();
 });
 
 app.on('window-all-closed', () => {
