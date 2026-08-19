@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Researcher Widget</title>
+    <style>
+        :root {
+            --bg-color: #121214;
+            --widget-bg: #1a1a1e;
+            --border-color: #2e2e36;
+            --text-main: #f4f4f5;
+            --text-muted: #a1a1aa;
+            --accent: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.3);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: var(--text-main);
+        }
+
+        /* Widget Container */
+        .widget-container {
+            width: 280px;
+            background: var(--widget-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px var(--accent-glow);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            user-select: none;
+        }
+
+        /* Header / Status Bar */
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-main);
+            font-weight: bold;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #10b981;
+            animation: pulse 2s infinite;
+        }
+
+        /* Character Stage Box */
+        .stage {
+            background: #111113;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            height: 220px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Pixel Art Character Animation */
+        .character {
+            width: 140px;
+            height: 180px;
+            image-rendering: pixelated;
+            position: relative;
+            transform-origin: bottom center;
+        }
+
+        /* State-based micro animations */
+        .character.idle {
+            animation: breathe 3s ease-in-out infinite;
+        }
+
+        .character.researching {
+            animation: type-bounce 0.6s ease-in-out infinite alternate;
+        }
+
+        .character.coffee {
+            animation: sip-tilt 2s ease-in-out infinite;
+        }
+
+        /* Controls / Footer */
+        .controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        button {
+            flex: 1;
+            background: #27272a;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            background: #3f3f46;
+            border-color: var(--accent);
+        }
+
+        button.active {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .subtext {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-align: center;
+            min-height: 14px;
+        }
+
+        /* Keyframes */
+        @keyframes breathe {
+            0%, 100% { transform: translateY(0) scaleY(1); }
+            50% { transform: translateY(-2px) scaleY(1.01); }
+        }
+
+        @keyframes type-bounce {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-3px) rotate(-1deg); }
+        }
+
+        @keyframes sip-tilt {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(3deg) translateY(-2px); }
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="widget-container">
+        <!-- Header -->
+        <div class="widget-header">
+            <span>RESEARCHER v1.0</span>
+            <div class="status-badge">
+                <div class="status-dot" id="dot"></div>
+                <span id="status-text">ACTIVE</span>
+            </div>
+        </div>
+
+        <!-- Visual Stage containing the Nerdy Man SVG -->
+        <div class="stage">
+            <div class="character idle" id="character-wrapper">
+                <!-- Inline Scalable Pixel-Styled Character Vector Graphics -->
+                <svg viewBox="0 0 70 90" width="100%" height="100%" style="shape-rendering: crispEdges;">
+                    <!-- Hair (Neat, Full, Brown) -->
+                    <rect x="23" y="10" width="24" height="6" fill="#4a3525"/>
+                    <rect x="20" y="13" width="30" height="8" fill="#5c4033"/>
+                    <rect x="18" y="17" width="8" height="10" fill="#5c4033"/>
+                    <rect x="44" y="17" width="8" height="10" fill="#5c4033"/>
+                    
+                    <!-- Head / Face -->
+                    <rect x="22" y="21" width="26" height="22" fill="#ffd1b3"/>
+                    
+                    <!-- Ears -->
+                    <rect x="19" y="29" width="3" height="6" fill="#e0b093"/>
+                    <rect x="48" y="29" width="3" height="6" fill="#e0b093"/>
+
+                    <!-- Glasses (Specs) -->
+                    <rect x="23" y="26" width="10" height="8" fill="none" stroke="#111" stroke-width="1.5"/>
+                    <rect x="37" y="26" width="10" height="8" fill="none" stroke="#111" stroke-width="1.5"/>
+                    <line x1="33" y1="29" x2="37" y2="29" stroke="#111" stroke-width="1.5"/>
+                    
+                    <!-- Eyes inside specs -->
+                    <rect x="26" y="29" width="3" height="3" fill="#111"/>
+                    <rect x="40" y="29" width="3" height="3" fill="#111"/>
+
+                    <!-- Nose & Mouth -->
+                    <rect x="33" y="34" width="4" height="3" fill="#e0b093"/>
+                    <rect x="31" y="40" width="8" height="2" fill="#b87a5a"/>
+
+                    <!-- Hoodie Body (Dark Charcoal/Blue) -->
+                    <rect x="20" y="43" width="30" height="32" fill="#1e293b"/>
+                    <!-- Hoodie Strings -->
+                    <rect x="29" y="45" width="2" height="7" fill="#cbd5e1"/>
+                    <rect x="39" y="45" width="2" height="7" fill="#cbd5e1"/>
+
+                    <!-- Text on Hoodie: "researcher" (Simplified pixel lettering simulation) -->
+                    <rect x="23" y="56" width="24" height="10" fill="#0f172a" rx="1"/>
+                    <text x="25" y="64" fill="#38bdf8" font-size="6" font-family="monospace" font-weight="bold">researcher</text>
+
+                    <!-- Arms / Hands typing or resting -->
+                    <rect x="14" y="52" width="7" height="18" fill="#1e293b"/>
+                    <rect x="49" y="52" width="7" height="18" fill="#1e293b"/>
+                    
+                    <!-- Legs / Base -->
+                    <rect x="26" y="75" width="6" height="12" fill="#0f172a"/>
+                    <rect x="38" y="75" width="6" height="12" fill="#0f172a"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Subtext description -->
+        <div class="subtext" id="subtext-label">Analyzing papers and code architecture...</div>
+
+        <!-- Interactive Control Buttons (Like Tablo's State Switchers) -->
+        <div class="controls">
+            <button class="active" onclick="setState('idle')">Idle</button>
+            <button onclick="setState('researching')">Researching</button>
+            <button onclick="setState('coffee')">Coffee Break</button>
+        </div>
+    </div>
+
+    <script>
+        function setState(state) {
+            const character = document.getElementById('character-wrapper');
+            const statusText = document.getElementById('status-text');
+            const subtext = document.getElementById('subtext-label');
+            const buttons = document.querySelectorAll('.controls button');
+
+            // Update active button styling
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Reset animation classes
+            character.className = 'character';
+
+            // Apply state specific changes
+            if (state === 'idle') {
+                character.classList.add('idle');
+                statusText.innerText = 'IDLE';
+                subtext.innerText = 'Standing by for queries...';
+            } else if (state === 'researching') {
+                character.classList.add('researching');
+                statusText.innerText = 'RESEARCHING';
+                subtext.innerText = 'Parsing documentation & papers...';
+            } else if (state === 'coffee') {
+                character.classList.add('coffee');
+                statusText.innerText = 'PAUSED';
+                subtext.innerText = 'Refueling with caffeine...';
+            }
+        }
+    </script>
+</body>
+</html>

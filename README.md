@@ -74,7 +74,7 @@ For a detailed breakdown of local model benchmarking performance comparison metr
 The build plan spans 28 days across 4 clean, sequential phases:
 
 * **Phase 1: Agentic Core (Days 1–14)** - [**COMPLETED**] PDF parsing, 6-stage LangGraph pipelines, local Ollama integration, active VRAM release, robust fallbacks, and multi-model benchmarking. See [Phase 1 Progress Log (docs/phase_1.md)](docs/phase_1.md).
-* **Phase 2: Desktop UI (Days 15–21)** - [**UP NEXT**] Electron framework, transparent frame window setup, Win32 taskbar queries, SVG character rigging, animations, and active-window polling.
+* **Phase 2: Desktop UI & Showcase Website (Days 15–21)** - [**IN PROGRESS**] Electron transparent window shell, Win32 taskbar queries, custom SVG scaling and animations, and a responsive Next.js landing website. See [Phase 2 Progress Log (docs/phase_2.md)](docs/phase_2.md).
 * **Phase 3: Integration & Streaming (Days 22–25)** - FastAPI bridge, Server-Sent Events (SSE) stream, and linking the mascot's animations to the agent's real-time activities.
 * **Phase 4: Packaging (Days 26–28)** - Compiling Python binaries with PyInstaller, building the NSIS installer via Electron Builder, dependency health checks, and VM testing.
 

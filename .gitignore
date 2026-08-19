@@ -13,3 +13,4 @@ backend/.env*
 
 frontend/node_modules
 website
+frontend/src/uploads
