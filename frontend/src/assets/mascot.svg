@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" width="200" height="240">
+  <defs>
+    <style>
+      .skin { fill: #FFDCB1; }
+      .hair { fill: #2C1810; }
+      .clothes-primary { fill: #1E293B; }
+      .clothes-secondary { fill: #38BDF8; }
+      .glasses { stroke: #0F172A; stroke-width: 3.5; fill: rgba(255,255,255,0.4); }
+      .outline { stroke: #0F172A; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <!-- Shadow Base -->
+  <ellipse cx="100" cy="225" rx="45" ry="8" fill="#E2E8F0"/>
+
+  <!-- Legs & Shoes -->
+  <g id="rig-legs" class="outline">
+    <path d="M 85 170 L 85 215 L 75 220" stroke="#0F172A" stroke-width="8" fill="none"/>
+    <path d="M 115 170 L 115 215 L 125 220" stroke="#0F172A" stroke-width="8" fill="none"/>
+  </g>
+
+  <!-- Torso & Clothing -->
+  <g id="rig-torso" class="outline">
+    <rect x="75" y="115" width="50" height="60" rx="10" class="clothes-primary"/>
+    <!-- Collar & Tie -->
+    <polygon points="100,125 90,115 110,115" class="clothes-secondary"/>
+    <polygon points="98,125 102,125 104,145 100,150 96,145" fill="#EF4444"/>
+  </g>
+
+  <!-- Left Arm (Pivot at shoulder) -->
+  <g id="rig-arm-left" class="outline">
+    <path d="M 75 125 Q 60 145 68 165" stroke="#1E293B" stroke-width="7" fill="none"/>
+    <circle cx="68" cy="167" r="5" class="skin"/>
+  </g>
+
+  <!-- Right Arm (Pivot holding prop) -->
+  <g id="rig-arm-right" class="outline">
+    <path d="M 125 125 Q 140 140 132 160" stroke="#1E293B" stroke-width="7" fill="none"/>
+    <circle cx="132" cy="162" r="5" class="skin"/>
+    <!-- Research Blueprint / Tablet Prop -->
+    <rect x="125" y="150" width="22" height="16" rx="2" fill="#38BDF8" transform="rotate(-15 136 158)"/>
+  </g>
+
+  <!-- Head Assembly -->
+  <g id="rig-head" class="outline">
+    <!-- Hair (Back Layer) -->
+    <path d="M 70 85 C 70 45, 130 45, 130 85 Z" class="hair"/>
+    
+    <!-- Face -->
+    <circle cx="100" cy="85" r="32" class="skin"/>
+    
+    <!-- Hair (Front Part) -->
+    <path d="M 72 75 Q 100 60 128 72 Q 115 52 85 55 Z" class="hair"/>
+
+    <!-- Eyes & Glasses -->
+    <rect x="76" y="74" width="20" height="16" rx="4" class="glasses"/>
+    <rect x="104" y="74" width="20" height="16" rx="4" class="glasses"/>
+    <line x1="96" y1="82" x2="104" y2="82" class="glasses"/>
+    <circle cx="86" cy="82" r="2.5" fill="#0F172A"/>
+    <circle cx="114" cy="82" r="2.5" fill="#0F172A"/>
+
+    <!-- Smile -->
+    <path d="M 94 98 Q 100 103 106 98" fill="none" stroke="#0F172A" stroke-width="2.5"/>
+  </g>
+</svg>

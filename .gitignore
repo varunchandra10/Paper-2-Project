@@ -10,3 +10,6 @@ __pycache__/
 *.env
 backend/.env
 backend/.env*
+
+frontend/node_modules
+website
