@@ -1,0 +1,162 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..500&family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  /* Fonts mapping */
+  --font-serif: "Fraunces", serif;       
+  --font-mono: "IBM Plex Mono", monospace;
+  --font-sans: "Space Grotesk", sans-serif;
+
+  /* Theme tokens */
+  --color-ink: var(--ink);
+  --color-parchment: var(--parchment);
+  --color-brass: var(--brass);
+  --color-confirmed: var(--confirmed);
+  --color-inferred: var(--inferred);
+  --color-assumed: var(--assumed);
+  --color-error: var(--error-color);
+
+  /* Theme-aware layout maps */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-border: var(--border);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  /* HUD Specific Animations */
+  --animate-scan: scan 3s linear infinite;
+  --animate-pulse-fast: pulse-fast 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  
+  @keyframes scan {
+    0% { transform: translateY(-100%); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(100%); opacity: 0; }
+  }
+
+  @keyframes pulse-fast {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+}
+
+:root {
+  /* Dark mode — cool graphite "instrument panel" */
+  --ink: #10121A;
+  --parchment: #E7EAF2;
+  --brass: #5B8DEF;          /* "signal blue" for the HUD accents */
+
+  --confirmed: #2FBEA6;
+  --inferred: #E7A73E;
+  --assumed: #7A8299;
+  --error-color: #E15366;
+
+  /* shadcn mappings */
+  --background: var(--ink);
+  --foreground: var(--parchment);
+  --card: #1B1E27;
+  --card-foreground: var(--parchment);
+  --popover: #1B1E27;
+  --popover-foreground: var(--parchment);
+  --primary: var(--brass);
+  --primary-foreground: var(--ink);
+  --secondary: var(--assumed);
+  --secondary-foreground: var(--parchment);
+  --muted: #262933;
+  --muted-foreground: var(--assumed);
+  --accent: var(--brass);
+  --accent-foreground: var(--ink);
+  --destructive: var(--error-color);
+  --destructive-foreground: var(--parchment);
+  --border: rgba(231, 234, 242, 0.12);
+  --input: rgba(231, 234, 242, 0.08);
+  --ring: var(--brass);
+  --radius: 0.5rem;
+}
+
+[data-theme="light"] {
+  /* Light mode — high contrast technical paper */
+  --ink: #12141B;
+  --parchment: #F3F5F9;
+  --brass: #3E68D8;
+
+  --confirmed: #1F9A82;
+  --inferred: #C98423;
+  --assumed: #5D6472;
+  --error-color: #C13B4E;
+
+  --background: var(--parchment);
+  --foreground: var(--ink);
+  --card: #FFFFFF;
+  --card-foreground: var(--ink);
+  --popover: #FFFFFF;
+  --popover-foreground: var(--ink);
+  --primary: var(--brass);
+  --primary-foreground: #F3F5F9;
+  --secondary: var(--assumed);
+  --secondary-foreground: var(--ink);
+  --muted: #E7EAF0;
+  --muted-foreground: var(--assumed);
+  --accent: var(--brass);
+  --accent-foreground: #F3F5F9;
+  --destructive: var(--error-color);
+  --destructive-foreground: #F3F5F9;
+  --border: rgba(18, 20, 27, 0.12);
+  --input: rgba(18, 20, 27, 0.08);
+  --ring: var(--brass);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* --- Theme-Aware Tech Scrollbars --- */
+::-webkit-scrollbar {
+  width: 4px; /* Slimmer, more technical scrollbar */
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent; /* Makes it look floating */
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 0px; /* Square edges for tech vibe */
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brass);
+  box-shadow: 0 0 8px var(--brass); /* Glow effect on hover */
+}
+
+/* Firefox standard scrollbar theme */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted-foreground) transparent;
+}
+
+/* --- HUD Reusable Utilities --- */
+@layer utilities {
+  .hud-grid {
+    background-image: radial-gradient(circle, currentColor 1px, transparent 1px);
+    background-size: 16px 16px;
+    opacity: 0.03;
+  }
+}

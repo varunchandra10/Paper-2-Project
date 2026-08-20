@@ -1,6 +1,10 @@
 const { app, BrowserWindow, screen, ipcMain, globalShortcut, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { spawn } = require('child_process');
+const http = require('http');
+
+let backendProcess = null;
 
 // Attempt to load native modules
 let koffi = null;
@@ -36,7 +40,7 @@ if (koffi) {
             rc: RECT,
             lParam: 'intptr_t'
         });
-        SHAppBarMessage = shell32.stdcall('SHAppBarMessage', 'uintptr_t', ['uint32', koffi.pointer(APPBARDATA)]);
+        SHAppBarMessage = shell32.func("__stdcall", 'SHAppBarMessage', 'uintptr_t', ['uint32', koffi.pointer(APPBARDATA)]);
     } catch (e) {
         console.error("Failed to map shell32.dll appbar bindings:", e);
     }
@@ -163,13 +167,26 @@ ipcMain.on('drag-window', (event, delta) => {
         const targetWidth = Math.round(120 * currentScaleFactor);
         const targetHeight = Math.round(144 * currentScaleFactor);
         
-        // Move window but strictly lock dimensions to target size
+        // Move mascot window
         win.setBounds({
             x: bounds.x + delta.deltaX,
             y: bounds.y + delta.deltaY,
             width: targetWidth,
             height: targetHeight
         });
+
+        // Synchronously move panel window in lockstep with fixed scaled dimensions
+        if (panelWindow && !panelWindow.isDestroyed() && panelWindow.isVisible()) {
+            const panelBounds = panelWindow.getBounds();
+            const panelW = Math.round(340 * currentScaleFactor);
+            const panelH = Math.round(480 * currentScaleFactor);
+            panelWindow.setBounds({
+                x: panelBounds.x + delta.deltaX,
+                y: panelBounds.y + delta.deltaY,
+                width: panelW,
+                height: panelH
+            });
+        }
     }
 });
 
@@ -177,19 +194,230 @@ ipcMain.on('drag-end', (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     if (win) {
         const bounds = win.getBounds();
-        console.log(`[Drag End] Final bounds: [${bounds.x}, ${bounds.y}, ${bounds.width}, ${bounds.height}]`);
         const centerPoint = {
             x: bounds.x + bounds.width / 2,
             y: bounds.y + bounds.height / 2
         };
         const activeDisplay = screen.getDisplayNearestPoint(centerPoint);
         handleMonitorChange(activeDisplay);
+
+        // Recalculate precise alignment snap above mascot head on drag end
+        if (panelWindow && !panelWindow.isDestroyed() && panelWindow.isVisible()) {
+            const scaleFactor = activeDisplay.scaleFactor || 1.0;
+            const workArea = activeDisplay.workArea;
+            const freshPanelBounds = getPanelPosition(scaleFactor, workArea);
+            panelWindow.setBounds(freshPanelBounds);
+        }
     }
 });
 
 ipcMain.on('toggle-panel', () => {
     togglePanel();
 });
+
+function sendMascotState(state) {
+    // Keep mascot sleeping while panel is closed/hidden or uninitialized
+    const isPanelOpen = panelWindow && !panelWindow.isDestroyed() && panelWindow.isVisible();
+    if (!isPanelOpen && state !== 'sleeping') {
+        return;
+    }
+    if (mascotWindow && !mascotWindow.isDestroyed()) {
+        mascotWindow.webContents.send('state-change', state);
+    }
+}
+
+function startBackendServer() {
+    const projectRoot = path.join(__dirname, '../../');
+    const appPath = path.join(projectRoot, 'backend/app.py');
+
+    let pythonExecutable = 'python';
+    const venvPythonPath = path.join(projectRoot, '.venv/Scripts/python.exe');
+    if (fs.existsSync(venvPythonPath)) {
+        pythonExecutable = venvPythonPath;
+    }
+
+    console.log(`[Main Process] Spawning FastAPI backend server using: ${pythonExecutable} at: ${appPath}`);
+
+    // Spawn python app.py which runs uvicorn
+    backendProcess = spawn(pythonExecutable, [appPath], {
+        cwd: path.join(projectRoot, 'backend'),
+        env: { ...process.env, PYTHONUNBUFFERED: '1' }
+    });
+
+    backendProcess.stdout.on('data', (data) => {
+        console.log(`[Backend Server Stdout] ${data.toString().trim()}`);
+    });
+
+    backendProcess.stderr.on('data', (data) => {
+        console.error(`[Backend Server Stderr] ${data.toString().trim()}`);
+    });
+
+    backendProcess.on('close', (code) => {
+        console.log(`[Backend Server] Subprocess exited with code ${code}`);
+    });
+}
+
+function postAnalyze(filePath, modelName, callback) {
+    const postData = JSON.stringify({
+        filePath: filePath,
+        modelName: modelName
+    });
+
+    const options = {
+        hostname: '127.0.0.1',
+        port: 8000,
+        path: '/analyze',
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(postData)
+        }
+    };
+
+    const req = http.request(options, (res) => {
+        let body = '';
+        res.on('data', (chunk) => body += chunk);
+        res.on('end', () => {
+            try {
+                const parsed = JSON.parse(body);
+                if (res.statusCode >= 400) {
+                    callback(new Error(parsed.detail || `Server returned error status ${res.statusCode}`));
+                } else {
+                    callback(null, parsed.run_id);
+                }
+            } catch (e) {
+                callback(new Error(`Failed to parse response: ${body}`));
+            }
+        });
+    });
+
+    req.on('error', (e) => {
+        callback(e);
+    });
+
+    req.write(postData);
+    req.end();
+}
+
+function postAnalyzeWithRetry(filePath, modelName, callback, retries = 5) {
+    postAnalyze(filePath, modelName, (err, runId) => {
+        if (err) {
+            if ((err.code === 'ECONNREFUSED' || err.code === 'ECONNRESET') && retries > 0) {
+                console.log(`[Main Process] Connection to backend refused/reset. Retrying in 1.5s... (${retries} left)`);
+                setTimeout(() => {
+                    postAnalyzeWithRetry(filePath, modelName, callback, retries - 1);
+                }, 1500);
+            } else {
+                callback(err);
+            }
+        } else {
+            callback(null, runId);
+        }
+    });
+}
+
+function listenToStream(runId, onLog, onMascotState, onCompleted, onFailed) {
+    const req = http.get(`http://127.0.0.1:8000/stream/${runId}`, (res) => {
+        let currentEvent = '';
+        let buffer = '';
+        
+        res.on('data', (chunk) => {
+            buffer += chunk.toString();
+            const lines = buffer.split('\n');
+            // Keep the last partial line in the buffer
+            buffer = lines.pop();
+
+            for (let line of lines) {
+                line = line.trim();
+                if (!line) continue;
+                
+                if (line.startsWith('event:')) {
+                    currentEvent = line.replace('event:', '').trim();
+                } else if (line.startsWith('data:')) {
+                    const dataStr = line.replace('data:', '').trim();
+                    if (currentEvent === 'log') {
+                        onLog(dataStr);
+                    } else if (currentEvent === 'mascot-state') {
+                        onMascotState(dataStr);
+                    } else if (currentEvent === 'completed') {
+                        try {
+                            const parsed = JSON.parse(dataStr);
+                            onCompleted(parsed.report);
+                        } catch (e) {
+                            onCompleted(dataStr);
+                        }
+                    } else if (currentEvent === 'failed') {
+                        try {
+                            const parsed = JSON.parse(dataStr);
+                            onFailed(parsed.error);
+                        } catch (e) {
+                            onFailed(dataStr);
+                        }
+                    }
+                }
+            }
+        });
+        
+        res.on('end', () => {
+            console.log(`[Main Process] SSE Stream finished for run ${runId}`);
+        });
+    });
+
+    req.on('error', (e) => {
+        console.error(`[Main Process] SSE Stream HTTP error:`, e);
+        onFailed(e.message);
+    });
+}
+
+function runPipelineOrchestrator(filename, destPath, type) {
+    if (!panelWindow) return;
+
+    panelWindow.webContents.send('pipeline-log', { text: `[System] Dispatching analysis job to FastAPI server...` });
+    sendMascotState('working');
+
+    // Use model 'qwen2.5-coder:1.5b' to match what was run previously
+    const targetModel = 'qwen2.5-coder:1.5b';
+
+    postAnalyzeWithRetry(destPath, targetModel, (err, runId) => {
+        if (err) {
+            console.error(`[Main Process] Failed to trigger pipeline analysis:`, err);
+            sendMascotState('sleeping');
+            panelWindow.webContents.send('pipeline-completed', { 
+                success: false, 
+                error: `Backend connection error: ${err.message}` 
+            });
+            return;
+        }
+
+        panelWindow.webContents.send('pipeline-log', { text: `[System] Job successfully scheduled (Run ID: ${runId}). Streaming logs...` });
+
+        listenToStream(
+            runId,
+            (logText) => {
+                panelWindow.webContents.send('pipeline-log', { text: logText });
+            },
+            (mascotState) => {
+                sendMascotState(mascotState);
+            },
+            (reportContent) => {
+                sendMascotState('idle');
+                panelWindow.webContents.send('pipeline-completed', {
+                    success: true,
+                    filename,
+                    type,
+                    reportContent
+                });
+            },
+            (errorMessage) => {
+                sendMascotState('sleeping');
+                panelWindow.webContents.send('pipeline-completed', {
+                    success: false,
+                    error: errorMessage
+                });
+            }
+        );
+    });
+}
 
 ipcMain.on('upload-pdf', (event, { filePath, type }) => {
     try {
@@ -207,7 +435,9 @@ ipcMain.on('upload-pdf', (event, { filePath, type }) => {
         // Copy file locally to uploads folder
         fs.copyFileSync(filePath, destPath);
 
+        sendMascotState('reading');
         event.reply('upload-status', { success: true, filename, type });
+        runPipelineOrchestrator(filename, destPath, type);
     } catch (err) {
         console.error("File upload/copy error:", err);
         event.reply('upload-status', { success: false, error: err.message, type });
@@ -229,24 +459,25 @@ ipcMain.on('open-file-selector', (event, type) => {
             const filename = path.basename(filePath);
 
             try {
-                const uploadsDir = path.join(__dirname, 'uploads');
-                if (!fs.existsSync(uploadsDir)) {
-                    fs.mkdirSync(uploadsDir, { recursive: true });
-                }
+                  const uploadsDir = path.join(__dirname, 'uploads');
+                  if (!fs.existsSync(uploadsDir)) {
+                      fs.mkdirSync(uploadsDir, { recursive: true });
+                  }
 
-                const destPath = path.join(uploadsDir, filename);
-                fs.copyFileSync(filePath, destPath);
+                  const destPath = path.join(uploadsDir, filename);
+                  fs.copyFileSync(filePath, destPath);
 
-                event.reply('upload-status', { success: true, filename, type });
-            } catch (err) {
-                event.reply('upload-status', { success: false, error: err.message, type });
-            }
-        }
-    }).catch(err => {
-        console.error("File dialog error:", err);
-        event.reply('upload-status', { success: false, error: err.message, type });
-    });
-});
+                  event.reply('upload-status', { success: true, filename, type });
+                  runPipelineOrchestrator(filename, destPath, type);
+              } catch (err) {
+                  event.reply('upload-status', { success: false, error: err.message, type });
+              }
+          }
+      }).catch(err => {
+          console.error("File dialog error:", err);
+          event.reply('upload-status', { success: false, error: err.message, type });
+      });
+  });
 
 // --- Sidebar Control Panel Window ---
 let panelWindow = null;
@@ -264,8 +495,8 @@ function getPanelPosition(scaleFactor, workArea) {
             posX = Math.min(posX, workArea.x + workArea.width - panelWidth - Math.round(10 * scaleFactor));
             posX = Math.max(posX, workArea.x + Math.round(10 * scaleFactor));
 
-            // Position directly above the mascot's head (with an 8px spacing gap)
-            let posY = mascotBounds.y - panelHeight - Math.round(8 * scaleFactor);
+            // Position panel bottom to leave a clean 16px (2-3 lines) gap above mascot's head
+            let posY = mascotBounds.y - panelHeight + Math.round(16 * scaleFactor);
             // If it goes off the top of the monitor, push it down but keep it within bounds
             if (posY < workArea.y) {
                 posY = workArea.y + Math.round(10 * scaleFactor);
@@ -312,10 +543,20 @@ function createPanelWindow() {
     // Make the panel standard floating level, so the mascot ('screen-saver') overlays it
     panelWindow.setAlwaysOnTop(true, 'floating');
 
-    panelWindow.loadFile(path.join(__dirname, 'panel.html'));
+    const distHtmlPath = path.join(__dirname, '../renderer/dist/index.html');
+    if (app.isPackaged || fs.existsSync(distHtmlPath)) {
+        panelWindow.loadFile(distHtmlPath);
+    } else {
+        panelWindow.loadURL('http://localhost:5173');
+    }
+
+    panelWindow.on('hide', () => {
+        sendMascotState('sleeping');
+    });
 
     panelWindow.on('closed', () => {
         panelWindow = null;
+        sendMascotState('sleeping');
     });
 }
 
@@ -326,6 +567,7 @@ function togglePanel() {
 
     if (panelWindow.isVisible()) {
         panelWindow.hide();
+        sendMascotState('sleeping');
     } else {
         // Calculate fresh position relative to the mascot's current coordinates
         const primaryDisplay = screen.getPrimaryDisplay();
@@ -343,6 +585,7 @@ function togglePanel() {
 
         panelWindow.show();
         panelWindow.focus();
+        sendMascotState('idle');
     }
 }
 
@@ -429,9 +672,9 @@ async function startActiveWindowPolling() {
                     ownerName.includes("chrome") && title.includes("paper");
 
                 if (isPaper) {
-                    mascotWindow.webContents.send('state-change', 'reading');
+                    sendMascotState('reading');
                 } else {
-                    mascotWindow.webContents.send('state-change', 'idle');
+                    sendMascotState('idle');
                 }
             }
         } catch (err) {
@@ -442,6 +685,7 @@ async function startActiveWindowPolling() {
 
 // --- Lifecycle Event Listeners ---
 app.whenReady().then(() => {
+    startBackendServer();
     createMascotWindow();
     startActiveWindowPolling();
 
@@ -460,6 +704,12 @@ app.whenReady().then(() => {
 app.on('will-quit', () => {
     // Unregister all global shortcut hooks
     globalShortcut.unregisterAll();
+
+    // Kill python backend server
+    if (backendProcess) {
+        console.log("[Main Process] Killing FastAPI backend server process...");
+        backendProcess.kill();
+    }
 });
 
 app.on('window-all-closed', () => {

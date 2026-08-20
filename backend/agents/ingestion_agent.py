@@ -29,7 +29,7 @@ def run_ingestion_agent(parsed_sections: dict, model_name: str = "qwen2.5-coder:
 
     # Initialize Ollama model with structured output
     print(f"Initializing ChatOllama with model '{model_name}'...")
-    llm = ChatOllama(model=model_name, temperature=0.0)
+    llm = ChatOllama(model=model_name, temperature=0.0, num_ctx=2048)
     structured_llm = llm.with_structured_output(PaperMetadata)
 
     # Prompt instructing the LLM
@@ -50,7 +50,7 @@ def run_ingestion_agent(parsed_sections: dict, model_name: str = "qwen2.5-coder:
             title="Unknown Remote Sensing Research Paper",
             authors=["Unknown Author"],
             abstract="Abstract could not be parsed automatically due to section absence or API limits.",
-            sections=[SectionInfo(heading=title, word_count=len(content)//5) for title, content in parsed_sections.items()],
+            sections_found=[SectionInfo(title=title, character_count=len(content)) for title, content in parsed_sections.items()],
             primary_contribution="Adaptive change detection for remote sensing images."
         )
     return metadata

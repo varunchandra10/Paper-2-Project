@@ -14,3 +14,11 @@ backend/.env*
 frontend/node_modules
 website
 frontend/src/uploads
+
+# Internal planning docs
+docs/versioned_plan.md
+docs/llm_api_reference.md
+docs/frontend_ui_plan.md
+docs/implementation_plan.md
+
+/mascot_transition_tester.html

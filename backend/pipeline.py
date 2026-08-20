@@ -54,14 +54,28 @@ def run_refinement(component_graph: ComponentGraph, feasibility_report: Feasibil
 
 def ingestion_node(state: PipelineState) -> dict:
     from agents.ingestion_agent import run_ingestion_agent
-    parsed_path = "backend/papers/vlcd_paper_parsed.json"
-    print(f"\n[Orchestrator] Step 1: Loading parsed sections from '{parsed_path}'...")
-    with open(parsed_path, "r", encoding="utf-8") as f:
-        raw_sections = json.load(f)
+    from parser import parse_pdf
+    
+    pdf_path = state["pdf_path"]
+    parsed_path = pdf_path.replace(".pdf", "_parsed.json")
+    
+    if not os.path.exists(parsed_path):
+        print(f"\n[Orchestrator] Step 1: Parsed sections JSON not found. Running parser on '{pdf_path}'...")
+        parsed_sections = parse_pdf(pdf_path)
+        if parsed_sections:
+            with open(parsed_path, "w", encoding="utf-8") as f:
+                json.dump(parsed_sections, f, indent=4, ensure_ascii=False)
+            print(f"[Orchestrator] Saved parsed sections to '{parsed_path}'")
+        else:
+            raise FileNotFoundError(f"Failed to parse PDF at '{pdf_path}'")
+    else:
+        print(f"\n[Orchestrator] Step 1: Loading existing parsed sections from '{parsed_path}'...")
+        with open(parsed_path, "r", encoding="utf-8") as f:
+            parsed_sections = json.load(f)
     
     model = state.get("model_name", "qwen2.5-coder:1.5b")
-    metadata = run_ingestion_agent(raw_sections, model_name=model)
-    return {"raw_sections": raw_sections, "metadata": metadata, "loop_count": 0}
+    metadata = run_ingestion_agent(parsed_sections, model_name=model)
+    return {"raw_sections": parsed_sections, "metadata": metadata, "loop_count": 0}
 
 def decomposition_node(state: PipelineState) -> dict:
     from agents.decomposition_agent import run_decomposition_agent
