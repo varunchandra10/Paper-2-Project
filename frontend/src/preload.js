@@ -31,5 +31,11 @@ contextBridge.exposeInMainWorld('mascotAPI', {
     },
     onStateChange: (callback) => {
         ipcRenderer.on('state-change', (event, state) => callback(state));
+    },
+    onPipelineLog: (callback) => {
+        ipcRenderer.on('pipeline-log', (event, log) => callback(log));
+    },
+    onPipelineCompleted: (callback) => {
+        ipcRenderer.on('pipeline-completed', (event, status) => callback(status));
     }
 });

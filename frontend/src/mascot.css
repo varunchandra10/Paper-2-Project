@@ -13,72 +13,97 @@ html, body {
 /* The interactive hitbox area covering the mascot robot */
 .mascot-hitbox {
     position: absolute;
-    width: 90%;
-    height: 95%;
-    top: 2.5%;
-    left: 5%;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
     pointer-events: auto; /* Catch mouse events inside the mascot's region */
-    cursor: grab;
-    border-radius: 12px;
+    cursor: default;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
 }
 
 .mascot-hitbox:active {
-    cursor: grabbing;
+    cursor: default;
 }
 
-/* Image container loaded as transparent SVG */
-.mascot-character {
+/* Canvas element loaded with frame animation */
+#stageCanvas {
     width: 100%;
     height: 100%;
     object-fit: contain;
     pointer-events: none;
     user-select: none;
     -webkit-user-drag: none;
-    transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* --- Mascot Animation States --- */
-
-/* 1. Idle state */
-.mascot-character.idle {
-    animation: idle-bob 4s ease-in-out infinite;
+/* --- Floating ZZZ Animation Overlay --- */
+.zzz-container {
+    position: absolute;
+    bottom: 92px;
+    left: 48%;
+    width: 40px;
+    height: 40px;
+    pointer-events: none;
+    display: none;
+    z-index: 10;
 }
 
-@keyframes idle-bob {
-    0% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-5px) rotate(1deg); }
-    100% { transform: translateY(0px) rotate(0deg); }
+/* Show ZZZ container when active during sleep state */
+.zzz-container.active {
+    display: block;
 }
 
-/* 2. Sleeping state */
-.mascot-character.sleeping {
-    animation: sleep-breath 5s ease-in-out infinite;
+.zzz {
+    position: absolute;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-weight: 900;
+    opacity: 0;
+    line-height: 1;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-@keyframes sleep-breath {
-    0% { transform: scale(1.0) translateY(0px); opacity: 0.95; }
-    50% { transform: scale(0.96) translateY(2px); opacity: 0.8; }
-    100% { transform: scale(1.0) translateY(0px); opacity: 0.95; }
+/* Z1: Cyan / Sky Blue */
+.zzz.z1 {
+    font-size: 9px;
+    color: #38bdf8;
+    left: 0px;
+    bottom: 0px;
+    animation: float-z 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite 0s;
 }
 
-/* 3. Reading state */
-.mascot-character.reading {
-    animation: reading-focus 3s ease-in-out infinite;
+/* Z2: Purple / Violet */
+.zzz.z2 {
+    font-size: 12px;
+    color: #a855f7;
+    left: 10px;
+    bottom: 8px;
+    animation: float-z 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite 0.8s;
 }
 
-@keyframes reading-focus {
-    0% { transform: translateY(0px) rotate(0deg); }
-    33% { transform: translateY(2px) rotate(-1.5deg); }
-    66% { transform: translateY(0px) rotate(1.5deg); }
-    100% { transform: translateY(0px) rotate(0deg); }
+/* Z3: Rose / Coral Pink */
+.zzz.z3 {
+    font-size: 15px;
+    color: #f43f5e;
+    left: 20px;
+    bottom: 18px;
+    animation: float-z 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite 1.6s;
 }
 
-/* 4. Working state */
-.mascot-character.working {
-    animation: typing-shake 0.12s linear infinite;
-}
-
-@keyframes typing-shake {
-    0% { transform: translate(0.5px, 0.5px) rotate(0deg); }
-    100% { transform: translate(-0.5px, -0.5px) rotate(0.1deg); }
+@keyframes float-z {
+    0% {
+        transform: translate(0, 4px) scale(0.7) rotate(-10deg);
+        opacity: 0;
+    }
+    25% {
+        opacity: 0.95;
+    }
+    65% {
+        opacity: 0.85;
+    }
+    100% {
+        transform: translate(8px, -18px) scale(1.05) rotate(10deg);
+        opacity: 0;
+    }
 }

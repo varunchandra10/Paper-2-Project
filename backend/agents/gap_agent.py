@@ -112,7 +112,7 @@ def run_gap_agent(component_graph: ComponentGraph, model_name: str = "qwen2.5-co
     search_context_str = "\n====================\n".join(search_context)
 
     # 3. Invoke LLM to tag parameters
-    llm = ChatOllama(model=model_name, temperature=0.0)
+    llm = ChatOllama(model=model_name, temperature=0.0, num_ctx=4096)
     structured_llm = llm.with_structured_output(ComponentGraph)
 
     prompt = (
@@ -134,7 +134,11 @@ def run_gap_agent(component_graph: ComponentGraph, model_name: str = "qwen2.5-co
     )
 
     print("\nSending updated context to local Ollama for gap filling...")
-    updated_graph = structured_llm.invoke(prompt)
+    try:
+        updated_graph = structured_llm.invoke(prompt)
+    except Exception as e:
+        print(f"Warning: Gap agent LLM call failed ({e}). Returning original graph as baseline.")
+        updated_graph = component_graph
     return updated_graph
 
 # Compile LangGraph Workflow

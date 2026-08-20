@@ -26,7 +26,7 @@ def run_report_agent(pipeline_output: PipelineOutput, feasibility_report: Feasib
     abstract = pipeline_output.metadata.abstract
 
     # Initialize LLM for narrative generation
-    llm = ChatOllama(model=model_name, temperature=0.0)
+    llm = ChatOllama(model=model_name, temperature=0.0, num_ctx=4096)
 
     print("Generating executive summary via Ollama...")
     # Narrative Part A: Executive Summary (focusing only on adaptation roadmap description)

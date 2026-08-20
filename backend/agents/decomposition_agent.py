@@ -49,7 +49,7 @@ def run_decomposition_agent(parsed_sections: dict, model_name: str = "qwen2.5-co
                 
     # Initialize Ollama model with structured output
     print(f"Initializing ChatOllama with model '{model_name}'...")
-    llm = ChatOllama(model=model_name, temperature=0.0)
+    llm = ChatOllama(model=model_name, temperature=0.0, num_ctx=4096)
     structured_llm = llm.with_structured_output(ComponentGraph)
 
     # Prompt instructing the LLM

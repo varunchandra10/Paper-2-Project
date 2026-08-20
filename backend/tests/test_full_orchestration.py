@@ -37,10 +37,12 @@ def test_full_orchestration():
     # 2. Set up initial inputs for state machine
     # Read model name from command line args if provided, default to qwen
     model_name = sys.argv[1] if len(sys.argv) > 1 else "qwen2.5-coder:1.5b"
+    pdf_path = sys.argv[2] if len(sys.argv) > 2 else "backend/papers/vlcd_paper.pdf"
     print(f"  - Target LLM Engine: {model_name}")
+    print(f"  - Target PDF Path: {pdf_path}")
     
     initial_state = {
-        "pdf_path": "backend/papers/vlcd_paper.pdf",
+        "pdf_path": pdf_path,
         "constraints": user_constraints,
         "model_name": model_name
     }
