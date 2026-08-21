@@ -18,6 +18,7 @@ try {
 // Global window references
 let mascotWindow = null;
 let activeWindowInterval = null;
+let isPanelMaximized = false;
 
 // --- Win32 Taskbar Detection via Koffi ---
 let SHAppBarMessage = null;
@@ -176,7 +177,7 @@ ipcMain.on('drag-window', (event, delta) => {
         });
 
         // Synchronously move panel window in lockstep with fixed scaled dimensions
-        if (panelWindow && !panelWindow.isDestroyed() && panelWindow.isVisible()) {
+        if (panelWindow && !panelWindow.isDestroyed() && panelWindow.isVisible() && !isPanelMaximized) {
             const panelBounds = panelWindow.getBounds();
             const panelW = Math.round(340 * currentScaleFactor);
             const panelH = Math.round(480 * currentScaleFactor);
@@ -213,6 +214,10 @@ ipcMain.on('drag-end', (event) => {
 
 ipcMain.on('toggle-panel', () => {
     togglePanel();
+});
+
+ipcMain.on('toggle-maximize', () => {
+    toggleMaximize();
 });
 
 function sendMascotState(state) {
@@ -369,14 +374,13 @@ function listenToStream(runId, onLog, onMascotState, onCompleted, onFailed) {
     });
 }
 
-function runPipelineOrchestrator(filename, destPath, type) {
+function runPipelineOrchestrator(filename, destPath, type, modelName) {
     if (!panelWindow) return;
 
     panelWindow.webContents.send('pipeline-log', { text: `[System] Dispatching analysis job to FastAPI server...` });
     sendMascotState('working');
 
-    // Use model 'qwen2.5-coder:1.5b' to match what was run previously
-    const targetModel = 'qwen2.5-coder:1.5b';
+    const targetModel = modelName || 'qwen2.5-coder:1.5b';
 
     postAnalyzeWithRetry(destPath, targetModel, (err, runId) => {
         if (err) {
@@ -419,7 +423,7 @@ function runPipelineOrchestrator(filename, destPath, type) {
     });
 }
 
-ipcMain.on('upload-pdf', (event, { filePath, type }) => {
+ipcMain.on('upload-pdf', (event, { filePath, type, modelName }) => {
     try {
         if (!filePath || typeof filePath !== 'string') {
             throw new Error("Invalid or empty file path received.");
@@ -437,14 +441,14 @@ ipcMain.on('upload-pdf', (event, { filePath, type }) => {
 
         sendMascotState('reading');
         event.reply('upload-status', { success: true, filename, type });
-        runPipelineOrchestrator(filename, destPath, type);
+        runPipelineOrchestrator(filename, destPath, type, modelName);
     } catch (err) {
         console.error("File upload/copy error:", err);
         event.reply('upload-status', { success: false, error: err.message, type });
     }
 });
 
-ipcMain.on('open-file-selector', (event, type) => {
+ipcMain.on('open-file-selector', (event, type, modelName) => {
     const isDocx = (type === 'docx');
     const dialogFilters = isDocx 
         ? [ { name: 'Word Documents', extensions: ['docx', 'doc'] } ]
@@ -468,7 +472,7 @@ ipcMain.on('open-file-selector', (event, type) => {
                   fs.copyFileSync(filePath, destPath);
 
                   event.reply('upload-status', { success: true, filename, type });
-                  runPipelineOrchestrator(filename, destPath, type);
+                  runPipelineOrchestrator(filename, destPath, type, modelName);
               } catch (err) {
                   event.reply('upload-status', { success: false, error: err.message, type });
               }
@@ -566,6 +570,15 @@ function togglePanel() {
     }
 
     if (panelWindow.isVisible()) {
+        if (isPanelMaximized) {
+            isPanelMaximized = false;
+            panelWindow.setResizable(false);
+            panelWindow.setMinimumSize(100, 100);
+            if (mascotWindow && !mascotWindow.isDestroyed()) {
+                mascotWindow.show();
+            }
+            panelWindow.webContents.send('maximize-change', false);
+        }
         panelWindow.hide();
         sendMascotState('sleeping');
     } else {
@@ -586,6 +599,43 @@ function togglePanel() {
         panelWindow.show();
         panelWindow.focus();
         sendMascotState('idle');
+    }
+}
+
+function toggleMaximize() {
+    if (!panelWindow || panelWindow.isDestroyed()) return;
+
+    if (isPanelMaximized) {
+        // Restore to docked narrow view
+        isPanelMaximized = false;
+        panelWindow.unmaximize();
+        panelWindow.setResizable(false);
+        panelWindow.setMinimumSize(100, 100);
+
+        const activeDisplay = screen.getDisplayNearestPoint(panelWindow.getBounds());
+        const scaleFactor = activeDisplay.scaleFactor || 1.0;
+        const workArea = activeDisplay.workArea;
+
+        const dockedBounds = getPanelPosition(scaleFactor, workArea);
+        panelWindow.setBounds(dockedBounds);
+
+        if (mascotWindow && !mascotWindow.isDestroyed()) {
+            mascotWindow.show();
+        }
+        sendMascotState('idle');
+        panelWindow.webContents.send('maximize-change', false);
+    } else {
+        // Maximize to full screen
+        isPanelMaximized = true;
+        if (mascotWindow && !mascotWindow.isDestroyed()) {
+            mascotWindow.hide();
+        }
+
+        panelWindow.setResizable(true);
+        panelWindow.setMinimumSize(800, 600);
+        panelWindow.maximize();
+
+        panelWindow.webContents.send('maximize-change', true);
     }
 }
 

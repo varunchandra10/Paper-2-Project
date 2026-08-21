@@ -1,5 +1,5 @@
 import React from 'react';
-import { usePanelStore } from '../../store/panelStore';
+import { usePanelStore } from '../../../store/panelStore';
 
 export const StatsCharts: React.FC = () => {
   const { activeMilestoneIndex, milestoneStatuses, decompScore, paramCertainty } = usePanelStore();

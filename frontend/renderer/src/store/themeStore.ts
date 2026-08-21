@@ -6,15 +6,15 @@ interface ThemeState {
   setTheme: (theme: 'dark' | 'light') => void;
 }
 
-// Initialize default dark theme
+// Initialize default light theme
 if (typeof document !== 'undefined') {
-  document.documentElement.setAttribute('data-theme', 'dark');
+  document.documentElement.setAttribute('data-theme', 'light');
 }
 
 export const useThemeStore = create<ThemeState>((set, get) => ({
-  theme: 'dark',
+  theme: 'light',
   toggleTheme: () => {
-    const nextTheme = get().theme === 'dark' ? 'light' : 'dark';
+    const nextTheme = get().theme === 'light' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', nextTheme);
     set({ theme: nextTheme });
   },

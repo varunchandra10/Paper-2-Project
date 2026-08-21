@@ -21,8 +21,12 @@ frontend/
 └── renderer/                   # React Sidebar Control Panel Application
     ├── src/
     │   ├── App.tsx             # React Root Entrypoint
-    │   ├── index.css           # Tailwind v4 theme tokens & theme-aware scrollbars
-    │   ├── components/         # Modular UI Views (DropZone, Milestones, Charts, Reports, Drawers)
+    │   ├── index.css           # Tailwind v4 theme tokens & keyframes
+    │   ├── components/         # Componentized React Views
+    │   │   ├── features/       # Feature modules (chat, logs, analysis)
+    │   │   ├── layout/         # Layout scaffolding (Header, Sidebars)
+    │   │   ├── ui/             # Reusable UI primitives (Background, ThemeToggle, DropZone, ModelSelector)
+    │   │   └── panel/          # Core dashboard Panel hub
     │   └── store/              # Zustand Reactive State Stores (panelStore, logsStore, themeStore)
     ├── dist/                   # Compiled static production bundle (index.html, JS, CSS)
     └── vite.config.ts          # Vite + Tailwind v4 build configuration
@@ -155,13 +159,20 @@ Prevents state drop race conditions when double-clicking or closing the panel ra
 
 ## 📊 Sidebar Control Panel Features (React + TypeScript)
 
-* **DropZone (`renderer/src/components/panel/DropZone.tsx`):** Drag-and-drop ingestion interface for PDF and DOCX academic research papers.
-* **Milestone Pipeline Tracker (`renderer/src/components/panel/MilestoneTracker.tsx`):** Animated 5-stage progress tracker (Ingestion ➔ Method Decomposition ➔ Parameter Refinement ➔ Hardware Feasibility ➔ Blueprint Synthesis).
-* **Decomposition & Certainty Gauges (`renderer/src/components/panel/StatsCharts.tsx`):** Circular percentage metric charts for model score breakdown.
-* **Execution Tier Selector (`renderer/src/components/panel/TierSelector.tsx`):** Toggle buttons to switch synthesis granularity (Brief, Detailed, Implementation).
-* **Proposal Report View (`renderer/src/components/panel/ReportView.tsx`):** Markdown report renderer displaying structured execution plans and PyTorch code snippets.
-* **Filterable Console Logs Drawer (`renderer/src/components/logs/LogsDrawer.tsx`):** Expandable terminal log viewer with level filtering (System, Info, Success, Error).
-* **Past Ingestion History Drawer (`renderer/src/components/panel/DocumentsDrawer.tsx`):** Slide-out history list permitting instant reload or deletion of previously analyzed papers.
+* **Layout Scaffoldings (`renderer/src/components/layout/`):**
+  * **`Header.tsx`:** Standard header hosting the brand logo (compact mode only) and a unified right-side control group (segmented buttons for theme, documents, terminal logs, maximize/minimize, and app closing). Integrates the hamburger menu button in maximized mode.
+  * **`LeftSidebar.tsx`:** Maximized-only sidebar that supports collapsible transitions (260px full mode vs. 56px icon rail). Houses the New Analysis trigger, Mr. Nerd mascot box, and user profile slot.
+  * **`RightSidebar.tsx`:** Maximized-only slide-out panel that handles proposal archives and documents history indexing.
+* **Feature Modules (`renderer/src/components/features/`):**
+  * **DropZone (`analysis/DropZone.tsx`):** Drag-and-drop ingestion interface for PDF and DOCX academic research papers.
+  * **Milestone Pipeline Tracker (`analysis/MilestoneTracker.tsx`):** Animated 5-stage progress indicator.
+  * **Execution Tier Selector (`analysis/TierSelector.tsx`):** Granularity toggles (Brief, Detailed, Implementation) for synthesis customization.
+  * **Proposal Report View (`analysis/ReportView.tsx`):** Code-highlighting markdown reporter showing synthesized project proposals.
+  * **Logs Drawer (`logs/LogsDrawer.tsx`):** Expandable console terminal displaying system process output.
+  * **Documents Drawer (`analysis/DocumentsDrawer.tsx`):** Slide-out proposal history list.
+* **Shared UI Primitives (`renderer/src/components/ui/`):**
+  * **`ThemeToggle.tsx`:** Dynamic toggle icon button displaying a moon 🌙 (switch to dark) or a sun ☀️ (switch to light) inside the header group.
+  * **`Background.tsx`:** Theme-aware visual depth container offering neural web constellations, PCB trace layouts, rotating radar rings, and floating data streams.
 
 ---
 

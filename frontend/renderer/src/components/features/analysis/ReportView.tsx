@@ -1,5 +1,6 @@
 import React from 'react';
-import { usePanelStore } from '../../store/panelStore';
+import { usePanelStore } from '../../../store/panelStore';
+import { TierSelector } from '../../ui/TierSelector';
 
 export const ReportView: React.FC = () => {
   const { reportContent, resetAnalysis, selectedTier } = usePanelStore();
@@ -10,14 +11,17 @@ export const ReportView: React.FC = () => {
   if (selectedTier === 'implement') {
     return (
       <div className="bg-black/15 border border-border rounded-xl p-4 flex flex-col gap-3">
-        <div className="flex justify-between items-center border-b border-border pb-2">
-          <span className="text-[10px] font-mono font-bold text-brass uppercase tracking-wider">CODE GENERATION & RUN CODE</span>
-          <button 
-            onClick={resetAnalysis} 
-            className="text-[8px] font-mono font-bold bg-brass/10 hover:bg-brass hover:text-ink text-brass border border-brass/25 px-2.5 py-0.5 rounded transition-all duration-200 cursor-pointer"
-          >
-            Reset Analysis
-          </button>
+        <div className="flex flex-col gap-2.5 border-b border-border pb-3">
+          <div className="flex justify-between items-center">
+            <span className="text-[10px] font-mono font-bold text-brass uppercase tracking-wider">CODE GENERATION & RUN CODE</span>
+            <button 
+              onClick={resetAnalysis} 
+              className="text-[8px] font-mono font-bold bg-brass/10 hover:bg-brass hover:text-ink text-brass border border-brass/25 px-2.5 py-0.5 rounded transition-all duration-200 cursor-pointer"
+            >
+              Reset Analysis
+            </button>
+          </div>
+          <TierSelector />
         </div>
 
         <div className="flex-1 overflow-y-auto text-left font-sans select-text scrollbar-thin max-h-[350px] flex flex-col gap-3">
@@ -141,14 +145,17 @@ python train.py --batch_size 4 --lr 0.001 --weight_decay 0.001 --epochs 50`}
 
   return (
     <div className="bg-black/15 border border-border rounded-xl p-4 flex flex-col gap-3">
-      <div className="flex justify-between items-center border-b border-border pb-2">
-        <span className="text-[10px] font-mono font-bold text-brass uppercase tracking-wider">PROJECT PROPOSAL</span>
-        <button 
-          onClick={resetAnalysis} 
-          className="text-[8px] font-mono font-bold bg-brass/10 hover:bg-brass hover:text-ink text-brass border border-brass/25 px-2.5 py-0.5 rounded transition-all duration-200 cursor-pointer"
-        >
-          Reset Analysis
-        </button>
+      <div className="flex flex-col gap-2.5 border-b border-border pb-3">
+        <div className="flex justify-between items-center">
+          <span className="text-[10px] font-mono font-bold text-brass uppercase tracking-wider">PROJECT PROPOSAL</span>
+          <button 
+            onClick={resetAnalysis} 
+            className="text-[8px] font-mono font-bold bg-brass/10 hover:bg-brass hover:text-ink text-brass border border-brass/25 px-2.5 py-0.5 rounded transition-all duration-200 cursor-pointer"
+          >
+            Reset Analysis
+          </button>
+        </div>
+        <TierSelector />
       </div>
 
       <div className="flex-1 overflow-y-auto text-left font-sans select-text scrollbar-thin max-h-[300px]">
