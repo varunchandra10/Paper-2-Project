@@ -3,7 +3,7 @@ import { usePanelStore } from '../../store/panelStore';
 import { FaFilePdf, FaFileWord } from 'react-icons/fa6';
 
 export const DropZone: React.FC = () => {
-  const { triggerUpload, isAnalyzing } = usePanelStore();
+  const { triggerUpload, isAnalyzing, selectedModel } = usePanelStore();
   const [isPdfOver, setIsPdfOver] = useState(false);
   const [isDocxOver, setIsDocxOver] = useState(false);
 
@@ -33,7 +33,7 @@ export const DropZone: React.FC = () => {
       const file = files[0];
       if (window.mascotAPI?.getPathForFile) {
         const filePath = window.mascotAPI.getPathForFile(file);
-        window.mascotAPI.uploadPDF(filePath, type);
+        window.mascotAPI.uploadPDF(filePath, type, selectedModel);
       } else {
         triggerUpload(file.name, type);
       }
@@ -46,7 +46,7 @@ export const DropZone: React.FC = () => {
       const file = files[0];
       if (window.mascotAPI?.getPathForFile) {
         const filePath = window.mascotAPI.getPathForFile(file);
-        window.mascotAPI.uploadPDF(filePath, type);
+        window.mascotAPI.uploadPDF(filePath, type, selectedModel);
       } else {
         triggerUpload(file.name, type);
       }
@@ -56,7 +56,7 @@ export const DropZone: React.FC = () => {
   const triggerPicker = (type: 'pdf' | 'docx') => {
     if (isAnalyzing) return;
     if (window.mascotAPI?.openFileSelector) {
-      window.mascotAPI.openFileSelector(type);
+      window.mascotAPI.openFileSelector(type, selectedModel);
     } else {
       if (type === 'pdf') pdfInputRef.current?.click();
       else docxInputRef.current?.click();

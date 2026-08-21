@@ -3,12 +3,10 @@
 @import "tailwindcss";
 
 @theme {
-  /* Fonts mapping */
-  --font-serif: "Fraunces", serif;       
+  --font-serif: "Fraunces", serif;
   --font-mono: "IBM Plex Mono", monospace;
   --font-sans: "Space Grotesk", sans-serif;
 
-  /* Theme tokens */
   --color-ink: var(--ink);
   --color-parchment: var(--parchment);
   --color-brass: var(--brass);
@@ -17,19 +15,22 @@
   --color-assumed: var(--assumed);
   --color-error: var(--error-color);
 
-  /* Theme-aware layout maps */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-border: var(--border);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
 
-  /* HUD Specific Animations */
   --animate-scan: scan 3s linear infinite;
   --animate-pulse-fast: pulse-fast 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  
+  --animate-stamp: stamp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --animate-fade-in: fade-in 0.4s ease-out both;
+  --animate-laser: laser 11s ease-in-out infinite;
+
   @keyframes scan {
     0% { transform: translateY(-100%); opacity: 0; }
     10% { opacity: 1; }
@@ -41,71 +42,92 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.3; }
   }
+
+  @keyframes stamp {
+    0% { transform: scale(1.4) rotate(-8deg); opacity: 0; }
+    60% { transform: scale(0.95) rotate(2deg); opacity: 1; }
+    100% { transform: scale(1) rotate(-2deg); opacity: 1; }
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0);   }
+  }
+
+  @keyframes laser {
+    0%   { transform: translateY(0px);             opacity: 0; }
+    8%   { opacity: 0.8; }
+    50%  { transform: translateY(calc(100vh - 2px)); opacity: 0.5; }
+    92%  { opacity: 0.8; }
+    100% { transform: translateY(0px);             opacity: 0; }
+  }
 }
 
 :root {
-  /* Dark mode — cool graphite "instrument panel" */
-  --ink: #10121A;
-  --parchment: #E7EAF2;
-  --brass: #5B8DEF;          /* "signal blue" for the HUD accents */
+  /* Dark mode — reading room at night: warm graphite desk, parchment cards under lamp light */
+  --ink: #1A1B20;
+  --parchment: #EDE6D6;
+  --brass: #C99A3E;
 
-  --confirmed: #2FBEA6;
-  --inferred: #E7A73E;
-  --assumed: #7A8299;
-  --error-color: #E15366;
+  --confirmed: #6B9B7C;
+  --inferred: #D9A441;
+  --assumed: #8B8378;
+  --error-color: #B5533C;
 
-  /* shadcn mappings */
+  /* Background stays dark ink. Cards float as warm parchment ON TOP of it —
+     this contrast (light card / dark desk) is the whole visual signature.
+     Do not flatten this to dark-on-dark. */
   --background: var(--ink);
   --foreground: var(--parchment);
-  --card: #1B1E27;
+  --card: #22242B;
   --card-foreground: var(--parchment);
-  --popover: #1B1E27;
+  --popover: #22242B;
   --popover-foreground: var(--parchment);
   --primary: var(--brass);
   --primary-foreground: var(--ink);
   --secondary: var(--assumed);
   --secondary-foreground: var(--parchment);
-  --muted: #262933;
-  --muted-foreground: var(--assumed);
+  --muted: #26272E;
+  --muted-foreground: #A8A296;
   --accent: var(--brass);
   --accent-foreground: var(--ink);
   --destructive: var(--error-color);
   --destructive-foreground: var(--parchment);
-  --border: rgba(231, 234, 242, 0.12);
-  --input: rgba(231, 234, 242, 0.08);
+  --border: rgba(237, 230, 214, 0.14);
+  --input: rgba(237, 230, 214, 0.08);
   --ring: var(--brass);
   --radius: 0.5rem;
 }
 
 [data-theme="light"] {
-  /* Light mode — high contrast technical paper */
-  --ink: #12141B;
-  --parchment: #F3F5F9;
-  --brass: #3E68D8;
+  /* Light mode — the same desk in daylight: paler background, ink-dark text, brass stays constant */
+  --ink: #1A1B20;
+  --parchment: #F7F3EA;
+  --brass: #C99A3E;
 
-  --confirmed: #1F9A82;
-  --inferred: #C98423;
-  --assumed: #5D6472;
-  --error-color: #C13B4E;
+  --confirmed: #4F7A5F;
+  --inferred: #B4842E;
+  --assumed: #6E675C;
+  --error-color: #9C432E;
 
   --background: var(--parchment);
   --foreground: var(--ink);
-  --card: #FFFFFF;
+  --card: #FFFDF7;
   --card-foreground: var(--ink);
-  --popover: #FFFFFF;
+  --popover: #FFFDF7;
   --popover-foreground: var(--ink);
   --primary: var(--brass);
-  --primary-foreground: #F3F5F9;
+  --primary-foreground: #FFFDF7;
   --secondary: var(--assumed);
-  --secondary-foreground: var(--ink);
-  --muted: #E7EAF0;
+  --secondary-foreground: var(--parchment);
+  --muted: #EFE7D6;
   --muted-foreground: var(--assumed);
   --accent: var(--brass);
-  --accent-foreground: #F3F5F9;
+  --accent-foreground: #FFFDF7;
   --destructive: var(--error-color);
-  --destructive-foreground: #F3F5F9;
-  --border: rgba(18, 20, 27, 0.12);
-  --input: rgba(18, 20, 27, 0.08);
+  --destructive-foreground: #FFFDF7;
+  --border: rgba(26, 27, 32, 0.12);
+  --input: rgba(26, 27, 32, 0.08);
   --ring: var(--brass);
 }
 
@@ -125,38 +147,49 @@
   }
 }
 
-/* --- Theme-Aware Tech Scrollbars --- */
 ::-webkit-scrollbar {
-  width: 4px; /* Slimmer, more technical scrollbar */
+  width: 4px;
   height: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent; /* Makes it look floating */
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--muted-foreground);
-  border-radius: 0px; /* Square edges for tech vibe */
+  border-radius: 0px;
   transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--brass);
-  box-shadow: 0 0 8px var(--brass); /* Glow effect on hover */
+  box-shadow: 0 0 8px var(--brass);
 }
 
-/* Firefox standard scrollbar theme */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--muted-foreground) transparent;
 }
 
-/* --- HUD Reusable Utilities --- */
 @layer utilities {
   .hud-grid {
     background-image: radial-gradient(circle, currentColor 1px, transparent 1px);
     background-size: 16px 16px;
     opacity: 0.03;
+  }
+
+  /* The signature "stamped index card" treatment — used for the milestone
+     tracker and any element representing a completed/confirmed piece of
+     agent output. Slight rotation + inset feels tactile, not flat. */
+  .stamped-card {
+    background: var(--card);
+    color: var(--card-foreground);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  }
+
+  .stamp-in {
+    animation: var(--animate-stamp);
   }
 }

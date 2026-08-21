@@ -26,6 +26,9 @@ interface PanelState {
   isHistoryOpen: boolean;
   uploadedHistory: HistoryItem[];
 
+  selectedModel: string;
+  setSelectedModel: (model: string) => void;
+
   togglePanel: () => void;
   setPanelOpen: (isOpen: boolean) => void;
   setSelectedTier: (tier: 'brief' | 'detailed' | 'implement') => void;
@@ -57,6 +60,8 @@ export const usePanelStore = create<PanelState>((set, get) => ({
   isLogsOpen: false,
   isHistoryOpen: false,
   uploadedHistory: [],
+  selectedModel: 'qwen2.5-coder:1.5b',
+  setSelectedModel: (model) => set({ selectedModel: model }),
 
   togglePanel: () => set((state) => ({ isPanelOpen: !state.isPanelOpen })),
   setPanelOpen: (isOpen) => set({ isPanelOpen: isOpen }),

@@ -17,11 +17,11 @@ contextBridge.exposeInMainWorld('mascotAPI', {
     togglePanel: () => {
         ipcRenderer.send('toggle-panel');
     },
-    uploadPDF: (filePath, type) => {
-        ipcRenderer.send('upload-pdf', { filePath, type });
+    uploadPDF: (filePath, type, modelName) => {
+        ipcRenderer.send('upload-pdf', { filePath, type, modelName });
     },
-    openFileSelector: (type) => {
-        ipcRenderer.send('open-file-selector', type);
+    openFileSelector: (type, modelName) => {
+        ipcRenderer.send('open-file-selector', type, modelName);
     },
     onUploadStatus: (callback) => {
         ipcRenderer.on('upload-status', (event, status) => callback(status));
@@ -37,5 +37,11 @@ contextBridge.exposeInMainWorld('mascotAPI', {
     },
     onPipelineCompleted: (callback) => {
         ipcRenderer.on('pipeline-completed', (event, status) => callback(status));
+    },
+    toggleMaximize: () => {
+        ipcRenderer.send('toggle-maximize');
+    },
+    onMaximizeChange: (callback) => {
+        ipcRenderer.on('maximize-change', (event, isMaximized) => callback(isMaximized));
     }
 });

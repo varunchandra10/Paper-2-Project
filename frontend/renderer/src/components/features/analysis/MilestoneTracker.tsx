@@ -1,5 +1,5 @@
 import React from 'react';
-import { usePanelStore } from '../../store/panelStore';
+import { usePanelStore } from '../../../store/panelStore';
 
 export const MilestoneTracker: React.FC = () => {
   const { milestoneStatuses } = usePanelStore();

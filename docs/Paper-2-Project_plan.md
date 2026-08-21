@@ -2,7 +2,7 @@
 
 A local-first agentic system that converts a research paper into a feasibility-checked, staged implementation blueprint, delivered through a Windows desktop mascot. Validated against Varun's own VLCD → E-SGCD thesis work as ground truth.
 
-28 days, 4 phases, zero overlapping work between phases.
+31 days, 5 phases, zero overlapping work between phases.
 
 ---
 
@@ -17,7 +17,8 @@ FastAPI bridge - /analyze /status /stream/{run_id} (SSE)
    ↕
 Electron desktop app - mascot + docked sidebar (Days 15–21)
    ↕ active-win polling + Ctrl+Shift+P hotkey fallback
-Windows Installer (NSIS via electron-builder) - Days 26–28
+Workspace Storage & Cloud API Migration (Days 26–28)
+Windows Installer (NSIS via electron-builder) - Days 29–31
 ```
 
 ## Design decisions made explicit (don't relitigate these mid-build)
@@ -156,27 +157,47 @@ Windows Installer (NSIS via electron-builder) - Days 26–28
 
 ---
 
-## Phase 4 - Packaging (Days 26–28)
+## Phase 4 - Workspace Storage & Cloud API Migration (Days 26–28)
 
-**Day 26 - Backend binary + Electron packaging**
-- Bundle the Python backend (PyInstaller) into a standalone executable
-- Configure `electron-builder` for Windows (NSIS `.exe`), package native bindings (`koffi`/`ffi-napi`/`active-win`)
-- *Test:* standalone backend runs on a machine with no Python installed
+**Day 26 - Electron Native Directory Selector & File Watcher**
+- Trigger native `dialog.showOpenDialog` on Electron startup to let the user select their local PDF storage workspace path.
+- Store directory configuration persistently using `electron-store`.
+- *Test:* Directory picker returns correct absolute path and persists across app restarts.
 
-**Day 27 - Ollama dependency health check**
-- Installer pre-flight check for Ollama presence + target model weights
-- Automated fallback prompt to pull the model if missing (`ollama pull qwen2.5-coder:7b`)
-- *Test:* launch on a machine without Ollama, confirm the setup prompt guides the user correctly
+**Day 27 - Hidden Cache Management & Clutter-Free PDF Storage**
+- Save copy of ingested PDF into the selected workspace.
+- Store technical output JSONs (`_parsed.json`, `_metadata.json`, `_report.md`) inside a system AppData folder or a programmatically hidden `.paper_data` subdirectory in the workspace.
+- *Test:* Workspace folder remains clean, showing only PDF files, while all JSON metadata is stored successfully in the hidden folder.
 
-**Day 28 - Clean-VM install + final polish** 🔒
-- Full installer run in a fresh Windows 11 sandbox/VM, no dev tools present
-- Validate taskbar placement, hotkey registration, backend auto-spawn, uninstall cleanup
-- Record a short demo covering mascot reactions + plan generation; finalize the VLCD validation write-up for your portfolio
+**Day 28 - File System History Scanner & Cloud API Migration**
+- Replace local Ollama client with OpenRouter/Groq API client wrapper in the Python backend.
+- Implement token-efficient context pruning and automatic `429 Too Many Requests` rate-limit retry logic.
+- Scan the hidden `.paper_data` cache folder on app startup to populate the History Drawer natively.
+- *Test:* UI History drawer updates dynamically, loading reports from local cache under 100ms, and new pipeline runs complete via OpenRouter/Groq under 3 seconds.
+
+---
+
+## Phase 5 - Packaging & Distribution (Days 29–31)
+
+**Day 29 - Backend binary + Electron packaging**
+- Bundle the Python backend (PyInstaller) into a standalone executable.
+- Configure `electron-builder` for Windows (NSIS `.exe`), package native bindings (`koffi`/`ffi-napi`/`active-win`).
+- *Test:* Standalone backend runs on a machine with no Python installed.
+
+**Day 30 - Cloud API Key Pre-Flight Checks**
+- Pre-flight setup window in Electron for entering and validating the OpenRouter/Groq API key.
+- Store key securely via Windows Credentials Manager / Keyring integration.
+- *Test:* Setup page warns on empty key and validates key connectivity.
+
+**Day 31 - Clean-VM install + final polish** 🔒
+- Full installer run in a fresh Windows 11 sandbox/VM, no dev tools present.
+- Validate taskbar placement, hotkey registration, backend auto-spawn, uninstall cleanup.
+- Record a short demo covering mascot reactions + plan generation; finalize the VLCD validation write-up for your portfolio.
 
 ---
 
 ## Protected checkpoints (🔒 above) - do not skip under time pressure
-Days 4, 6, 8, 12 (agent validation against your real thesis work), Day 21 (UI reliability), Day 25 (full system integration), Day 28 (clean-install proof).
+Days 4, 6, 8, 12 (agent validation against your real thesis work), Day 21 (UI reliability), Day 25 (full system integration), Day 31 (clean-install proof).
 
 These four agent-validation days are what separate this from "another RAG wrapper" - they're the evidence that the reasoning is actually grounded in something real, not just plausible-sounding output.
 

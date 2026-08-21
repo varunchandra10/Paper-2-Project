@@ -1,7 +1,7 @@
 import React from 'react';
-import { usePanelStore } from '../../store/panelStore';
+import { usePanelStore } from '../../../store/panelStore';
 import { FaFilePdf, FaFileWord, FaTrash, FaRegFolderOpen } from 'react-icons/fa6';
-import { IoClose } from 'react-icons/io5'; // Using an icon for the close button
+import { IoClose } from 'react-icons/io5';
 
 export const DocumentsDrawer: React.FC = () => {
   const { 
