@@ -160,4 +160,60 @@ Here is the quick breakdown of Day 6 for your logs:
 * **Segment Accuracy Audit**: Measures and scorecards accuracy across metadata, section boundaries, table rendering, reference bibliographies, and provenance coordinate ranges.
 * **Baseline Extraction Report**: Saves a detailed verification log directly to `docs/backend_docs/Tests_docs/Baseline_Extraction_Report.md`.
 
+---
 
+### 📦 **Day 14: Semantic Chunking Strategy**
+
+**What it does:** Slices canonical papers into semantic retrieval units, keeping tables, figures, equations, and algorithms as distinct, unfragmented chunks.
+
+#### 🔑 **Important Elements:**
+
+* **Metadata Preservation**: Attaches context tags (`paper_id`, `section`, `subsection`, `page`, `content_type`, `source_id`) to every chunk.
+* **Layout Isolation**: Never slices tables, equations, or algorithms mid-formula, grouping captions and content as unified nodes.
+* **Smart Text Aggregation**: Splits sections by paragraph boundaries, dynamically coalescing short paragraphs and sentence-tokenizing massive text blocks.
+
+---
+
+### 📦 **Day 15: Local Embeddings**
+
+**What it does:** Generates dense 768-dimensional float vectors locally utilizing the `nomic-embed-text` model via Ollama.
+
+#### 🔑 **Important Elements:**
+
+* **Deterministic Inference**: Configures temperature to 0.0 to ensure consistent vector output mappings.
+* **High Efficiency**: Generates embeddings locally on the CPU/GPU with batching support (~16ms per chunk).
+
+---
+
+### 📦 **Day 16: Local Vector Database**
+
+**What it does:** Stores users, papers, paper chunks, and float vector embeddings inside a local PostgreSQL instance leveraging the `pgvector` extension.
+
+#### 🔑 **Important Elements:**
+
+* **Relational Coexistence**: Links layout chunks directly to their parent paper metadata tables using relational SQL foreign keys.
+* **Spacious Data Types**: Uses `TEXT` columns for chunk identifiers and section headings to prevent character length exceptions.
+* **Automatic Migrations**: Includes legacy type alteration statements to automatically patch existing database columns.
+
+---
+
+### 📦 **Day 17: Hybrid Retrieval**
+
+**What it does:** Combines local vector searches with traditional keyword matching (Full-Text Search) and metadata filters, merging rankings using Reciprocal Rank Fusion (RRF).
+
+#### 🔑 **Important Elements:**
+
+* **PostgreSQL FTS**: Employs native English `tsvector` and `tsquery` parsing to execute fast, offline keyword matches.
+* **RRF Rank Merger**: Merges vector distances and keyword matching ranks using the RRF formula:
+  $$RRF(d) = \frac{1}{60 + rank_{vector}} + \frac{1}{60 + rank_{keyword}}$$
+
+---
+
+### 📦 **Day 18: Reranking & Grounded Evidence**
+
+**What it does:** Runs a zero-shot relevance evaluation over candidate chunks using the local `qwen2.5-coder:1.5b` LLM to compile the final Grounded Evidence Package.
+
+#### 🔑 **Important Elements:**
+
+* **Zero-Shot LLM Evaluator**: Prompts the local Qwen LLM to score candidate relevance from `0` to `5`, sorting results by LLM scores.
+* **Grounded Evidence Package**: Keeps origin coordinate tags (`page`, `section`, `source_id`) on the top 3 retrieved results to guarantee traceable RAG citations.

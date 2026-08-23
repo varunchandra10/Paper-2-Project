@@ -11,7 +11,9 @@ from schemas import (
     Figure,
     Reference,
     PageInfo,
-    Provenance
+    Provenance,
+    Equation,
+    Algorithm
 )
 
 
@@ -235,7 +237,6 @@ def merge_extractions(routed_data: dict) -> PaperDocument:
                         any(c in eq_body for c in math_chars) and 
                         eq_body not in seen_equations):
                     seen_equations.add(eq_body)
-                    from schemas.canonical_paper import Equation
                     equations_list.append(Equation(
                         id=f"eq_{len(equations_list) + 1}",
                         latex=eq_body,
@@ -267,7 +268,6 @@ def merge_extractions(routed_data: dict) -> PaperDocument:
                 alg_keywords = ("input", "output", "initialize", "for ", "loop", "if ", "while", "return", "end", "begin", "repeat", "←", "→")
                 alg_body_lower = alg_body.lower()
                 if any(kw in alg_body_lower for kw in alg_keywords):
-                    from schemas.canonical_paper import Algorithm
                     algorithms_list.append(Algorithm(
                         id=f"alg_{alg_idx}",
                         caption=alg_caption,

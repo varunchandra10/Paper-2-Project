@@ -27,3 +27,4 @@ from .canonical_paper import (
     ValidationMetric,
     ExtractionQualityReport
 )
+from .rag_schemas import PaperChunk
