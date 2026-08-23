@@ -166,6 +166,38 @@ def extract_blocks_single_column(page) -> list:
     return [b for b in blocks if b[6] == 0 and b[4].strip()]
 
 
+def _list_to_markdown_table(data: list) -> str:
+    """Formats a 2D list of strings as a markdown table without using pandas."""
+    if not data or len(data) == 0:
+        return ""
+    header = data[0]
+    rows = data[1:]
+    
+    # Clean header labels
+    header = [str(h).strip() if h else f"col{i}" for i, h in enumerate(header)]
+    
+    # Calculate column widths
+    col_widths = [len(h) for h in header]
+    for row in rows:
+        for i, val in enumerate(row):
+            if i < len(col_widths):
+                val_str = str(val).strip() if val is not None else ""
+                col_widths[i] = max(col_widths[i], len(val_str))
+                
+    # Build markdown components
+    header_row = "| " + " | ".join(f"{h:<{col_widths[i]}}" for i, h in enumerate(header)) + " |"
+    separator_row = "| " + " | ".join("-" * w for w in col_widths) + " |"
+    
+    markdown_rows = [header_row, separator_row]
+    for row in rows:
+        formatted_row = "| " + " | ".join(
+            f"{(str(val).strip() if val is not None else ''):<{col_widths[i]}}" for i, val in enumerate(row)
+        ) + " |"
+        markdown_rows.append(formatted_row)
+        
+    return "\n".join(markdown_rows)
+
+
 def extract_tables_for_page(pdf_path: str, page_num: int, fitz_page) -> list:
     """
     Extracts structured tables on a page via pdfplumber, and names each one
@@ -189,10 +221,8 @@ def extract_tables_for_page(pdf_path: str, page_num: int, fitz_page) -> list:
                 data = t.extract()
                 if not data or len(data) < 2:
                     continue
-                header, *rows = data
-                header = [h if h else f"col{i}" for i, h in enumerate(header)]
-                df = pd.DataFrame(rows, columns=header)
-                if df.shape[1] <= 1:
+                
+                if len(data[0]) <= 1:
                     continue
 
                 if table_idx < len(captions):
@@ -200,7 +230,8 @@ def extract_tables_for_page(pdf_path: str, page_num: int, fitz_page) -> list:
                 else:
                     table_name = f"Table (page {page_num + 1}, #{table_idx + 1})"
 
-                results.append((table_name, df.to_markdown(index=False)))
+                table_md = _list_to_markdown_table(data)
+                results.append((table_name, table_md))
                 table_idx += 1
     except Exception as e:
         print(f"Table extraction failed on page {page_num + 1}: {e}", file=sys.stderr)

@@ -131,9 +131,15 @@ def detect_sections(pages_data: List[Dict[str, Any]]) -> Dict[str, Any]:
                 rest_text = "\n".join(lines[1:]).strip() if len(lines) > 1 else ""
                 if rest_text:
                     add_content(current_section, current_subsection, rest_text)
-            else:
                 # Regular paragraph text block
                 add_content(current_section, current_subsection, text)
+                
+        # Group page-level extracted tables into the sections mapping
+        page_tables = page.get("tables", [])
+        for table_name, table_md in page_tables:
+            if "Tables" not in sections:
+                sections["Tables"] = {"content": "", "subsections": {}}
+            sections["Tables"]["subsections"][table_name] = table_md
                 
     return {
         "title": title,

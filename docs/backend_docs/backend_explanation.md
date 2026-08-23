@@ -72,3 +72,92 @@ Here is the quick breakdown of Day 6 for your logs:
 * **High-Accuracy Extraction**: Reconstructs layout-heavy paper representations (80-90% structured accuracy) where traditional rule-based parsers fail.
 
 ---
+
+### 📦 **Day 7: Extraction Router**
+
+**What it does:** Acts as the layout-aware traffic controller for PDF parsing. It inspects paper diagnostics first, routing files dynamically to the most efficient extraction configuration and providing automatic failovers.
+
+#### 🔑 **Important Elements:**
+
+* **Validity Checks**: Immediately aborts processing if the inspection report labels the file as corrupted or invalid.
+* **Scanned PDF Routing**: Scanned and image-only sheets bypass traditional text-readers and go directly to Docling's layout OCR pipeline.
+* **Dynamic Table Recovery**: If the standard route (`PyMuPDF + GROBID`) returns 0 tables but table keywords (e.g. "Table 1") are detected in the body text, the router dynamically invokes Docling to extract the borderless tables.
+* **GROBID Failover Logic**: Actively checks GROBID port status; if it is offline or fails, it recovers by falling back to Docling.
+
+---
+
+### 📦 **Day 8: Canonical Paper Schema**
+
+**What it does:** Designs a single, unified database schema using Pydantic models. This ensures downstream LLM agents, code generators, and RAG databases consume a standardized structure regardless of which extraction tool was used.
+
+#### 🔑 **Important Elements:**
+
+* **Data Provenance Tracking**: Tracks exact location parameters (`page`, `section`, and `text_span`) for every key parameter or metric to guarantee traceable RAG citations.
+* **Confidence Gating**: Annotates parameters with extraction confidence statuses (`EXPLICIT`, `DERIVED`, `EXTERNAL`, `ASSUMED`, `UNKNOWN`).
+* **Modular Node Schemas**: Maps sections, tables, figures, equations, algorithms, citations, and reference listings to dedicated sub-models.
+* **Serialization Invariance**: Supports strict JSON serialization checks to compile successfully in pre-release Python kernels.
+
+---
+
+### 📦 **Day 9: Merge Extractor Outputs**
+
+**What it does:** Combines PyMuPDF, GROBID, and Docling outputs into a single canonical `PaperDocument` representation, resolving layouts and deduplicating figures/tables.
+
+#### 🔑 **Important Elements:**
+
+* **Metadata Coalescing**: Resolves author lists, main title, and abstract content from the most complete parser (GROBID), with dynamic PyMuPDF fallback.
+* **Page Bounds Mapping**: Calculates section start/end page boundaries using coordinates from PyMuPDF layout blocks.
+* **Borderless Table Recovery**: Combines extracted tables from all engines and deduplicates them using layout-aware coordinate mappings.
+* **Conflict Log Tracker**: Identifies metadata discrepancies (like differing titles between engines) and notes them inside `extraction_metadata["conflicts"]`.
+
+---
+
+### 📦 **Day 10: Equations, Tables, Figures, and Algorithms**
+
+**What it does:** Makes non-text scientific components (LaTeX formulas and pseudocode listings) first-class objects within the canonical `PaperDocument` schema.
+
+#### 🔑 **Important Elements:**
+
+* **Multi-Channel Text Coalescing**: Merges text channels across PyMuPDF, GROBID, and Docling before scanning to prevent nested text items from being omitted during section filtering.
+* **Inline & Display Equation Normalization**: Matches numbered display equations (e.g. lines ending in standard template numbering like `(1)`) using a self-healing regex validator that extracts formulas directly from text blocks.
+* **Pseudocode Block Segmentation**: Locates algorithm caption headings (e.g. `Algorithm 1 Forward Propagation`) and captures the entire indented code listing, linking it with its page coordinates.
+* **Visual Object Captions Verification**: Pairs extracted table layouts, figures, and math equations with their corresponding page bounds and sequence caption labels.
+
+---
+
+### 📦 **Day 11: Deterministic Extraction Validation**
+
+**What it does:** Runs strict, deterministic logical and structural validation rules over canonical papers to verify that titles, ordering, tables, and captions match scientific expectations.
+
+#### 🔑 **Important Elements:**
+
+* **Logical Validation Scorecard**: Runs a 9-check validator to catch missing titles, empty abstracts, duplicated sentence blocks, and low-density pages.
+* **Table Cell Alignment Auditing**: Automatically flags tables containing rows with inconsistent cell column counts.
+* **Section Numerical Ascendency**: Validates that Roman/Arabic section headings are logically sorted in incremental order (e.g., Section III does not precede Section II).
+* **Missing Caption Flagging**: Scans visual elements to flag figures, tables, or equations that lack descriptive header labels.
+
+---
+
+### 📦 **Day 12: Confidence & Provenance System**
+
+**What it does:** Enforces strict provenance tracing and confidence grading rules for claims and extracted parameters, ensuring safety rules prevent unverified claims from being elevated to facts.
+
+#### 🔑 **Important Elements:**
+
+* **Status Hierarchy Mapping**: Standardizes status annotations to `EXPLICIT`, `EXTERNAL`, `DERIVED`, `ASSUMED`, or `UNKNOWN`.
+* **Proportional Confidence Score**: Maps status values to proportional confidence ratings from `0.0` to `1.0`.
+* **Unknown-to-Fact Safety Guard**: Enforces that claims with missing context remain strictly `UNKNOWN` (confidence `0.0`) and throws explicit runtime validation errors if unproven claims try to bypass safety checks.
+
+---
+
+### 📦 **Day 13: Ingestion Benchmarking**
+
+**What it does:** Audits parsing precision by running the pipeline over representative layout archetypes (e.g., CV papers, transformer algorithms, math-dense, or table-heavy documents).
+
+#### 🔑 **Important Elements:**
+
+* **Golden Corpus Suite**: Validates performance across diverse layout structures (e.g. Outlier `[18].pdf` with 43 tables, `[24].pdf` with dense math formulas).
+* **Segment Accuracy Audit**: Measures and scorecards accuracy across metadata, section boundaries, table rendering, reference bibliographies, and provenance coordinate ranges.
+* **Baseline Extraction Report**: Saves a detailed verification log directly to `docs/backend_docs/Tests_docs/Baseline_Extraction_Report.md`.
+
+
