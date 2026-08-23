@@ -28,22 +28,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from core import settings
+
 # Global runs cache
 runs = {}
 
-# Profile system constraints on startup
-gpu_name, vram_gb = detect_gpu()
-ram_gb = detect_system_ram()
-cpu_cores = multiprocessing.cpu_count()
-
-default_constraints = {
-    "available_vram_gb": vram_gb,
-    "gpu_model": gpu_name,
-    "system_ram_gb": ram_gb,
-    "cpu_cores": cpu_cores,
-    "dataset_size_images": 20000,
-    "timeline_weeks": 2
-}
+default_constraints = settings.default_constraints
+gpu_name = settings.gpu_name
+vram_gb = settings.vram_gb
+ram_gb = settings.ram_gb
+cpu_cores = settings.cpu_cores
 
 class AnalyzeRequest(BaseModel):
     filePath: str

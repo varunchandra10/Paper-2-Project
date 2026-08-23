@@ -20,5 +20,11 @@ docs/versioned_plan.md
 docs/llm_api_reference.md
 docs/frontend_ui_plan.md
 docs/implementation_plan.md
+docs/old_backend_docs
 
 /mascot_transition_tester.html
+
+/backend/storage
+/backend/tests/old_backend_tests
+/backend/outputs_1
+/backend_1
