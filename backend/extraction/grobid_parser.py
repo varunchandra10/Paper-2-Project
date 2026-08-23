@@ -138,6 +138,28 @@ def extract_grobid(pdf_path: str, grobid_url: str = "http://localhost:8070") -> 
         report["tables"] = tables
         report["figures"] = figures
         
+        # --- Formulas / Equations ---
+        formula_elems = root.findall(".//tei:formula", NS)
+        equations = []
+        for formula in formula_elems:
+            f_id = formula.get("{http://www.w3.org/XML/1998/namespace}id", "eq_unknown")
+            label_elem = formula.find("tei:label", NS)
+            label = _xml_get_text(label_elem) if label_elem is not None else ""
+            
+            # Content is the text directly inside formula (or its math tags if any)
+            formula_text = _xml_get_text(formula).strip()
+            # If the label is in the text, clean it (e.g. "(1)")
+            if label and formula_text.endswith(label):
+                formula_text = formula_text[:-len(label)].strip()
+                
+            if formula_text:
+                equations.append({
+                    "id": f_id,
+                    "latex": formula_text,
+                    "caption": f"Equation {label}" if label else "Equation"
+                })
+        report["equations"] = equations
+
         # --- References ---
         bib_structs = root.findall(".//tei:back/tei:div[@type='references']//tei:biblStruct", NS)
         references = []

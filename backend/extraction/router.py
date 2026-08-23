@@ -1,4 +1,5 @@
 import os
+import re
 import requests
 from typing import List, Dict, Any
 from core import logger, generate_paper_id
@@ -85,6 +86,33 @@ def route_and_extract(pdf_path: str, grobid_url: str = "http://localhost:8070") 
         result["selected_parsers"].append("docling")
         docling_out = extract_docling(pdf_path)
         result["docling_output"] = docling_out
+
+    # 5. Auxiliary Table Routing: If table mentions exist in text but 0 tables were extracted,
+    # engage Docling dynamically to recover the borderless/vector tables.
+    py_tables = result["pymupdf_output"].get("sections", {}).get("Tables", {}).get("subsections", {}) if result["pymupdf_output"] else {}
+    gr_tables = result["grobid_output"].get("tables", []) if result["grobid_output"] else []
+    
+    if len(py_tables) == 0 and len(gr_tables) == 0 and "docling" not in result["selected_parsers"]:
+        # Scan extracted text from both PyMuPDF and GROBID for table mentions (e.g. "Table 1", "Table I")
+        text_content = ""
+        if result["pymupdf_output"]:
+            for sec_name, sec_data in result["pymupdf_output"].get("sections", {}).items():
+                text_content += sec_data.get("content", "") + " "
+                for sub_text in sec_data.get("subsections", {}).values():
+                    text_content += sub_text + " "
+        if result["grobid_output"]:
+            text_content += result["grobid_output"].get("abstract", "") + " "
+            for sec_name, sec_data in result["grobid_output"].get("sections", {}).items():
+                text_content += sec_data.get("content", "") + " "
+                for sub_text in sec_data.get("subsections", {}).values():
+                    text_content += sub_text + " "
+                    
+        table_mentions = re.findall(r'\b(?:Table|TABLE)\s*(?:[IVX\d]+)\b', text_content)
+        if table_mentions:
+            logger.info(f"Detected table mentions in text but 0 tables extracted. Engaging auxiliary Docling parser for '{filename}'...")
+            result["selected_parsers"].append("docling")
+            docling_out = extract_docling(pdf_path)
+            result["docling_output"] = docling_out
 
     logger.info(f"🏁 Finished routed extraction for '{filename}'. Selected: {result['selected_parsers']}")
     return result

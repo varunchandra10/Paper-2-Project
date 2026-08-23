@@ -6,6 +6,7 @@ from extraction.pymupdf_parser import (
     detect_pdf_layout,
     extract_blocks_two_column,
     extract_blocks_single_column,
+    extract_tables_for_page,
     clean_text
 )
 
@@ -96,11 +97,21 @@ def extract_document_blocks(pdf_path: str) -> List[Dict[str, Any]]:
                     "font_size": font_size
                 })
                 
+            # Extract tables using pdfplumber on this page
+            page_tables = []
+            try:
+                # doc contains fitz.open handle, but we need pdf_path to pass to plumber
+                # idx is the 0-based page index, which matches plumber's page indexing
+                page_tables = extract_tables_for_page(pdf_path, idx, page)
+            except Exception as t_err:
+                logger.warning(f"Failed to extract pdfplumber tables on page {page_num}: {t_err}")
+
             document_pages.append({
                 "page": page_num,
                 "width": round(page_width, 1),
                 "height": round(page_height, 1),
-                "blocks": structured_blocks
+                "blocks": structured_blocks,
+                "tables": page_tables
             })
             
     except Exception as e:

@@ -12,3 +12,18 @@ from .pipeline_schemas import (
     BuildSequence,
     AdaptationReport
 )
+from .canonical_paper import (
+    Provenance,
+    SourceValue,
+    Section,
+    Figure,
+    Table,
+    Equation,
+    Algorithm,
+    Citation,
+    Reference,
+    PageInfo,
+    PaperDocument,
+    ValidationMetric,
+    ExtractionQualityReport
+)
