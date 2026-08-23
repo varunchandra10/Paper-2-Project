@@ -1,5 +1,4 @@
-# Facade for backward-compatibility with flat imports
-from schemas.pipeline_schemas import (
+from .pipeline_schemas import (
     SectionInfo,
     PaperMetadata,
     ParameterDetails,
