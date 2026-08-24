@@ -5,11 +5,13 @@ import requests
 from typing import TypedDict, List
 from langchain_ollama import ChatOllama
 from langgraph.graph import StateGraph, START, END
-from schemas import ComponentGraph, Component, ParameterDetails
+from schemas import ComponentGraph, Component, ParameterDetails, ExtractedParameters, ParameterGap, GapReport
 
-# Define LangGraph State
+# Define LangGraph State (not used directly in pipeline Orchestrator anymore, but kept for compatibility)
 class GapAgentState(TypedDict):
     component_graph: ComponentGraph
+    extracted_parameters: ExtractedParameters
+    gap_report: GapReport
 
 def load_dotenv():
     # Check current directory and backend directory for .env
@@ -55,7 +57,6 @@ def search_github(query: str) -> str:
         "Accept": "application/vnd.github.v3+json",
         "User-Agent": "Paper-to-Project-Agent"
     }
-    # Optional token to avoid rate limits
     token = os.environ.get("GITHUB_TOKEN")
     if token:
         headers["Authorization"] = f"token {token}"
@@ -75,80 +76,100 @@ def search_github(query: str) -> str:
         print(f"  [GitHub] Error during search: {e}", file=sys.stderr)
         return ""
 
-def run_gap_agent(component_graph: ComponentGraph, model_name: str = "qwen2.5-coder:1.5b") -> ComponentGraph:
-    """Identifies missing parameters, runs web searches, and fills gaps using local LLM reasoning."""
+def run_gap_agent(
+    component_graph: ComponentGraph, 
+    extracted_parameters: ExtractedParameters, 
+    model_name: str = "qwen2.5-coder:1.5b"
+) -> GapReport:
+    """Identifies missing global parameters, runs web searches, and classifies them into: EXPLICIT, DERIVABLE, MISSING, AMBIGUOUS."""
     
-    # 1. Identify missing parameters
+    # 1. Scan for missing parameters and collect them as search targets
     gaps = []
-    for component in component_graph.components:
-        for param_name, details in component.parameters.items():
-            if details.value.lower() in ["not specified", "unknown", "none", "null"] or details.confidence == "ASSUMED":
-                gaps.append((component.name, param_name, component.description))
-
-    if not gaps:
-        print("No missing parameters or gaps identified in the component graph.")
-        return component_graph
-
-    print(f"Identified {len(gaps)} potential gaps to resolve.")
     search_context = []
-
-    # 2. Run searches for each gap (capped at 3 searches to avoid rate limits/latency)
-    for idx, (comp_name, param_name, comp_desc) in enumerate(gaps[:3], 1):
-        query = f"VLCD change detection {comp_name} {param_name}"
-        print(f"\n[{idx}] Resolving gap: '{param_name}' in '{comp_name}'...")
-        
-        tavily_results = search_tavily(query)
-        github_results = search_github(query)
-        
-        context_block = (
-            f"Component: {comp_name}\n"
-            f"Parameter: {param_name}\n"
-            f"Description: {comp_desc}\n"
-            f"Web Search Results:\n{tavily_results or 'No web results.'}\n"
-            f"GitHub Results:\n{github_results or 'No GitHub results.'}\n"
-        )
-        search_context.append(context_block)
-
+    
+    for field_name in extracted_parameters.__class__.model_fields.keys():
+        param = getattr(extracted_parameters, field_name)
+        if param.status in ["UNKNOWN", "ASSUMED"] or param.value.lower() in ["not specified", "unknown", "none"]:
+            gaps.append(field_name)
+            
+    if gaps:
+        print(f"Identified {len(gaps)} parameters requiring search/verification.")
+        # Execute Tavily/Github search for top 3 missing parameters to avoid rate limits
+        for idx, param_name in enumerate(gaps[:3], 1):
+            query = f"VLCD change detection paper {param_name} hyperparameter"
+            print(f"\n[{idx}] Searching details for gap: '{param_name}'...")
+            tavily_results = search_tavily(query)
+            github_results = search_github(query)
+            
+            context_block = (
+                f"Parameter: {param_name}\n"
+                f"Web Search Results:\n{tavily_results or 'No web results.'}\n"
+                f"GitHub Results:\n{github_results or 'No GitHub results.'}\n"
+            )
+            search_context.append(context_block)
+            
     search_context_str = "\n====================\n".join(search_context)
 
-    # 3. Invoke LLM to tag parameters
-    llm = ChatOllama(model=model_name, temperature=0.0, num_ctx=4096)
-    structured_llm = llm.with_structured_output(ComponentGraph)
+    # 2. Invoke local Ollama to classify all 11 global parameters
+    # num_predict=768 prevents looping in parameter_gaps list fields
+    llm = ChatOllama(model=model_name, temperature=0.0, num_ctx=4096, num_predict=768)
+    structured_llm = llm.with_structured_output(GapReport)
 
     prompt = (
-        "You are an expert machine learning engineer tasked with filling in the missing hyperparameters (gaps) in a component graph.\n\n"
-        "Here is the current Component Graph:\n"
-        f"{json.dumps(component_graph.model_dump(), indent=2)}\n\n"
-        "Here are the web and code search results we found for the missing parameters:\n"
+        "You are an academic project audit agent. Your task is to analyze the extracted parameters from a research paper, "
+        "supplemented by web search results, and classify each parameter's status into one of:\n"
+        "- 'EXPLICIT': Explicitly stated in the paper text.\n"
+        "- 'DERIVABLE': Not explicitly stated, but can be derived from standard practices, baseline frameworks, or inputs (e.g. Swin Transformer patch size is usually 4).\n"
+        "- 'MISSING': Completely missing from the paper and search results.\n"
+        "- 'AMBIGUOUS': Stated, but described vaguely (e.g. 'learning rate is adjusted dynamically' without formula).\n\n"
+        "--- CURRENT EXTRACTED PARAMETERS ---\n"
+        f"{json.dumps(extracted_parameters.model_dump(), indent=2)}\n\n"
+        "--- SUPPLEMENTARY WEB/CODE SEARCH RESULTS ---\n"
         f"{search_context_str}\n\n"
         "Instructions:\n"
-        "1. For each parameter in the graph, review its current value.\n"
-        "2. If the value is 'Not specified' or confidence is 'ASSUMED', use the search results above to find the correct value.\n"
-        "3. Update the parameters using the following rules:\n"
-        "   - Set 'confidence' to 'CONFIRMED' if you found the exact value in the search results or if it is explicitly stated in the VLCD paper context.\n"
-        "   - Set 'confidence' to 'INFERRED' if the value is not explicitly stated in the search results, but you can logically deduce it from standard practices (e.g. Swin-T patch size is usually '4', standard CLIP input is '224').\n"
-        "   - Set 'confidence' to 'ASSUMED' if there are no search results and you must guess a reasonable default value.\n"
-        "4. Provide a clear 'rationale' explaining the source or logic behind the value and confidence selection.\n"
-        "5. Leave already 'CONFIRMED' parameters unchanged.\n\n"
-        "CRITICAL: Avoid placeholders like '{batch_size}' or '{width}'. Output only concrete values."
+        "1. Classify each of the 11 global parameters: model, dataset, optimizer, learning_rate, batch_size, epochs, loss, scheduler, input_size, augmentation, hardware.\n"
+        "2. For each parameter, provide:\n"
+        "   - 'parameter_name': The exact parameter name (matching the list above).\n"
+        "   - 'classification': 'EXPLICIT', 'DERIVABLE', 'MISSING', or 'AMBIGUOUS'.\n"
+        "   - 'value': The verified/resolved value of the parameter.\n"
+        "   - 'details': A technical rationale or source for this classification and value.\n"
+        "3. Enforce the 'has_critical_missing_parameters' flag (set to true if any critical parameter like learning_rate, optimizer, or loss is MISSING).\n"
+        "4. Provide a high-level executive 'summary' of the parameter gaps."
     )
 
-    print("\nSending updated context to local Ollama for gap filling...")
+    print("\nSending context to local Ollama for structured gap classification...")
     try:
-        updated_graph = structured_llm.invoke(prompt)
+        gap_report = structured_llm.invoke(prompt)
     except Exception as e:
-        print(f"Warning: Gap agent LLM call failed ({e}). Returning original graph as baseline.")
-        updated_graph = component_graph
-    return updated_graph
+        print(f"Warning: Gap classification LLM call failed ({e}). Building empty fallback report.")
+        fallback_gaps = []
+        has_missing = False
+        for field_name in extracted_parameters.__class__.model_fields.keys():
+            param = getattr(extracted_parameters, field_name)
+            classification = "EXPLICIT"
+            if param.status == "UNKNOWN":
+                classification = "MISSING"
+                if field_name in ["optimizer", "learning_rate", "loss"]:
+                    has_missing = True
+            elif param.status == "ASSUMED":
+                classification = "DERIVABLE"
+            elif param.status == "INFERRED":
+                classification = "DERIVABLE"
+            fallback_gaps.append(ParameterGap(
+                parameter_name=field_name,
+                classification=classification,
+                value=param.value,
+                details=param.rationale
+            ))
+        gap_report = GapReport(
+            parameter_gaps=fallback_gaps,
+            has_critical_missing_parameters=has_missing,
+            summary="Fallback gap report generated programmatically due to LLM invocation timeout."
+        )
+        
+    if gap_report and gap_report.parameter_gaps:
+        for g in gap_report.parameter_gaps:
+            g.classification = str(g.classification).upper().strip()
 
-# Compile LangGraph Workflow
-def gap_finding_node(state: GapAgentState) -> dict:
-    component_graph = state["component_graph"]
-    updated_graph = run_gap_agent(component_graph)
-    return {"component_graph": updated_graph}
+    return gap_report
 
-workflow = StateGraph(GapAgentState)
-workflow.add_node("gap_finding", gap_finding_node)
-workflow.add_edge(START, "gap_finding")
-workflow.add_edge("gap_finding", END)
-graph = workflow.compile()

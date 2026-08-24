@@ -10,7 +10,11 @@ from .pipeline_schemas import (
     FeasibilityReport,
     Milestone,
     BuildSequence,
-    AdaptationReport
+    AdaptationReport,
+    ProjectParameter,
+    ExtractedParameters,
+    ParameterGap,
+    GapReport
 )
 from .canonical_paper import (
     Provenance,

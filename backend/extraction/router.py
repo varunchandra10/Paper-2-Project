@@ -114,5 +114,5 @@ def route_and_extract(pdf_path: str, grobid_url: str = "http://localhost:8070") 
             docling_out = extract_docling(pdf_path)
             result["docling_output"] = docling_out
 
-    logger.info(f"🏁 Finished routed extraction for '{filename}'. Selected: {result['selected_parsers']}")
+    logger.info(f"[FINISH] Finished routed extraction for '{filename}'. Selected: {result['selected_parsers']}")
     return result

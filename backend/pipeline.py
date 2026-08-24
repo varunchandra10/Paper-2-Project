@@ -3,7 +3,7 @@ import json
 import sys
 from typing import TypedDict, List
 from langgraph.graph import StateGraph, START, END
-from schemas import PipelineOutput, PaperMetadata, ComponentGraph, FeasibilityReport, BuildSequence, AdaptationReport
+from schemas import PipelineOutput, PaperMetadata, ComponentGraph, FeasibilityReport, BuildSequence, AdaptationReport, PaperDocument, ExtractedParameters, GapReport
 
 # Define unified pipeline state
 class PipelineState(TypedDict):
@@ -13,7 +13,10 @@ class PipelineState(TypedDict):
     loop_count: int
     raw_sections: dict
     metadata: PaperMetadata
+    paper_doc: PaperDocument  # Added for Phase 5 canonical tracking
     component_graph: ComponentGraph
+    extracted_parameters: ExtractedParameters  # Added for Day 21 parameter extraction
+    gap_report: GapReport  # Added for Day 22 parameter gap classification
     feasibility_report: FeasibilityReport
     build_sequence: BuildSequence
     report: AdaptationReport
@@ -53,43 +56,63 @@ def run_refinement(component_graph: ComponentGraph, feasibility_report: Feasibil
 # --- Node Definitions ---
 
 def ingestion_node(state: PipelineState) -> dict:
+    from extraction import route_and_extract, merge_extractions
+    from retrieval import chunk_paper_document, generate_local_embedding, PaperVectorDB
     from agents.ingestion_agent import run_ingestion_agent
-    from parser import parse_pdf
     
     pdf_path = state["pdf_path"]
-    parsed_path = pdf_path.replace(".pdf", "_parsed.json")
+    print(f"\n[Orchestrator] Step 1: Parsing and merging paper '{pdf_path}'...")
     
-    if not os.path.exists(parsed_path):
-        print(f"\n[Orchestrator] Step 1: Parsed sections JSON not found. Running parser on '{pdf_path}'...")
-        parsed_sections = parse_pdf(pdf_path)
-        if parsed_sections:
-            with open(parsed_path, "w", encoding="utf-8") as f:
-                json.dump(parsed_sections, f, indent=4, ensure_ascii=False)
-            print(f"[Orchestrator] Saved parsed sections to '{parsed_path}'")
-        else:
-            raise FileNotFoundError(f"Failed to parse PDF at '{pdf_path}'")
-    else:
-        print(f"\n[Orchestrator] Step 1: Loading existing parsed sections from '{parsed_path}'...")
-        with open(parsed_path, "r", encoding="utf-8") as f:
-            parsed_sections = json.load(f)
+    # 1. Routing & extraction parsing -> Merge to canonical PaperDocument
+    routed_result = route_and_extract(pdf_path)
+    paper_doc = merge_extractions(routed_result)
+    
+    # 2. Slice and insert layout chunks into PostgreSQL + pgvector
+    print("[Orchestrator] Slicing document and saving embeddings in pgvector database...")
+    chunks = chunk_paper_document(paper_doc)
+    embeddings = [generate_local_embedding(c.content) for c in chunks]
+    
+    db = PaperVectorDB()
+    db.initialize_db()
+    db.insert_paper_document(paper_doc, chunks, embeddings)
+    
+    # 3. Compile parsed sections from PaperDocument
+    parsed_sections = {sec.title: sec.content for sec in paper_doc.sections}
+    parsed_sections["Metadata / Front Matter"] = f"Title: {paper_doc.metadata.title}\nAbstract: {paper_doc.metadata.abstract}"
     
     model = state.get("model_name", "qwen2.5-coder:1.5b")
     metadata = run_ingestion_agent(parsed_sections, model_name=model)
-    return {"raw_sections": parsed_sections, "metadata": metadata, "loop_count": 0}
+    return {
+        "raw_sections": parsed_sections, 
+        "metadata": metadata, 
+        "paper_doc": paper_doc, 
+        "loop_count": 0
+    }
 
 def decomposition_node(state: PipelineState) -> dict:
     from agents.decomposition_agent import run_decomposition_agent
     print("\n[Orchestrator] Step 2: Running Method Decomposition Agent...")
     model = state.get("model_name", "qwen2.5-coder:1.5b")
-    component_graph = run_decomposition_agent(state["raw_sections"], model_name=model)
+    component_graph = run_decomposition_agent(
+        state["raw_sections"], 
+        model_name=model, 
+        paper_doc=state["paper_doc"]
+    )
     return {"component_graph": component_graph}
+
+def parameter_extraction_node(state: PipelineState) -> dict:
+    from agents.parameter_agent import run_parameter_agent
+    print("\n[Orchestrator] Step 2.5: Running Parameter Extraction Agent...")
+    model = state.get("model_name", "qwen2.5-coder:1.5b")
+    extracted_parameters = run_parameter_agent(state["paper_doc"], model_name=model)
+    return {"extracted_parameters": extracted_parameters}
 
 def gap_finding_node(state: PipelineState) -> dict:
     from agents.gap_agent import run_gap_agent
     print("\n[Orchestrator] Step 3: Running Gap-Finding Agent...")
     model = state.get("model_name", "qwen2.5-coder:1.5b")
-    gap_filled_graph = run_gap_agent(state["component_graph"], model_name=model)
-    return {"component_graph": gap_filled_graph}
+    gap_report = run_gap_agent(state["component_graph"], state["extracted_parameters"], model_name=model)
+    return {"gap_report": gap_report, "component_graph": state["component_graph"]}
 
 def feasibility_node(state: PipelineState) -> dict:
     from agents.feasibility_agent import run_feasibility_agent
@@ -138,6 +161,7 @@ workflow = StateGraph(PipelineState)
 # Add all agent nodes
 workflow.add_node("ingestion", ingestion_node)
 workflow.add_node("decomposition", decomposition_node)
+workflow.add_node("parameter_extraction", parameter_extraction_node)
 workflow.add_node("gap_finding", gap_finding_node)
 workflow.add_node("feasibility", feasibility_node)
 workflow.add_node("refinement", refinement_node)
@@ -147,7 +171,8 @@ workflow.add_node("report", report_node)
 # Set up edges
 workflow.add_edge(START, "ingestion")
 workflow.add_edge("ingestion", "decomposition")
-workflow.add_edge("decomposition", "gap_finding")
+workflow.add_edge("decomposition", "parameter_extraction")
+workflow.add_edge("parameter_extraction", "gap_finding")
 workflow.add_edge("gap_finding", "feasibility")
 
 # Conditional loop edge after feasibility validation

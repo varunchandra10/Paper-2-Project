@@ -144,7 +144,13 @@ To minimize engineering risk, the project is scheduled in 5 dependency-ordered m
 | :---: | :--- | :---: | :--- | :--- | :--- |
 {milestones_rows}
 """
-    return AdaptationReport(markdown_content=markdown_report)
+    return AdaptationReport(
+        executive_summary=executive_summary,
+        bottleneck_analysis=bottleneck_analysis,
+        cloud_migration_guide=migration_guide,
+        markdown_content=markdown_report
+    )
+
 
 def report_node(state: ReportState) -> dict:
     pipeline_output = state["pipeline_output"]

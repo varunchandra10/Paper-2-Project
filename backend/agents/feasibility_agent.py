@@ -14,31 +14,33 @@ class FeasibilityState(TypedDict):
 def run_feasibility_agent(component_graph: ComponentGraph, constraints: dict, model_name: str = "qwen2.5-coder:1.5b") -> FeasibilityReport:
     """Uses Ollama structured output to validate project feasibility against hardware/timeline constraints."""
     
-    # Initialize Ollama model with structured output
-    llm = ChatOllama(model=model_name, temperature=0.0, num_ctx=4096)
+    # num_predict caps the token output to prevent the model looping forever on long 'reason' fields
+    llm = ChatOllama(model=model_name, temperature=0.0, num_ctx=4096, num_predict=1024)
     structured_llm = llm.with_structured_output(FeasibilityReport)
     
+    # Keep the component graph summary brief to reduce prompt length
+    comp_summary = [
+        {"name": c.name, "type": c.type, "description": c.description[:120]}
+        for c in component_graph.components
+    ]
+    
     prompt = (
-        "You are a senior Deep Learning Systems Optimization Engineer. Your task is to perform a feasibility analysis on the proposed research paper architecture "
-        "and determine if it can be trained/fine-tuned within the user's specific hardware and project constraints.\n\n"
-        "--- COMPONENT GRAPH ---\n"
-        f"{json.dumps(component_graph.model_dump(), indent=2)}\n\n"
+        "You are a senior Deep Learning Systems Optimization Engineer. Perform a feasibility analysis "
+        "on the proposed architecture given the user hardware constraints.\n\n"
+        "--- COMPONENT SUMMARY ---\n"
+        f"{json.dumps(comp_summary, indent=2)}\n\n"
         "--- USER CONSTRAINTS ---\n"
         f"{json.dumps(constraints, indent=2)}\n\n"
-        "Instructions:\n"
-        "1. For each architectural component, evaluate its feasibility based on the user's available VRAM, GPU model, and dataset size. "
-        "Consider if training or fine-tuning the component (e.g. Swin Transformer, CLIP Image Encoder, SFN) will fit in memory.\n"
-        "2. Evaluate the training regime (batch size, epochs, learning rate, optimizer) feasibility. "
-        "Estimate the training compute time based on the dataset size, epochs, and GPU model, and check if it fits the timeline (in weeks).\n"
-        "3. Assign a status for each component and the training regime:\n"
-        "   - 'FEASIBLE': Runs perfectly without issues.\n"
-        "   - 'WARNING': Runs but might run out of memory (OOM), take too long, or require parameter-efficient optimization (e.g. freezing layers, LoRA, gradient accumulation).\n"
-        "   - 'IMPOSSIBLE': Cannot run due to complete lack of hardware support (e.g. requires >24GB VRAM but user has 4GB VRAM).\n"
-        "4. For any component marked with WARNING or IMPOSSIBLE, provide a concrete 'suggested_substitute' "
-        "(e.g., 'Freeze Swin backbone and use SFN/adapter layers instead of full fine-tuning', 'Reduce batch size to 4 and use gradient accumulation', 'Substitute Swin Transformer with a lighter ResNet-18 or Swin-T backbone').\n"
-        "5. Compile the findings into a list of actionable recommendations.\n"
-        "6. Suggest a list of free or low-cost cloud alternatives (like Google Colab, Kaggle Kernels, or Groq LPU) where the user can run this project if their local hardware is limited. "
-        "For each platform, provide its description (VRAM / CPU specs / free credits) and step-by-step setup instructions to run this project."
+        "STRICT RULES:\n"
+        "- For each component: status ('FEASIBLE'/'WARNING'/'IMPOSSIBLE'), reason (1 sentence max), "
+        "suggested_substitute (1 concrete action max 20 words).\n"
+        "- Do NOT repeat yourself. Each field must be concise.\n"
+        "- training_status: 'FEASIBLE'/'WARNING'/'IMPOSSIBLE'\n"
+        "- training_reason: 1 sentence about timeline/epoch compute.\n"
+        "- training_substitute: 1 actionable suggestion.\n"
+        "- recommendations: 3-5 bullet strings.\n"
+        "- alternatives: 2 platforms (Google Colab, Kaggle) with brief setup steps.\n"
+        "- overall_status: aggregate status across all components."
     )
     
     print("Sending request to local Ollama for feasibility validation...")
@@ -53,31 +55,33 @@ def run_feasibility_agent(component_graph: ComponentGraph, constraints: dict, mo
                 ComponentFeasibility(
                     component_name=comp.name,
                     status="WARNING",
-                    reason="Backbone parameters are large for standard desktop deployment.",
-                    suggested_substitute="Freeze backbone layers and use LoRA or adapter-based fine-tuning."
+                    reason="Backbone parameters may exceed desktop VRAM budget.",
+                    suggested_substitute="Freeze backbone layers and use LoRA fine-tuning."
                 ) for comp in component_graph.components
             ],
             training_status="WARNING",
             training_reason="Training epochs are high for local GPU limitations.",
             training_substitute="Reduce batch size and implement gradient accumulation steps.",
             recommendations=[
-                "Freeze backbones (Swin/CLIP) and train only adapter/SFN layers.",
-                "Decrease batch size to fit RTX GPU VRAM parameters."
+                "Freeze backbones and train only adapter layers.",
+                "Use gradient accumulation to simulate larger batch sizes.",
+                "Monitor VRAM usage per epoch."
             ],
             alternatives=[
                 AlternativePlatform(
                     platform_name="Google Colab",
-                    description="Offers free access to NVIDIA T4 GPUs (~15GB VRAM) and system RAM.",
-                    how_to_use="Create a new notebook, set runtime type to GPU (T4), clone code repository, and start training."
+                    description="Free NVIDIA T4 GPU (~15GB VRAM).",
+                    how_to_use="Set runtime to GPU T4, clone repo, run training script."
                 ),
                 AlternativePlatform(
                     platform_name="Kaggle Kernels",
-                    description="Offers 30 hours per week of free dual NVIDIA T4 GPUs.",
-                    how_to_use="Open Kaggle Notebook, activate GPU accelerator, import dataset, and run training pipeline."
+                    description="30 free GPU hours/week with dual T4.",
+                    how_to_use="Enable GPU accelerator, import dataset, run pipeline."
                 )
             ]
         )
     return report
+
 
 def feasibility_node(state: FeasibilityState) -> dict:
     component_graph = state["component_graph"]
