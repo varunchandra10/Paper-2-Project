@@ -3,7 +3,11 @@ import json
 import sys
 from typing import TypedDict, List
 from langgraph.graph import StateGraph, START, END
-from schemas import PipelineOutput, PaperMetadata, ComponentGraph, FeasibilityReport, BuildSequence, AdaptationReport, PaperDocument, ExtractedParameters, GapReport
+from schemas import (
+    PipelineOutput, PaperMetadata, ComponentGraph, FeasibilityReport, 
+    BuildSequence, AdaptationReport, PaperDocument, ExtractedParameters, 
+    GapReport, ResourceEstimationReport
+)
 
 # Define unified pipeline state
 class PipelineState(TypedDict):
@@ -17,40 +21,104 @@ class PipelineState(TypedDict):
     component_graph: ComponentGraph
     extracted_parameters: ExtractedParameters  # Added for Day 21 parameter extraction
     gap_report: GapReport  # Added for Day 22 parameter gap classification
+    resource_estimation: ResourceEstimationReport  # Added for Day 24 resource estimation
     feasibility_report: FeasibilityReport
     build_sequence: BuildSequence
     report: AdaptationReport
 
 def run_refinement(component_graph: ComponentGraph, feasibility_report: FeasibilityReport) -> ComponentGraph:
-    """Performs rule-based hyperparameter scaling and optimization when feasibility warnings occur."""
+    """Performs rule-based hyperparameter scaling and optimization when feasibility warning statuses occur."""
     print("\n[Refinement Node] Adjusting hyperparameters based on feasibility feedback...")
-    
-    # 1. Look for Visual Backbone bottlenecks (OOM issues)
-    for comp in component_graph.components:
-        if comp.type == "encoder" and "backbone" in comp.name.lower():
-            # If the backbone is too large, adjust patch size or parameters
-            if "patch_size" in comp.parameters:
-                print(f"  - Visual Backbone ('{comp.name}'): Optimizing patch_size to 4 for memory alignment.")
-                comp.parameters["patch_size"].value = "4"
-                comp.parameters["patch_size"].rationale = "Auto-adjusted from 16 to 4 to reduce transformer patch sequence length"
-                comp.parameters["patch_size"].confidence = "ASSUMED"
-                
-    # 2. Look for training regime timelines/batch bottlenecks
-    if feasibility_report.training_status in ["WARNING", "IMPOSSIBLE"]:
-        print(f"  - Training Regime: Scaling parameters according to feedback: '{feasibility_report.training_substitute}'")
+    from schemas import ParameterDetails
+
+    # Check if modifications are needed
+    if feasibility_report.overall_status in ["FEASIBLE_WITH_MODIFICATION", "NOT_FEASIBLE"]:
+        print(f"  - Feasibility status is '{feasibility_report.overall_status}'. Applying hardware adaptation rules...")
+        
         for comp in component_graph.components:
-            if comp.type in ["training", "optimizer", "regime"] or "optimizer" in comp.name.lower():
-                if "batch_size" in comp.parameters:
-                    print("      * Reducing training batch_size from 24 to 4 to fit in 8GB VRAM.")
+            # 1. Reduce Batch Size (batch size ↓)
+            if "batch_size" in comp.parameters:
+                orig = comp.parameters["batch_size"].value
+                if orig != "4":
                     comp.parameters["batch_size"].value = "4"
-                    comp.parameters["batch_size"].rationale = "Reduced to 4 to prevent local Out-Of-Memory (OOM) error"
+                    comp.parameters["batch_size"].rationale = f"PAPER ORIGINAL: {orig} vs HARDWARE ADAPTATION: 4 (Reduced to fit local VRAM limits)."
                     comp.parameters["batch_size"].confidence = "ASSUMED"
-                if "epochs" in comp.parameters:
-                    print("      * Reducing epochs from 250 to 50 to complete within the 2-week limit.")
-                    comp.parameters["epochs"].value = "50"
-                    comp.parameters["epochs"].rationale = "Scaled down to fit project timeline budget"
-                    comp.parameters["epochs"].confidence = "ASSUMED"
-                    
+                    print(f"      * Refined batch_size: {orig} -> 4")
+
+            # 2. Reduce Image Size (image size ↓)
+            if "input_size" in comp.parameters:
+                orig = comp.parameters["input_size"].value
+                if orig != "128x128" and orig != "128":
+                    comp.parameters["input_size"].value = "128x128"
+                    comp.parameters["input_size"].rationale = f"PAPER ORIGINAL: {orig} vs HARDWARE ADAPTATION: 128x128 (Reduced resolution to fit activation VRAM)."
+                    comp.parameters["input_size"].confidence = "ASSUMED"
+                    print(f"      * Refined input_size: {orig} -> 128x128")
+
+            # 3. Model Variant Downsizing (model variant ↓)
+            if "backbone" in comp.parameters:
+                orig = comp.parameters["backbone"].value
+                if "swin-b" in orig.lower() or "swin-large" in orig.lower():
+                    comp.parameters["backbone"].value = "Swin-T"
+                    comp.parameters["backbone"].rationale = f"PAPER ORIGINAL: {orig} vs HARDWARE ADAPTATION: Swin-T (Downgraded model complexity to fit weights memory)."
+                    comp.parameters["backbone"].confidence = "ASSUMED"
+                    print(f"      * Refined backbone: {orig} -> Swin-T")
+                elif "resnet-50" in orig.lower() or "resnet50" in orig.lower():
+                    comp.parameters["backbone"].value = "ResNet-18"
+                    comp.parameters["backbone"].rationale = f"PAPER ORIGINAL: {orig} vs HARDWARE ADAPTATION: ResNet-18 (Downgraded model complexity to fit weights memory)."
+                    comp.parameters["backbone"].confidence = "ASSUMED"
+                    print(f"      * Refined backbone: {orig} -> ResNet-18")
+
+            # 4. Increase Gradient Accumulation (gradient accumulation ↑)
+            if "gradient_accumulation" in comp.parameters:
+                orig = comp.parameters["gradient_accumulation"].value
+                if orig != "4":
+                    comp.parameters["gradient_accumulation"].value = "4"
+                    comp.parameters["gradient_accumulation"].rationale = f"PAPER ORIGINAL: {orig} vs HARDWARE ADAPTATION: 4 (Increased accumulation steps to simulate original batch sizes)."
+                    comp.parameters["gradient_accumulation"].confidence = "ASSUMED"
+                    print(f"      * Refined gradient_accumulation: {orig} -> 4")
+            else:
+                if comp.type == "training":
+                    comp.parameters["gradient_accumulation"] = ParameterDetails(
+                        value="4",
+                        confidence="ASSUMED",
+                        rationale="PAPER ORIGINAL: 1 vs HARDWARE ADAPTATION: 4 (Increased accumulation steps to simulate original batch sizes)."
+                    )
+                    print("      * Refined gradient_accumulation: Added 4")
+
+            # 5. Freeze Backbone Layers (freeze layers)
+            if "freeze_backbone" in comp.parameters:
+                orig = comp.parameters["freeze_backbone"].value
+                if orig.lower() != "true":
+                    comp.parameters["freeze_backbone"].value = "True"
+                    comp.parameters["freeze_backbone"].rationale = f"PAPER ORIGINAL: {orig} vs HARDWARE ADAPTATION: True (Freeze backbone layers to reduce gradients VRAM footprint)."
+                    comp.parameters["freeze_backbone"].confidence = "ASSUMED"
+                    print(f"      * Refined freeze_backbone: {orig} -> True")
+            else:
+                if comp.type == "training":
+                    comp.parameters["freeze_backbone"] = ParameterDetails(
+                        value="True",
+                        confidence="ASSUMED",
+                        rationale="PAPER ORIGINAL: False vs HARDWARE ADAPTATION: True (Freeze backbone layers to reduce gradients VRAM footprint)."
+                    )
+                    print("      * Refined freeze_backbone: Added True")
+
+            # 6. Enable Mixed Precision (use mixed precision)
+            if "mixed_precision" in comp.parameters:
+                orig = comp.parameters["mixed_precision"].value
+                if orig.lower() != "fp16":
+                    comp.parameters["mixed_precision"].value = "fp16"
+                    comp.parameters["mixed_precision"].rationale = f"PAPER ORIGINAL: {orig} vs HARDWARE ADAPTATION: fp16 (Enabled FP16 training to save active training memory)."
+                    comp.parameters["mixed_precision"].confidence = "ASSUMED"
+                    print(f"      * Refined mixed_precision: {orig} -> fp16")
+            else:
+                if comp.type == "training":
+                    comp.parameters["mixed_precision"] = ParameterDetails(
+                        value="fp16",
+                        confidence="ASSUMED",
+                        rationale="PAPER ORIGINAL: fp32 vs HARDWARE ADAPTATION: fp16 (Enabled FP16 training to save active training memory)."
+                    )
+                    print("      * Refined mixed_precision: Added fp16")
+
     return component_graph
 
 # --- Node Definitions ---
@@ -114,11 +182,29 @@ def gap_finding_node(state: PipelineState) -> dict:
     gap_report = run_gap_agent(state["component_graph"], state["extracted_parameters"], model_name=model)
     return {"gap_report": gap_report, "component_graph": state["component_graph"]}
 
+def resource_estimation_node(state: PipelineState) -> dict:
+    from core.hardware_profiler import profile_hardware
+    from core.resource_estimator import estimate_resources
+    print("\n[Orchestrator] Step 3.5: Running Resource Estimation Agent...")
+    
+    # 1. Profile system specs
+    profile = profile_hardware()
+    
+    # 2. Estimate resources
+    model = state.get("model_name", "qwen2.5-coder:1.5b")
+    report = estimate_resources(state["extracted_parameters"], profile, model_name=model)
+    return {"resource_estimation": report}
+
 def feasibility_node(state: PipelineState) -> dict:
     from agents.feasibility_agent import run_feasibility_agent
     print("\n[Orchestrator] Step 4: Running Feasibility Agent...")
     model = state.get("model_name", "qwen2.5-coder:1.5b")
-    feasibility_report = run_feasibility_agent(state["component_graph"], state["constraints"], model_name=model)
+    feasibility_report = run_feasibility_agent(
+        state["component_graph"], 
+        state["constraints"], 
+        state.get("resource_estimation"),
+        model_name=model
+    )
     return {"feasibility_report": feasibility_report}
 
 def refinement_node(state: PipelineState) -> dict:
@@ -163,6 +249,7 @@ workflow.add_node("ingestion", ingestion_node)
 workflow.add_node("decomposition", decomposition_node)
 workflow.add_node("parameter_extraction", parameter_extraction_node)
 workflow.add_node("gap_finding", gap_finding_node)
+workflow.add_node("resource_estimation", resource_estimation_node)
 workflow.add_node("feasibility", feasibility_node)
 workflow.add_node("refinement", refinement_node)
 workflow.add_node("sequencing", sequencing_node)
@@ -173,7 +260,8 @@ workflow.add_edge(START, "ingestion")
 workflow.add_edge("ingestion", "decomposition")
 workflow.add_edge("decomposition", "parameter_extraction")
 workflow.add_edge("parameter_extraction", "gap_finding")
-workflow.add_edge("gap_finding", "feasibility")
+workflow.add_edge("gap_finding", "resource_estimation")
+workflow.add_edge("resource_estimation", "feasibility")
 
 # Conditional loop edge after feasibility validation
 workflow.add_conditional_edges(

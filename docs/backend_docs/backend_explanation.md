@@ -217,3 +217,60 @@ Here is the quick breakdown of Day 6 for your logs:
 
 * **Zero-Shot LLM Evaluator**: Prompts the local Qwen LLM to score candidate relevance from `0` to `5`, sorting results by LLM scores.
 * **Grounded Evidence Package**: Keeps origin coordinate tags (`page`, `section`, `source_id`) on the top 3 retrieved results to guarantee traceable RAG citations.
+
+---
+
+### 📦 **Day 19: Ingestion & Vectorizing**
+
+**What it does:** Ingests paper front matter to extract structural metadata (title, authors, abstract, sections found, primary contribution) using local Ollama structured output with a fallback parsing layer.
+
+#### 🔑 **Important Elements:**
+
+* **Pydantic Validation Guardrail**: Validates the metadata output using `PaperMetadata` schemas.
+* **Resilient In-Memory Fallback**: Detects database outages and seamlessly redirects vector indexing to local JSON cache files (`in_memory_vector_db.json`) with local cosine similarity compute math.
+* **Loop Prevention**: Imposes a `num_predict=512` token limit to prevent LLM generation loops in list fields.
+
+---
+
+### 📦 **Day 20: Component Graph**
+
+**What it does:** Decomposes methodology sections into structured components and maps their sequential data flow linkages.
+
+#### 🔑 **Important Elements:**
+
+* **Fine-Grained Classification**: Labels modules into five distinct categories (`encoder`, `fusion`, `decoder`, `loss`, `training`).
+* **Automated Dependency Resolver**: Resolves input/output tensor overrides to automatically link modules together when LLM graph outputs are empty.
+
+---
+
+### 📦 **Day 21: Parameter Extraction**
+
+**What it does:** Compiles a ledger of 11 critical model, dataset, optimizer, and compute specs from paper text.
+
+#### 🔑 **Important Elements:**
+
+* **Strict Schema Mappings**: Formats parameters to capture value, source coordinates, status, and confidence levels.
+* **RAG-Grounded Context**: Queries pgvector for exact experimental hyperparameters to minimize LLM hallucinations.
+
+---
+
+### 📦 **Day 22: Parameter Gap Classification**
+
+**What it does:** Validates parameters completeness by running web searches and classifying their state.
+
+#### 🔑 **Important Elements:**
+
+* **Provenance Status Categories**: Tags parameters into `EXPLICIT`, `DERIVABLE`, `MISSING`, or `AMBIGUOUS` classes.
+* **External Web Search Verification**: Executes search queries via Tavily and GitHub to resolve missing parameters.
+
+---
+
+### 📦 **Day 23: Hardware Profiler**
+
+**What it does:** Profiles system specs (CPU, RAM, GPU, VRAM, Disk, OS, and Python environment) to evaluate constraints.
+
+#### 🔑 **Important Elements:**
+
+* **Multi-Layer GPU Auditing**: Resolves GPU name and VRAM via PyTorch CUDA queries first, falling back to powershell CIM/nvidia-smi calls.
+* **Package Dependency Audit**: Inspects Python runtime environment virtual environment state and checks version specs of core DL packages.
+

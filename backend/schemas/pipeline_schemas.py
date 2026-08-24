@@ -52,13 +52,14 @@ class AlternativePlatform(BaseModel):
     how_to_use: str = Field(description="Actionable step-by-step guidance on how to run this project on this platform")
 
 class FeasibilityReport(BaseModel):
-    overall_status: str = Field(description="Overall project feasibility status: 'FEASIBLE', 'WARNING', 'IMPOSSIBLE'")
+    overall_status: str = Field(description="Overall project feasibility status: 'FEASIBLE', 'FEASIBLE_WITH_MODIFICATION', 'NOT_FEASIBLE', 'UNKNOWN'")
     components_analysis: List[ComponentFeasibility] = Field(description="List of feasibility analysis reports for each component")
-    training_status: str = Field(description="Training regime feasibility status: 'FEASIBLE', 'WARNING', 'IMPOSSIBLE'")
+    training_status: str = Field(description="Training regime feasibility status: 'FEASIBLE', 'FEASIBLE_WITH_MODIFICATION', 'NOT_FEASIBLE', 'UNKNOWN'")
     training_reason: str = Field(description="Detailed reason for the training status based on timeline and epoch calculations")
     training_substitute: str = Field(description="Suggested swap for training parameters (e.g. reduce batch size, use gradient accumulation)")
     recommendations: List[str] = Field(description="Actionable summary of recommendations to compile the project")
     alternatives: List[AlternativePlatform] = Field(description="List of free or low-cost alternative cloud platforms with setup guidance")
+
 
     @property
     def components(self) -> List[ComponentFeasibility]:
@@ -115,3 +116,90 @@ class GapReport(BaseModel):
     parameter_gaps: List[ParameterGap] = Field(description="Detailed classification list of all critical project parameters")
     has_critical_missing_parameters: bool = Field(description="Flag indicating if any parameters classified as MISSING are blocking development")
     summary: str = Field(description="A brief summary explaining the state of parameter gaps and action plan to resolve them")
+
+class CPUProfile(BaseModel):
+    processor_name: str = Field(description="CPU model/processor name")
+    physical_cores: int = Field(description="Number of physical CPU cores")
+    logical_cores: int = Field(description="Number of logical CPU cores")
+    frequency_mhz: float = Field(default=0.0, description="CPU clock speed frequency in MHz")
+    usage_pct: float = Field(description="Current CPU usage percentage")
+
+class RAMProfile(BaseModel):
+    total_gb: float = Field(description="Total system RAM in GB")
+    available_gb: float = Field(description="Available system RAM in GB")
+    used_gb: float = Field(description="Used system RAM in GB")
+    usage_pct: float = Field(description="System RAM usage percentage")
+
+class GPUProfile(BaseModel):
+    name: str = Field(description="GPU model/device name")
+    driver_version: str = Field(default="Unknown", description="NVIDIA driver version")
+    cuda_version: str = Field(default="Unknown", description="System CUDA version support")
+    vram_total_gb: float = Field(description="Total VRAM in GB")
+    vram_free_gb: float = Field(description="Free VRAM in GB")
+    vram_used_gb: float = Field(description="Used VRAM in GB")
+    temperature_c: float = Field(default=-1.0, description="GPU temperature in Celsius")
+
+class DiskProfile(BaseModel):
+    path: str = Field(description="Absolute path of the drive profiled")
+    total_gb: float = Field(description="Total disk space in GB")
+    free_gb: float = Field(description="Free disk space in GB")
+    used_gb: float = Field(description="Used disk space in GB")
+    usage_pct: float = Field(description="Disk space usage percentage")
+
+class OSProfile(BaseModel):
+    system: str = Field(description="OS system platform (e.g. Windows, Linux, Darwin)")
+    release: str = Field(description="OS release version")
+    version: str = Field(description="Detailed OS version string")
+    machine: str = Field(description="System hardware/machine architecture (e.g. AMD64, x86_64)")
+
+class PythonProfile(BaseModel):
+    version: str = Field(description="Python version string")
+    executable: str = Field(description="Path to active Python executable")
+    in_virtualenv: bool = Field(description="Flag indicating if python runs in a virtual environment")
+    package_versions: Dict[str, str] = Field(default_factory=dict, description="Dictionary of key packages and their installed versions")
+
+class HardwareProfile(BaseModel):
+    cpu: CPUProfile = Field(description="CPU hardware profile specs")
+    ram: RAMProfile = Field(description="System RAM profile specs")
+    gpus: List[GPUProfile] = Field(default_factory=list, description="List of detected GPUs profile specs")
+    disk: DiskProfile = Field(description="Disk storage profile specs")
+    os: OSProfile = Field(description="Operating System profile specs")
+    python: PythonProfile = Field(description="Python runtime environment specs")
+    timestamp: str = Field(description="ISO-formatted timestamp when the profile was generated")
+
+class ModelResourceRequirement(BaseModel):
+    param_count_millions: float = Field(description="Estimated parameter count in millions")
+    model_weights_mb: float = Field(description="Estimated model weights footprint in MB")
+    vram_minimum_gb: float = Field(description="Minimum VRAM required to load weights in GB")
+    description: str = Field(description="Detailed architecture and weights footprint assessment")
+
+class DatasetResourceRequirement(BaseModel):
+    raw_size_gb: float = Field(description="Estimated raw dataset footprint in GB")
+    sample_count: int = Field(description="Estimated sample count/images in dataset")
+    description: str = Field(description="Dataset sample and layout analysis")
+
+class TrainingResourceRequirement(BaseModel):
+    vram_recommended_gb: float = Field(description="Minimum recommended GPU VRAM in GB for training forward/backward passes")
+    ram_recommended_gb: float = Field(description="Minimum recommended system RAM in GB for training load")
+    estimated_time_hours: float = Field(description="Estimated training time in hours on system hardware")
+    description: str = Field(description="Training load, VRAM allocations, and compute analysis")
+
+class InferenceResourceRequirement(BaseModel):
+    vram_gb: float = Field(description="Estimated VRAM required for active inference in GB")
+    ram_gb: float = Field(description="Estimated system RAM required for active inference in GB")
+    latency_ms: float = Field(description="Estimated inference batch latency in milliseconds")
+    description: str = Field(description="Inference deployment spec and speed estimation")
+
+class StorageResourceRequirement(BaseModel):
+    required_disk_gb: float = Field(description="Estimated total disk space in GB required for dataset, logs, and checkpoints")
+    description: str = Field(description="Total disk space allocations breakdown")
+
+class ResourceEstimationReport(BaseModel):
+    model: ModelResourceRequirement = Field(description="Model memory and structure specifications")
+    dataset: DatasetResourceRequirement = Field(description="Dataset storage and structure specifications")
+    training: TrainingResourceRequirement = Field(description="Training resource allocation specs")
+    inference: InferenceResourceRequirement = Field(description="Inference deployment resource specs")
+    storage: StorageResourceRequirement = Field(description="Disk storage resource footprint specs")
+    overall_resource_tier: str = Field(description="Overall complexity/resource tier: 'LOW' / 'MEDIUM' / 'HIGH' / 'EXTREME'")
+
+
