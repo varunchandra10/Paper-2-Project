@@ -14,7 +14,20 @@ from .pipeline_schemas import (
     ProjectParameter,
     ExtractedParameters,
     ParameterGap,
-    GapReport
+    GapReport,
+    CPUProfile,
+    RAMProfile,
+    GPUProfile,
+    DiskProfile,
+    OSProfile,
+    PythonProfile,
+    HardwareProfile,
+    ModelResourceRequirement,
+    DatasetResourceRequirement,
+    TrainingResourceRequirement,
+    InferenceResourceRequirement,
+    StorageResourceRequirement,
+    ResourceEstimationReport
 )
 from .canonical_paper import (
     Provenance,

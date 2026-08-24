@@ -4,14 +4,20 @@ import sys
 from typing import TypedDict
 from langchain_ollama import ChatOllama
 from langgraph.graph import StateGraph, START, END
-from schemas import ComponentGraph, FeasibilityReport
+from schemas import ComponentGraph, FeasibilityReport, ResourceEstimationReport
 
 class FeasibilityState(TypedDict):
     component_graph: ComponentGraph
     constraints: dict
+    resource_estimation: ResourceEstimationReport
     report: FeasibilityReport
 
-def run_feasibility_agent(component_graph: ComponentGraph, constraints: dict, model_name: str = "qwen2.5-coder:1.5b") -> FeasibilityReport:
+def run_feasibility_agent(
+    component_graph: ComponentGraph, 
+    constraints: dict, 
+    resource_estimation: ResourceEstimationReport = None,
+    model_name: str = "qwen2.5-coder:1.5b"
+) -> FeasibilityReport:
     """Uses Ollama structured output to validate project feasibility against hardware/timeline constraints."""
     
     # num_predict caps the token output to prevent the model looping forever on long 'reason' fields
@@ -26,21 +32,29 @@ def run_feasibility_agent(component_graph: ComponentGraph, constraints: dict, mo
     
     prompt = (
         "You are a senior Deep Learning Systems Optimization Engineer. Perform a feasibility analysis "
-        "on the proposed architecture given the user hardware constraints.\n\n"
+        "on the proposed architecture given the user hardware constraints and computed resource requirements.\n\n"
         "--- COMPONENT SUMMARY ---\n"
         f"{json.dumps(comp_summary, indent=2)}\n\n"
         "--- USER CONSTRAINTS ---\n"
         f"{json.dumps(constraints, indent=2)}\n\n"
+    )
+    
+    if resource_estimation:
+        prompt += (
+            "--- COMPUTED RESOURCE REQUIREMENTS ---\n"
+            f"{json.dumps(resource_estimation.model_dump(), indent=2)}\n\n"
+        )
+        
+    prompt += (
         "STRICT RULES:\n"
-        "- For each component: status ('FEASIBLE'/'WARNING'/'IMPOSSIBLE'), reason (1 sentence max), "
+        "- Enforce overall_status and training_status as exactly one of: 'FEASIBLE', 'FEASIBLE_WITH_MODIFICATION', 'NOT_FEASIBLE', 'UNKNOWN'.\n"
+        "- For each component: status ('FEASIBLE'/'FEASIBLE_WITH_MODIFICATION'/'NOT_FEASIBLE'/'UNKNOWN'), reason (1 sentence max), "
         "suggested_substitute (1 concrete action max 20 words).\n"
         "- Do NOT repeat yourself. Each field must be concise.\n"
-        "- training_status: 'FEASIBLE'/'WARNING'/'IMPOSSIBLE'\n"
         "- training_reason: 1 sentence about timeline/epoch compute.\n"
         "- training_substitute: 1 actionable suggestion.\n"
         "- recommendations: 3-5 bullet strings.\n"
-        "- alternatives: 2 platforms (Google Colab, Kaggle) with brief setup steps.\n"
-        "- overall_status: aggregate status across all components."
+        "- alternatives: 2 platforms (Google Colab, Kaggle) with brief setup steps."
     )
     
     print("Sending request to local Ollama for feasibility validation...")
@@ -50,16 +64,16 @@ def run_feasibility_agent(component_graph: ComponentGraph, constraints: dict, mo
         print(f"Warning: Feasibility agent LLM call failed ({e}). Returning baseline feasibility profile.")
         from schemas import ComponentFeasibility, AlternativePlatform
         report = FeasibilityReport(
-            overall_status="WARNING",
+            overall_status="FEASIBLE_WITH_MODIFICATION",
             components_analysis=[
                 ComponentFeasibility(
                     component_name=comp.name,
-                    status="WARNING",
+                    status="FEASIBLE_WITH_MODIFICATION",
                     reason="Backbone parameters may exceed desktop VRAM budget.",
                     suggested_substitute="Freeze backbone layers and use LoRA fine-tuning."
                 ) for comp in component_graph.components
             ],
-            training_status="WARNING",
+            training_status="FEASIBLE_WITH_MODIFICATION",
             training_reason="Training epochs are high for local GPU limitations.",
             training_substitute="Reduce batch size and implement gradient accumulation steps.",
             recommendations=[
@@ -81,12 +95,12 @@ def run_feasibility_agent(component_graph: ComponentGraph, constraints: dict, mo
             ]
         )
     return report
-
-
+    
 def feasibility_node(state: FeasibilityState) -> dict:
     component_graph = state["component_graph"]
     constraints = state["constraints"]
-    report = run_feasibility_agent(component_graph, constraints)
+    resource_estimation = state.get("resource_estimation")
+    report = run_feasibility_agent(component_graph, constraints, resource_estimation)
     return {"report": report}
 
 # Compile LangGraph Workflow

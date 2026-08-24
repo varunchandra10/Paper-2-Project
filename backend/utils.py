@@ -56,3 +56,7 @@ def detect_system_ram():
     except:
         pass
     return 16.0
+
+# Phase 6 Day 23 integrated hardware profiler
+from core.hardware_profiler import profile_hardware
+
