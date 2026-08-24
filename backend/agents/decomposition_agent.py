@@ -11,7 +11,11 @@ class AgentState(TypedDict):
     parsed_sections: dict
     component_graph: ComponentGraph
 
-def run_decomposition_agent(parsed_sections: dict, model_name: str = "qwen2.5-coder:1.5b") -> ComponentGraph:
+def run_decomposition_agent(
+    parsed_sections: dict, 
+    model_name: str = "qwen2.5-coder:1.5b",
+    paper_doc: Any = None
+) -> ComponentGraph:
     """Uses Ollama structured output to extract the architectural component graph from Method & Experiments sections."""
     
     # Extract the Method section content
@@ -47,36 +51,51 @@ def run_decomposition_agent(parsed_sections: dict, model_name: str = "qwen2.5-co
                 method_content = content
                 break
                 
-    # Initialize Ollama model with structured output
+    # Retrieve Grounded RAG architectural evidence if paper_doc is provided
+    rag_context = ""
+    if paper_doc:
+        from retrieval import generate_local_embedding, generate_grounded_evidence
+        
+        print("[Decomposition Agent] Querying local pgvector database for grounded architectural evidence...")
+        rag_query = (
+            "What visual backbones, encoders, decoders, fusion modules, loss functions, "
+            "learning rate, batch size, epochs, and optimizer are used in this paper?"
+        )
+        try:
+            query_vector = generate_local_embedding(rag_query)
+            evidence_packages = generate_grounded_evidence(rag_query, query_vector, top_k=5)
+            
+            evidence_blocks = []
+            for ev in evidence_packages:
+                evidence_blocks.append(
+                    f"--- Source: '{ev['section']}' (Page {ev['page']}) ---\n{ev['content']}"
+                )
+            rag_context = "\n\n".join(evidence_blocks)
+            print(f"[Decomposition Agent] Grounded context loaded ({len(evidence_packages)} evidence packages).")
+        except Exception as e:
+            print(f"Warning: RAG evidence query failed: {e}")
+
+    # num_predict=1024 prevents the LLM looping through parameter fields endlessly
     print(f"Initializing ChatOllama with model '{model_name}'...")
-    llm = ChatOllama(model=model_name, temperature=0.0, num_ctx=4096)
+    llm = ChatOllama(model=model_name, temperature=0.0, num_ctx=4096, num_predict=1024)
     structured_llm = llm.with_structured_output(ComponentGraph)
 
-    # Prompt instructing the LLM
     prompt = (
-        "You are an expert machine learning architect. Your task is to analyze the METHOD and EXPERIMENTS sections of a research paper "
-        "and decompose its architecture into its specific, named sub-components (a component graph).\n\n"
-        f"--- METHOD SECTION CONTENT ---\n{method_content}\n\n"
-        f"--- EXPERIMENTS SECTION CONTENT ---\n{experiments_content}\n\n"
-        "Instructions:\n"
-        "1. Identify and extract each specific, named sub-component defined in the paper. "
-        "Do NOT group them into generic category names (like 'Encoder' or 'Fusion'). Instead, extract specific components "
-        "such as 'Swin Transformer (RFN)', 'RemoteCLIP / CLIP Image Encoder', 'Side Fusion Network (SFN)', 'Bridging Module', 'Context Optimization (CoOp)', 'Change Feature Calculation (CFC) module', 'Swin Transformer Decoder', 'Cross-Entropy Loss', 'Optimizer', etc.\n\n"
-        "2. Categorize each component's 'type' field as one of:\n"
-        "- 'encoder' (e.g., visual backbones, text encoders)\n"
-        "- 'fusion' (e.g., cross-attention, feature fusion modules, bridging modules, context decoders)\n"
-        "- 'decoder' (e.g., segmentation decoders, mask heads)\n"
-        "- 'loss' (e.g., custom losses, cross-entropy)\n"
-        "- 'training' (e.g., optimizer, learning rate scheduler, training steps)\n\n"
-        "3. For each component, extract its specific paper-defined name, description, inputs, outputs, and its parameters.\n\n"
-        "For each parameter, extract: \n"
-        "- 'value': The concrete value/number (e.g., '24', '0.001', '512', or 'Not specified' if not found in the text).\n"
-        "- 'confidence': 'CONFIRMED' if the value is explicitly stated in the text. Use 'ASSUMED' if the value is not explicitly stated (and you had to set it to 'Not specified' or use standard defaults).\n"
-        "- 'rationale': A brief explanation of how you found the value or why it is marked as 'Not specified'.\n\n"
-        "CRITICAL WARNING:\n"
-        "- Extract only CONCRETE values and numbers mentioned in the text (e.g., batch_size: '24', learning_rate: '0.001', epochs: '250', width: '512').\n"
-        "- Do NOT use template variables or placeholders like '{batch_size}', '{learning_rate}', or '{width}'.\n"
-        "- If a hyperparameter value is not mentioned in the text, use 'Not specified' and set confidence to 'ASSUMED', but NEVER generate curly-brace placeholders."
+        "You are an expert ML architect. Decompose the research paper METHOD section into named architecture components.\n\n"
+    )
+    
+    if rag_context:
+        prompt += f"--- GROUNDED RAG EVIDENCE ---\n{rag_context[:2000]}\n\n"
+        
+    prompt += (
+        f"--- METHOD SECTION (first 3000 chars) ---\n{method_content[:3000]}\n\n"
+        f"--- EXPERIMENTS SECTION (first 1000 chars) ---\n{experiments_content[:1000] if experiments_content else 'N/A'}\n\n"
+        "STRICT RULES:\n"
+        "- Extract 2-5 SPECIFIC named components (e.g. 'Swin Transformer', 'SFN', 'Cross-Entropy Loss').\n"
+        "- type must be one of: 'encoder', 'fusion', 'decoder', 'loss', 'training'.\n"
+        "- Each parameter needs: value (concrete or 'Not specified'), confidence ('CONFIRMED'/'ASSUMED'), rationale (1 sentence).\n"
+        "- Extract max 5 parameters per component (the most important ones only).\n"
+        "- Do NOT repeat yourself. Each field must be unique."
     )
 
     try:
@@ -108,8 +127,61 @@ def run_decomposition_agent(parsed_sections: dict, model_name: str = "qwen2.5-co
                         "width": ParameterDetails(value="512", confidence="ASSUMED", rationale="Standard CLIP default")
                     }
                 )
-            ]
+            ],
+            edges=[]
         )
+        
+    # Programmatic Dependency Adjacency Resolver (Day 20 Component Graph)
+    if not component_graph.edges:
+        derived_edges = []
+        components = component_graph.components
+        
+        # 1. Resolve edges by input/output tensor overlaps
+        for comp_a in components:
+            for comp_b in components:
+                if comp_a.name == comp_b.name:
+                    continue
+                # Map outputs of comp_a to inputs of comp_b
+                for out_tensor in comp_a.outputs:
+                    out_clean = out_tensor.lower().strip()
+                    if not out_clean or out_clean in ["loss value", "training steps", "gradients", "model parameters"]:
+                        continue
+                    for in_tensor in comp_b.inputs:
+                        in_clean = in_tensor.lower().strip()
+                        if out_clean == in_clean or out_clean in in_clean or in_clean in out_clean:
+                            edge = {"source": comp_a.name, "target": comp_b.name}
+                            if edge not in derived_edges:
+                                derived_edges.append(edge)
+                                
+        # 2. Fallback / supplementary sequence alignment (Type-based flow structure)
+        # Standard: encoder -> fusion -> decoder -> loss -> training
+        encoders = [c.name for c in components if c.type == "encoder"]
+        fusions = [c.name for c in components if c.type == "fusion"]
+        decoders = [c.name for c in components if c.type == "decoder"]
+        losses = [c.name for c in components if c.type == "loss"]
+        trainings = [c.name for c in components if c.type == "training"]
+        
+        # If no programmatic tensor edges could be found, build the type-based sequence flow graph
+        if not derived_edges:
+            next_targets = fusions if fusions else (decoders if decoders else losses)
+            for enc in encoders:
+                for target in next_targets:
+                    derived_edges.append({"source": enc, "target": target})
+            
+            for fus in fusions:
+                for dec in decoders:
+                    derived_edges.append({"source": fus, "target": dec})
+                    
+            for dec in decoders:
+                for loss in losses:
+                    derived_edges.append({"source": dec, "target": loss})
+                    
+            for loss in losses:
+                for tr in trainings:
+                    derived_edges.append({"source": loss, "target": tr})
+                    
+        component_graph.edges = derived_edges
+        
     return component_graph
 
 # Define LangGraph Node

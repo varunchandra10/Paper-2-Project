@@ -14,8 +14,8 @@ class SequencingState(TypedDict):
 def run_sequencing_agent(component_graph: ComponentGraph, feasibility_report: FeasibilityReport, model_name: str = "qwen2.5-coder:1.5b") -> BuildSequence:
     """Uses Ollama structured output to convert feasibility-adjusted graph into dependency-ordered milestones."""
     
-    # Initialize Ollama model with structured output
-    llm = ChatOllama(model=model_name, temperature=0.0, num_ctx=4096)
+    # num_predict cap prevents infinite token loops in dependency_rationale fields
+    llm = ChatOllama(model=model_name, temperature=0.0, num_ctx=4096, num_predict=1024)
     structured_llm = llm.with_structured_output(BuildSequence)
     
     prompt = (
@@ -40,6 +40,14 @@ def run_sequencing_agent(component_graph: ComponentGraph, feasibility_report: Fe
     print("Sending request to local Ollama for build sequencing...")
     try:
         sequence = structured_llm.invoke(prompt)
+        # Auto-compute total_duration_weeks from milestone estimated days
+        if sequence.milestones:
+            total_days = sum(getattr(ms, 'estimated_duration_days', 3) for ms in sequence.milestones)
+            object.__setattr__(sequence, 'total_duration_weeks', round(total_days / 7, 1)) if hasattr(sequence, '__dict__') else None
+            try:
+                sequence.total_duration_weeks = round(total_days / 7, 1)
+            except Exception:
+                pass
     except Exception as e:
         print(f"Warning: Sequencing agent LLM call failed ({e}). Returning baseline milestones sequence.")
         from schemas import Milestone
@@ -83,11 +91,15 @@ def run_sequencing_agent(component_graph: ComponentGraph, feasibility_report: Fe
                     objectives=["Execute training epochs using local parameter limits.", "Verify convergence metrics.", "Generate final reports."],
                     components_involved=[comp.name for comp in component_graph.components[-1:]] if component_graph.components else ["Swin Transformer Decoder"],
                     estimated_complexity="HIGH",
+                    estimated_duration_days=7,
+                    priority="HIGH",
                     dependency_rationale="Scaled epochs and decoder optimizations represent the final and most compute-heavy step in implementation."
                 )
-            ]
+            ],
+            total_duration_weeks=2.1
         )
     return sequence
+
 
 def sequencing_node(state: SequencingState) -> dict:
     component_graph = state["component_graph"]
