@@ -170,5 +170,149 @@ def cancel(run_id: str):
     runs[run_id]["error"] = "Cancelled by user"
     return {"status": "cancelled"}
 
+
+# =================================================================
+#  PHASE 9: PERSISTENT CHAT & MEMORY DATABASE ROUTING
+# =================================================================
+from core.database import ChatDatabase
+from core.chat_manager import ChatManager
+
+# Global chat database instance (automatically falls back to JSON if PG is down)
+db = ChatDatabase()
+db.initialize_db()
+chat_manager = ChatManager(db)
+
+# --- Schema Models ---
+class UserAuthRequest(BaseModel):
+    username: str
+    password: str
+
+class CreateConversationRequest(BaseModel):
+    user_id: str
+    title: str
+    project_id: str = None
+
+class SaveMessageRequest(BaseModel):
+    role: str
+    content: str
+
+class RenameConversationRequest(BaseModel):
+    title: str
+
+class ChatResponseRequest(BaseModel):
+    content: str
+    paper_id: str = None
+
+
+
+# --- API Endpoint Routes ---
+
+@app.post("/users/register")
+def register_user(req: UserAuthRequest):
+    try:
+        user_id = db.add_user(req.username, req.password)
+        return {"user_id": user_id, "username": req.username, "status": "registered"}
+    except ValueError as val_err:
+        raise HTTPException(status_code=400, detail=str(val_err))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
+
+@app.post("/users/login")
+def login_user(req: UserAuthRequest):
+    user_id = db.verify_user(req.username, req.password)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid username or password.")
+    return {"user_id": user_id, "username": req.username, "status": "authenticated"}
+
+@app.post("/conversations")
+def create_conversation(req: CreateConversationRequest):
+    try:
+        conv_id = db.create_conversation(req.user_id, req.title, req.project_id)
+        return {"conversation_id": conv_id}
+    except ValueError as val_err:
+        raise HTTPException(status_code=400, detail=str(val_err))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create conversation: {str(e)}")
+
+@app.get("/conversations")
+def list_conversations(user_id: str):
+    try:
+        return db.list_conversations(user_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list conversations: {str(e)}")
+
+@app.get("/conversations/{conversation_id}")
+def load_conversation(conversation_id: str):
+    try:
+        messages = db.get_messages(conversation_id)
+        summary = db.get_summary(conversation_id)
+        return {
+            "conversation_id": conversation_id,
+            "messages": messages,
+            "summary": summary
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to load conversation: {str(e)}")
+
+@app.post("/conversations/{conversation_id}/messages")
+def save_message(conversation_id: str, req: SaveMessageRequest):
+    if req.role not in ["user", "assistant"]:
+        raise HTTPException(status_code=400, detail="Role must be either 'user' or 'assistant'.")
+    try:
+        msg_id = db.save_message(conversation_id, req.role, req.content)
+        return {"message_id": msg_id, "status": "saved"}
+    except ValueError as val_err:
+        raise HTTPException(status_code=400, detail=str(val_err))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save message: {str(e)}")
+
+@app.put("/conversations/{conversation_id}")
+def rename_conversation(conversation_id: str, req: RenameConversationRequest):
+    try:
+        db.rename_conversation(conversation_id, req.title)
+        return {"status": "success", "message": "Conversation renamed successfully."}
+    except ValueError as val_err:
+        raise HTTPException(status_code=400, detail=str(val_err))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to rename conversation: {str(e)}")
+
+@app.delete("/conversations/{conversation_id}")
+def delete_conversation(conversation_id: str):
+    try:
+        db.delete_conversation(conversation_id)
+        return {"status": "success", "message": "Conversation deleted successfully."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete conversation: {str(e)}")
+
+@app.post("/conversations/{conversation_id}/chat")
+def conversations_chat(conversation_id: str, req: ChatResponseRequest, background_tasks: BackgroundTasks):
+    # Verify the conversation exists and retrieve its owning user_id
+    conv_meta = db.get_conversation(conversation_id)
+    if not conv_meta:
+        raise HTTPException(status_code=404, detail="Conversation session not found.")
+        
+    user_id = conv_meta["user_id"]
+    
+    try:
+        # 1. Save incoming user query message
+        db.save_message(conversation_id, "user", req.content)
+        
+        # 2. Add non-blocking background tasks for summarization and memory extraction
+        background_tasks.add_task(chat_manager.summarize_conversation_if_needed, conversation_id)
+        background_tasks.add_task(chat_manager.extract_and_save_facts, user_id, req.content)
+        
+        # 3. Compile prompt and query the local LLM
+        reply = chat_manager.generate_response(conversation_id, user_id, req.content, req.paper_id)
+        
+        # 4. Save the generated assistant response
+        db.save_message(conversation_id, "assistant", reply)
+        
+        return {"response": reply}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Chat execution failed: {str(e)}")
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
+
+
