@@ -55,7 +55,7 @@ def extract_grobid(pdf_path: str, grobid_url: str = "http://localhost:8070") -> 
         with open(pdf_path, 'rb') as f:
             files = {'input': f}
             # processFulltextDocument parses headers, abstract, sections, references, figures, tables
-            response = requests.post(api_endpoint, files=files, timeout=60)
+            response = requests.post(api_endpoint, files=files, timeout=20)
             
         if response.status_code != 200:
             report["error_message"] = f"GROBID server returned status code {response.status_code}: {response.text[:200]}"

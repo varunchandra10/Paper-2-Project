@@ -62,16 +62,15 @@ def run_feasibility_agent(
         report = structured_llm.invoke(prompt)
     except Exception as e:
         print(f"Warning: Feasibility agent LLM call failed ({e}). Returning baseline feasibility profile.")
-        from schemas import ComponentFeasibility, AlternativePlatform
         report = FeasibilityReport(
             overall_status="FEASIBLE_WITH_MODIFICATION",
             components_analysis=[
-                ComponentFeasibility(
-                    component_name=comp.name,
-                    status="FEASIBLE_WITH_MODIFICATION",
-                    reason="Backbone parameters may exceed desktop VRAM budget.",
-                    suggested_substitute="Freeze backbone layers and use LoRA fine-tuning."
-                ) for comp in component_graph.components
+                {
+                    "component_name": comp.name,
+                    "status": "FEASIBLE_WITH_MODIFICATION",
+                    "reason": "Backbone parameters may exceed desktop VRAM budget.",
+                    "suggested_substitute": "Freeze backbone layers and use LoRA fine-tuning."
+                } for comp in component_graph.components
             ],
             training_status="FEASIBLE_WITH_MODIFICATION",
             training_reason="Training epochs are high for local GPU limitations.",
@@ -82,16 +81,16 @@ def run_feasibility_agent(
                 "Monitor VRAM usage per epoch."
             ],
             alternatives=[
-                AlternativePlatform(
-                    platform_name="Google Colab",
-                    description="Free NVIDIA T4 GPU (~15GB VRAM).",
-                    how_to_use="Set runtime to GPU T4, clone repo, run training script."
-                ),
-                AlternativePlatform(
-                    platform_name="Kaggle Kernels",
-                    description="30 free GPU hours/week with dual T4.",
-                    how_to_use="Enable GPU accelerator, import dataset, run pipeline."
-                )
+                {
+                    "platform_name": "Google Colab",
+                    "description": "Free NVIDIA T4 GPU (~15GB VRAM).",
+                    "how_to_use": "Set runtime to GPU T4, clone repo, run training script."
+                },
+                {
+                    "platform_name": "Kaggle Kernels",
+                    "description": "30 free GPU hours/week with dual T4.",
+                    "how_to_use": "Enable GPU accelerator, import dataset, run pipeline."
+                }
             ]
         )
     return report

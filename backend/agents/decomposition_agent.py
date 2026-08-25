@@ -103,7 +103,6 @@ def run_decomposition_agent(
         component_graph = structured_llm.invoke(prompt)
     except Exception as e:
         print(f"Warning: Decomposition LLM call failed ({e}). Falling back to baseline Swin-Transformer change detection component graph.")
-        from schemas import ParameterDetails
         component_graph = ComponentGraph(
             components=[
                 Component(
@@ -113,8 +112,8 @@ def run_decomposition_agent(
                     inputs=["Image"],
                     outputs=["Features"],
                     parameters={
-                        "depth": ParameterDetails(value="Not specified", confidence="ASSUMED", rationale="Fallback baseline default"),
-                        "patch_size": ParameterDetails(value="Not specified", confidence="ASSUMED", rationale="Fallback baseline default")
+                        "depth": {"value": "Not specified", "confidence": "ASSUMED", "rationale": "Fallback baseline default"},
+                        "patch_size": {"value": "Not specified", "confidence": "ASSUMED", "rationale": "Fallback baseline default"}
                     }
                 ),
                 Component(
@@ -124,7 +123,7 @@ def run_decomposition_agent(
                     inputs=["Image", "Text"],
                     outputs=["Embeddings"],
                     parameters={
-                        "width": ParameterDetails(value="512", confidence="ASSUMED", rationale="Standard CLIP default")
+                        "width": {"value": "512", "confidence": "ASSUMED", "rationale": "Standard CLIP default"}
                     }
                 )
             ],
