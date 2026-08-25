@@ -11,6 +11,10 @@ def generate_local_embedding(text: str, model: str = "nomic-embed-text") -> List
         # Return empty list or zeros for blank text to prevent API errors
         return [0.0] * 768
         
+    # Truncate to avoid context window limit (e.g. 2048 tokens is ~8000 characters)
+    if len(text) > 8000:
+        text = text[:8000]
+        
     response = ollama.embeddings(model=model, prompt=text)
     return response.get("embedding", [])
 

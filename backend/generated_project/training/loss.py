@@ -1,28 +1,22 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from torch.cuda.amp import autocast, GradScaler
-from sklearn.metrics import f1_score, IoU
 
-class Loss(nn.Module):
-    def __init__(self, ignore_index=255):
-        super(Loss, self).__init__()
-        self.ignore_index = ignore_index
-
-    def forward(self, outputs, targets):
-        # Convert targets to long for BCE loss
-        targets = targets.long()
+class BCEDiceLoss(nn.Module):
+    """Loss function combining Binary Cross Entropy (BCE) and Soft Dice loss."""
+    def __init__(self, weight_bce=1.0, weight_dice=1.0):
+        super().__init__()
+        self.bce = nn.BCELoss()
+        self.weight_bce = weight_bce
+        self.weight_dice = weight_dice
         
-        # Apply ignore index to targets
-        targets[targets == self.ignore_index] = 0
+    def forward(self, preds, targets):
+        bce_loss = self.bce(preds, targets)
         
-        # Calculate BCE loss
-        bce_loss = F.binary_cross_entropy(outputs, targets, reduction='mean')
+        # Soft Dice loss
+        eps = 1e-6
+        preds_flat = preds.view(-1)
+        targets_flat = targets.view(-1)
+        intersection = (preds_flat * targets_flat).sum()
+        dice_loss = 1.0 - (2.0 * intersection + eps) / (preds_flat.sum() + targets_flat.sum() + eps)
         
-        # Calculate Dice loss
-        dice_loss = 1 - F.binary_cross_entropy_with_logits(outputs, targets, reduction='mean')
-        
-        # Combine BCE and Dice loss
-        loss = bce_loss + dice_loss
-        
-        return loss
+        return self.weight_bce * bce_loss + self.weight_dice * dice_loss

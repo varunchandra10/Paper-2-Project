@@ -29,7 +29,10 @@ from .pipeline_schemas import (
     StorageResourceRequirement,
     ResourceEstimationReport,
     ProjectSpecification,
-    ProjectTree
+    ProjectTree,
+    StaticCheckReport,
+    AutomatedTestReport,
+    PaperCodeVerificationReport
 )
 from .canonical_paper import (
     Provenance,

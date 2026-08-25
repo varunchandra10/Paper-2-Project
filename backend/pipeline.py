@@ -6,7 +6,8 @@ from langgraph.graph import StateGraph, START, END
 from schemas import (
     PipelineOutput, PaperMetadata, ComponentGraph, FeasibilityReport, 
     BuildSequence, AdaptationReport, PaperDocument, ExtractedParameters, 
-    GapReport, ResourceEstimationReport, ProjectSpecification, ProjectTree
+    GapReport, ResourceEstimationReport, ProjectSpecification, ProjectTree,
+    StaticCheckReport, AutomatedTestReport, PaperCodeVerificationReport
 )
 
 # Define unified pipeline state
@@ -26,7 +27,12 @@ class PipelineState(TypedDict):
     build_sequence: BuildSequence
     project_specification: ProjectSpecification
     project_tree: ProjectTree
+    static_check_report: StaticCheckReport
+    automated_test_report: AutomatedTestReport
+    code_verification_report: PaperCodeVerificationReport
     report: AdaptationReport
+
+
 
 
 
@@ -226,9 +232,11 @@ def report_node(state: PipelineState) -> dict:
     from agents.report_agent import run_report_agent
     print("\n[Orchestrator] Step 6: Running Adaptation Report Agent...")
     model = state.get("model_name", "qwen2.5-coder:1.5b")
+    metadata_dict = state["metadata"].model_dump() if hasattr(state["metadata"], "model_dump") else (state["metadata"].dict() if hasattr(state["metadata"], "dict") else state["metadata"])
+    cg_dict = state["component_graph"].model_dump() if hasattr(state["component_graph"], "model_dump") else (state["component_graph"].dict() if hasattr(state["component_graph"], "dict") else state["component_graph"])
     pipeline_output = PipelineOutput(
-        metadata=state["metadata"],
-        component_graph=state["component_graph"]
+        metadata=metadata_dict,
+        component_graph=cg_dict
     )
     report = run_report_agent(pipeline_output, state["feasibility_report"], state["build_sequence"], model_name=model)
     return {"report": report}
@@ -306,7 +314,7 @@ def code_generation_node(state: PipelineState) -> dict:
     
     req_path = os.path.join(base_out_dir, "requirements.txt")
     with open(req_path, "w", encoding="utf-8") as f:
-        f.write("torch>=2.0.0\ntorchvision\nnumpy\npsutil\n")
+        f.write("torch>=2.0.0\ntorchvision\nnumpy\npsutil\nscikit-learn\nscikit-image\npillow\n")
     print("  [OK] Successfully wrote dependency file: requirements.txt")
     
     readme_path = os.path.join(base_out_dir, "README.md")
@@ -315,6 +323,53 @@ def code_generation_node(state: PipelineState) -> dict:
     print("  [OK] Successfully wrote documentation file: README.md")
     
     return {}
+
+def static_check_node(state: PipelineState) -> dict:
+    from core.static_checker import run_static_checks
+    print("\n[Orchestrator] Step 5.8: Running Static Verification Checks...")
+    
+    PIPELINE_DIR = os.path.dirname(os.path.abspath(__file__))
+    base_out_dir = os.path.join(PIPELINE_DIR, "generated_project")
+    
+    report = run_static_checks(base_out_dir)
+    print(f"  [OK] Static Checks Result: Syntax Valid={report.syntax_valid}, Imports Valid={report.imports_valid}, Dependencies Valid={report.dependencies_valid}")
+    if report.errors:
+        for err in report.errors:
+            print(f"    - {err}")
+            
+    return {"static_check_report": report}
+
+def automated_test_node(state: PipelineState) -> dict:
+    from core.test_runner import run_automated_tests
+    print("\n[Orchestrator] Step 5.9: Running Automated Testing Checks...")
+    
+    PIPELINE_DIR = os.path.dirname(os.path.abspath(__file__))
+    base_out_dir = os.path.join(PIPELINE_DIR, "generated_project")
+    
+    report = run_automated_tests(base_out_dir)
+    print(f"  [OK] Automated Tests Result: Dataset={report.dataset_check}, Backbone={report.backbone_check}, Fusion={report.fusion_check}, Decoder={report.decoder_check}, Loss={report.loss_check}")
+    if report.details:
+        for log in report.details:
+            print(f"    {log}")
+            
+    return {"automated_test_report": report}
+
+def code_verification_node(state: PipelineState) -> dict:
+    from core.paper_code_verifier import run_paper_code_verification
+    print("\n[Orchestrator] Step 5.10: Running Paper-to-Code Parameter Checks...")
+    
+    PIPELINE_DIR = os.path.dirname(os.path.abspath(__file__))
+    base_out_dir = os.path.join(PIPELINE_DIR, "generated_project")
+    
+    report = run_paper_code_verification(base_out_dir, state.get("extracted_parameters"))
+    print(f"  [OK] Verification Report Generated successfully with {len(report.comparisons)} checks.")
+    for comp in report.comparisons:
+        print(f"    {comp}")
+        
+    return {"code_verification_report": report}
+
+
+
 
 
 
@@ -346,7 +401,12 @@ workflow.add_node("sequencing", sequencing_node)
 workflow.add_node("project_specification", project_specification_node)
 workflow.add_node("file_planning", file_planning_node)
 workflow.add_node("code_generation", code_generation_node)
+workflow.add_node("static_check", static_check_node)
+workflow.add_node("automated_test", automated_test_node)
+workflow.add_node("code_verification", code_verification_node)
 workflow.add_node("report", report_node)
+
+
 
 
 # Set up edges
@@ -373,7 +433,10 @@ workflow.add_edge("refinement", "feasibility")
 workflow.add_edge("sequencing", "project_specification")
 workflow.add_edge("project_specification", "file_planning")
 workflow.add_edge("file_planning", "code_generation")
-workflow.add_edge("code_generation", "report")
+workflow.add_edge("code_generation", "static_check")
+workflow.add_edge("static_check", "automated_test")
+workflow.add_edge("automated_test", "code_verification")
+workflow.add_edge("code_verification", "report")
 workflow.add_edge("report", END)
 
 # Compile pipeline orchestrator graph

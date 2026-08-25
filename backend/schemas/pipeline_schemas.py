@@ -221,5 +221,33 @@ class ProjectTree(BaseModel):
     tree_structure: str = Field(description="Visual ASCII/Markdown representation of the project folder tree hierarchy.")
 
 
+class StaticCheckReport(BaseModel):
+    syntax_valid: bool = Field(description="True if all generated python files have valid python syntax.")
+    imports_valid: bool = Field(description="True if all internal and external imports resolve properly.")
+    dependencies_valid: bool = Field(description="True if dependencies listed in requirements.txt match the imports in files.")
+    errors: List[str] = Field(description="List of syntax or import errors found across files.")
+
+
+class AutomatedTestReport(BaseModel):
+    dataset_check: bool = Field(description="True if the dataset loads samples with correct shapes.")
+    backbone_check: bool = Field(description="True if the backbone forward pass succeeds with correct shapes.")
+    fusion_check: bool = Field(description="True if the fusion adapter forward pass succeeds with correct shapes.")
+    decoder_check: bool = Field(description="True if the decoder forward pass yields prediction masks.")
+    loss_check: bool = Field(description="True if loss evaluation returns valid scalar values.")
+    details: List[str] = Field(description="Detailed verification assertions statements logged.")
+
+
+class PaperCodeVerificationReport(BaseModel):
+    architecture_match: str = Field(description="Match status description for model architecture.")
+    dataset_match: str = Field(description="Match status description for datasets.")
+    optimizer_match: str = Field(description="Match status description for optimizer settings.")
+    learning_rate_match: str = Field(description="Match status description for learning rate.")
+    loss_match: str = Field(description="Match status description for loss functions.")
+    comparisons: List[str] = Field(description="Detailed verification items list comparing Paper vs Generated Code.")
+
+
+
+
+
 
 

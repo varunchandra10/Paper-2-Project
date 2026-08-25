@@ -213,7 +213,6 @@ def merge_extractions(routed_data: dict) -> PaperDocument:
             eq_body = eq.get("latex", "").strip()
             if eq_body and eq_body not in seen_equations:
                 seen_equations.add(eq_body)
-                from schemas.canonical_paper import Equation
                 equations_list.append(Equation(
                     id=eq.get("id", f"eq_{len(equations_list) + 1}"),
                     latex=eq_body,
