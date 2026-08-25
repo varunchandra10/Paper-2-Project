@@ -27,7 +27,9 @@ from .pipeline_schemas import (
     TrainingResourceRequirement,
     InferenceResourceRequirement,
     StorageResourceRequirement,
-    ResourceEstimationReport
+    ResourceEstimationReport,
+    ProjectSpecification,
+    ProjectTree
 )
 from .canonical_paper import (
     Provenance,

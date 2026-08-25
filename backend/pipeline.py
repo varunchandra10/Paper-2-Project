@@ -6,7 +6,7 @@ from langgraph.graph import StateGraph, START, END
 from schemas import (
     PipelineOutput, PaperMetadata, ComponentGraph, FeasibilityReport, 
     BuildSequence, AdaptationReport, PaperDocument, ExtractedParameters, 
-    GapReport, ResourceEstimationReport
+    GapReport, ResourceEstimationReport, ProjectSpecification, ProjectTree
 )
 
 # Define unified pipeline state
@@ -24,7 +24,11 @@ class PipelineState(TypedDict):
     resource_estimation: ResourceEstimationReport  # Added for Day 24 resource estimation
     feasibility_report: FeasibilityReport
     build_sequence: BuildSequence
+    project_specification: ProjectSpecification
+    project_tree: ProjectTree
     report: AdaptationReport
+
+
 
 def run_refinement(component_graph: ComponentGraph, feasibility_report: FeasibilityReport) -> ComponentGraph:
     """Performs rule-based hyperparameter scaling and optimization when feasibility warning statuses occur."""
@@ -229,6 +233,92 @@ def report_node(state: PipelineState) -> dict:
     report = run_report_agent(pipeline_output, state["feasibility_report"], state["build_sequence"], model_name=model)
     return {"report": report}
 
+def project_specification_node(state: PipelineState) -> dict:
+    from agents.specification_agent import run_specification_agent
+    print("\n[Orchestrator] Step 5.5: Running Project Specification Agent...")
+    model = state.get("model_name", "qwen2.5-coder:1.5b")
+    spec = run_specification_agent(
+        state["component_graph"],
+        state["feasibility_report"],
+        state["build_sequence"],
+        model_name=model
+    )
+    return {"project_specification": spec}
+
+def file_planning_node(state: PipelineState) -> dict:
+    from agents.file_planning_agent import run_file_planning_agent
+    print("\n[Orchestrator] Step 5.6: Running File Planning Agent...")
+    model = state.get("model_name", "qwen2.5-coder:1.5b")
+    tree = run_file_planning_agent(
+        state["project_specification"],
+        model_name=model
+    )
+    return {"project_tree": tree}
+
+def code_generation_node(state: PipelineState) -> dict:
+    from agents.code_generation_agent import run_code_generation_agent
+    
+    spec = state["project_specification"]
+    model = state.get("model_name", "qwen2.5-coder:1.5b")
+    
+    print("\n[Orchestrator] Step 5.7: Running Component-Level Code Generation...")
+    
+    # Establish target workspace folders
+    PIPELINE_DIR = os.path.dirname(os.path.abspath(__file__))
+    base_out_dir = os.path.join(PIPELINE_DIR, "generated_project")
+    
+    # 1. Mapped generation sequence
+    generation_sequence = [
+        ("dataset", "data/dataset.py"),
+        ("backbone", "models/backbone.py"),
+        ("fusion", "models/fusion.py"),
+        ("decoder", "models/decoder.py"),
+        ("loss", "training/loss.py"),
+        ("trainer", "training/trainer.py"),
+        ("evaluator", "evaluation/evaluator.py")
+    ]
+    
+    # 2. Iterate and generate Python modules
+    for comp_name, rel_path in generation_sequence:
+        out_filepath = os.path.join(base_out_dir, rel_path.replace("/", os.sep))
+        os.makedirs(os.path.dirname(out_filepath), exist_ok=True)
+        
+        # Run code generation agent
+        code = run_code_generation_agent(comp_name, rel_path, spec, model_name=model)
+        
+        # Save to disk
+        with open(out_filepath, "w", encoding="utf-8") as f:
+            f.write(code)
+        print(f"  [OK] Successfully wrote code file: {rel_path}")
+        
+    # 3. Write ancillary files (config.json, requirements.txt, README.md)
+    config_path = os.path.join(base_out_dir, "configs", "config.json")
+    os.makedirs(os.path.dirname(config_path), exist_ok=True)
+    with open(config_path, "w", encoding="utf-8") as f:
+        json.dump({
+            "model_name": spec.components[0] if (spec.components and isinstance(spec.components, list)) else "VisualEncoder",
+            "batch_size": 4,
+            "gradient_accumulation": 4,
+            "mixed_precision": "fp16",
+            "learning_rate": 0.0001
+        }, f, indent=2)
+    print("  [OK] Successfully wrote config file: configs/config.json")
+    
+    req_path = os.path.join(base_out_dir, "requirements.txt")
+    with open(req_path, "w", encoding="utf-8") as f:
+        f.write("torch>=2.0.0\ntorchvision\nnumpy\npsutil\n")
+    print("  [OK] Successfully wrote dependency file: requirements.txt")
+    
+    readme_path = os.path.join(base_out_dir, "README.md")
+    with open(readme_path, "w", encoding="utf-8") as f:
+        f.write(f"# Unified Adaptations Project\n\n## Architecture Blueprint\n{spec.architecture}\n\n## Requirements\n{spec.requirements}\n")
+    print("  [OK] Successfully wrote documentation file: README.md")
+    
+    return {}
+
+
+
+
 # --- Routing Logic ---
 
 def route_after_feasibility(state: PipelineState) -> str:
@@ -253,7 +343,11 @@ workflow.add_node("resource_estimation", resource_estimation_node)
 workflow.add_node("feasibility", feasibility_node)
 workflow.add_node("refinement", refinement_node)
 workflow.add_node("sequencing", sequencing_node)
+workflow.add_node("project_specification", project_specification_node)
+workflow.add_node("file_planning", file_planning_node)
+workflow.add_node("code_generation", code_generation_node)
 workflow.add_node("report", report_node)
+
 
 # Set up edges
 workflow.add_edge(START, "ingestion")
@@ -276,7 +370,10 @@ workflow.add_conditional_edges(
 # Route back to feasibility check after refining
 workflow.add_edge("refinement", "feasibility")
 
-workflow.add_edge("sequencing", "report")
+workflow.add_edge("sequencing", "project_specification")
+workflow.add_edge("project_specification", "file_planning")
+workflow.add_edge("file_planning", "code_generation")
+workflow.add_edge("code_generation", "report")
 workflow.add_edge("report", END)
 
 # Compile pipeline orchestrator graph

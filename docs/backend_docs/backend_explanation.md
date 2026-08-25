@@ -274,3 +274,48 @@ Here is the quick breakdown of Day 6 for your logs:
 * **Multi-Layer GPU Auditing**: Resolves GPU name and VRAM via PyTorch CUDA queries first, falling back to powershell CIM/nvidia-smi calls.
 * **Package Dependency Audit**: Inspects Python runtime environment virtual environment state and checks version specs of core DL packages.
 
+---
+
+### 📦 **Day 24: Resource Estimation**
+
+**What it does:** Computes mathematical footprint estimations for model size, weights memory, dataset space, training VRAM, inference latency, and checkpoints storage footprint using system profiler specs.
+
+#### 🔑 **Important Elements:**
+
+* **Calculated DL Footprint Bounds**: Computes parameter weighting footprints and forward/backward pass memory requirements using standard deep learning formulas.
+* **Domain-Specific Engineering Synthesizer**: Uses Ollama structured output to write descriptive, professional summaries of the estimated allocations.
+
+---
+
+### 📦 **Day 25: Feasibility Engine**
+
+**What it does:** Matches the computed resource requirements against host limits to flag project feasibility status.
+
+#### 🔑 **Important Elements:**
+
+* **Four-Tier Feasibility Classes**: Classifies overall feasibility and component states into `FEASIBLE`, `FEASIBLE_WITH_MODIFICATION`, `NOT_FEASIBLE`, or `UNKNOWN`.
+* **Structured Fail-safe Baseline**: Returns a fallback feasibility profile if LLM parsers encounter validation failures, preventing execution crashes.
+
+---
+
+### 📦 **Day 26: Refinement**
+
+**What it does:** Dynamically adapts and scales hyperparameters (such as batch size, image resolution, model variants, freezing backbones, mixed precision) to enforce hardware compliance when warnings occur.
+
+#### 🔑 **Important Elements:**
+
+* **Heuristics Scale Adapters**: Automatically reduces batch sizes, updates input sizes, and sets accumulation steps.
+* **Strict Adaptation Tracing**: Records tracing labels formatted exactly as `PAPER ORIGINAL: ... vs HARDWARE ADAPTATION: ...` inside parameter rationales.
+
+---
+
+### 📦 **Day 27: Sequencing**
+
+**What it does:** Converts the feasibility-adjusted component graph into a step-by-step dependency build schedule.
+
+#### 🔑 **Important Elements:**
+
+* **Validation-First Ordering**: Sequentially orders cheap, fast checks (dataset loaders, loss tests) before heavy operations (decoder training).
+* **Estimated Project Chronology**: Computes total duration weeks based on estimated milestones days.
+
+

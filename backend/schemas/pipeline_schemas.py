@@ -203,3 +203,23 @@ class ResourceEstimationReport(BaseModel):
     overall_resource_tier: str = Field(description="Overall complexity/resource tier: 'LOW' / 'MEDIUM' / 'HIGH' / 'EXTREME'")
 
 
+class ProjectSpecification(BaseModel):
+    requirements: str = Field(description="System requirements, CUDA version, packages, VRAM limits, etc.")
+    architecture: str = Field(description="Overview of the network architecture (e.g. encoders, bridge adapters, fusion, decoders).")
+    components: List[str] = Field(description="Names of components/modules that will be implemented as separate code units.")
+    dependencies: List[str] = Field(description="Ordered compilation dependencies showing component sequence flow.")
+    datasets: List[str] = Field(description="Dataset structures, sample dimensions, data loaders config, and splits.")
+    training_setup: str = Field(description="Training configuration including epochs, batch size, learning rate, loss functions, optimizer, gradient accumulation, mixed precision, and frozen components.")
+    evaluation: str = Field(description="Evaluation metrics, inference verification pipelines, validation frequency, and visual checkpointers.")
+    assumptions: List[str] = Field(description="Key assumptions about data availability, hardware configurations, and hyperparameter choices.")
+    adaptations: List[str] = Field(description="Detailed list of all applied hardware adaptations, tracing originals to modified settings (e.g. reduced batch sizes).")
+
+
+class ProjectTree(BaseModel):
+    directories: List[str] = Field(description="List of target directory paths to create in the workspace.")
+    files: Dict[str, str] = Field(description="Mapping of relative filepaths to their descriptive engineering summaries.")
+    tree_structure: str = Field(description="Visual ASCII/Markdown representation of the project folder tree hierarchy.")
+
+
+
+
