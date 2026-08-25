@@ -8,17 +8,24 @@ import os
 backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 log_file_path = os.path.join(backend_dir, "backend_observability.log")
 
-# Set up logging level and formats
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler(log_file_path, encoding="utf-8")
-    ]
-)
-
+# Set up logging level and formats explicitly (basicConfig may be ignored in Jupyter)
 logger = logging.getLogger("Observability")
+logger.setLevel(logging.INFO)
+
+# Prevent duplicate handlers
+if not logger.handlers:
+    formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
+    
+    # File Handler
+    file_handler = logging.FileHandler(log_file_path, encoding="utf-8")
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    
+    # Stream Handler
+    stream_handler = logging.StreamHandler()
+    stream_handler.setFormatter(formatter)
+    logger.addHandler(stream_handler)
+
 
 
 def log_observability_event(
