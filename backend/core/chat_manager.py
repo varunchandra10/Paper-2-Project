@@ -3,20 +3,23 @@ import re
 import ollama
 from typing import List, Dict, Any, Optional
 from core.database import ChatDatabase
+from core.model_router import ModelRouter
 from retrieval.vector_db import PaperVectorDB
 from retrieval.embeddings import generate_local_embedding
 
 
 class ChatManager:
-    """Orchestrates Phase 9 Days 36-38: context synthesis, rolling summaries,
+    """Orchestrates Phase 9 Days 36-38 & Phase 10 Days 39-41: context synthesis,
 
-    and user preference/memory fact extraction.
+    rolling summaries, user memory extraction, and dynamic model routing.
     """
 
     def __init__(self, db: ChatDatabase, model_name: str = "qwen2.5-coder:1.5b"):
         self.db = db
         self.model_name = model_name
         self.vector_db = PaperVectorDB()
+        self.router = ModelRouter(local_model=model_name)
+
 
     def build_context_prompt(self, conversation_id: str, user_id: str, query: str, paper_id: Optional[str] = None) -> str:
         """Assembles context prompt combining rolling summary, user memory facts,
@@ -95,17 +98,16 @@ Provide a concise, technically sound engineering response. Ground your answers i
 Assistant:"""
         return prompt
 
-    def generate_response(self, conversation_id: str, user_id: str, query: str, paper_id: Optional[str] = None) -> str:
-        """Assembles prompt and queries the local Ollama LLM, returning the assistant's reply."""
+    def generate_response(self, conversation_id: str, user_id: str, query: str, paper_id: Optional[str] = None) -> Tuple[str, str]:
+        """Assembles prompt, classifies task, routes generation, and returns (reply, model_used)."""
         prompt = self.build_context_prompt(conversation_id, user_id, query, paper_id)
         try:
-            response = ollama.generate(model=self.model_name, prompt=prompt)
-            reply = response.get("response", "").strip()
-            if not reply:
-                reply = "I encountered an empty response from the local model. How else can I assist you?"
-            return reply
+            category = self.router.classify_task(query)
+            print(f"[ROUTER] User query classified as: '{category}'")
+            reply, model_used = self.router.generate_routed_response(prompt, category)
+            return reply, model_used
         except Exception as e:
-            return f"Error communicating with local LLM: {str(e)}"
+            return f"Error routing or generating response: {str(e)}", "N/A"
 
     def extract_and_save_facts(self, user_id: str, message: str):
         """Day 38: Scans user message for persistent facts (preferences/constraints)

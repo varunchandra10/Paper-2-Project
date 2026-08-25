@@ -301,13 +301,13 @@ def conversations_chat(conversation_id: str, req: ChatResponseRequest, backgroun
         background_tasks.add_task(chat_manager.summarize_conversation_if_needed, conversation_id)
         background_tasks.add_task(chat_manager.extract_and_save_facts, user_id, req.content)
         
-        # 3. Compile prompt and query the local LLM
-        reply = chat_manager.generate_response(conversation_id, user_id, req.content, req.paper_id)
+        # 3. Compile prompt, classify task, and generate routed response
+        reply, model_used = chat_manager.generate_response(conversation_id, user_id, req.content, req.paper_id)
         
-        # 4. Save the generated assistant response
-        db.save_message(conversation_id, "assistant", reply)
+        # 4. Save the generated assistant response with the model_used metadata
+        db.save_message(conversation_id, "assistant", reply, model_used=model_used)
         
-        return {"response": reply}
+        return {"response": reply, "model_used": model_used}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Chat execution failed: {str(e)}")
 
