@@ -1,5 +1,5 @@
 {
-  "model_name": "Encoder",
+  "model_name": "Swin Transformer (RFN)",
   "batch_size": 4,
   "gradient_accumulation": 4,
   "mixed_precision": "fp16",

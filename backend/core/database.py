@@ -238,6 +238,67 @@ class ChatDatabase:
         finally:
             conn.close()
 
+    def list_projects(self) -> List[dict]:
+        """Lists all project metadata containers."""
+        if self.use_fallback:
+            data = self._load_fallback()
+            results = []
+            for pid, info in data["projects"].items():
+                results.append({
+                    "project_id": pid,
+                    "name": info["name"],
+                    "description": info["description"],
+                    "created_at": info["created_at"]
+                })
+            return sorted(results, key=lambda x: x["created_at"], reverse=True)
+
+        conn = self._get_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT project_id, name, description, created_at FROM projects ORDER BY created_at DESC;")
+                rows = cur.fetchall()
+                return [
+                    {
+                        "project_id": r[0],
+                        "name": r[1],
+                        "description": r[2],
+                        "created_at": r[3].isoformat()
+                    }
+                    for r in rows
+                ]
+        finally:
+            conn.close()
+
+    def get_project(self, project_id: str) -> Optional[dict]:
+        """Retrieves a single project's details."""
+        if self.use_fallback:
+            data = self._load_fallback()
+            if project_id not in data["projects"]:
+                return None
+            info = data["projects"][project_id]
+            return {
+                "project_id": project_id,
+                "name": info["name"],
+                "description": info["description"],
+                "created_at": info["created_at"]
+            }
+
+        conn = self._get_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT project_id, name, description, created_at FROM projects WHERE project_id = %s;", (project_id,))
+                r = cur.fetchone()
+                if r:
+                    return {
+                        "project_id": r[0],
+                        "name": r[1],
+                        "description": r[2],
+                        "created_at": r[3].isoformat()
+                    }
+                return None
+        finally:
+            conn.close()
+
     # --- CRUD operations: CONVERSATIONS ---
 
     def create_conversation(self, user_id: str, title: str, project_id: Optional[str] = None) -> str:

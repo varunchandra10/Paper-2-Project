@@ -373,3 +373,51 @@ class PaperVectorDB:
             final_results.append(record)
 
         return final_results
+
+    def list_papers(self) -> List[Dict[str, Any]]:
+        """Lists all ingested papers in the database."""
+        if self.use_fallback:
+            db_data = self._load_fallback_data()
+            return list(db_data.get("papers", {}).values())
+
+        conn = self._get_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT paper_id, title, authors, abstract, metadata_json FROM papers;")
+                rows = cur.fetchall()
+                return [
+                    {
+                        "paper_id": r[0],
+                        "title": r[1],
+                        "authors": r[2],
+                        "abstract": r[3],
+                        "metadata": r[4]
+                    }
+                    for r in rows
+                ]
+        finally:
+            conn.close()
+
+    def get_paper(self, paper_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieves a single paper document by ID."""
+        if self.use_fallback:
+            db_data = self._load_fallback_data()
+            return db_data.get("papers", {}).get(paper_id)
+
+        conn = self._get_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT paper_id, title, authors, abstract, metadata_json FROM papers WHERE paper_id = %s;", (paper_id,))
+                r = cur.fetchone()
+                if r:
+                    return {
+                        "paper_id": r[0],
+                        "title": r[1],
+                        "authors": r[2],
+                        "abstract": r[3],
+                        "metadata": r[4]
+                    }
+                return None
+        finally:
+            conn.close()
+

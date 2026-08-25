@@ -1,15 +1,20 @@
 import os
 import sys
+import json
 import uuid
 import asyncio
 import threading
 import contextlib
 import io
 import uvicorn
-from fastapi import FastAPI, BackgroundTasks, HTTPException
+from typing import Optional
+from fastapi import FastAPI, BackgroundTasks, HTTPException, UploadFile, File, Header
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
+import time
+from core.logger import log_observability_event
 
 # Add parent directory to path to allow importing from backend
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -203,6 +208,12 @@ class ChatResponseRequest(BaseModel):
     content: str
     paper_id: str = None
 
+class CreateProjectRequest(BaseModel):
+    name: str
+    description: str = None
+
+# Global extraction jobs tracking registry
+extraction_jobs = {}
 
 
 # --- API Endpoint Routes ---
@@ -223,6 +234,192 @@ def login_user(req: UserAuthRequest):
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid username or password.")
     return {"user_id": user_id, "username": req.username, "status": "authenticated"}
+
+@app.post("/projects")
+def create_project(req: CreateProjectRequest):
+    try:
+        project_id = db.create_project(req.name, req.description)
+        return {"project_id": project_id, "status": "created"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create project: {str(e)}")
+
+@app.get("/projects")
+def list_projects():
+    try:
+        return db.list_projects()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list projects: {str(e)}")
+
+@app.get("/papers")
+def list_papers():
+    try:
+        return chat_manager.vector_db.list_papers()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list papers: {str(e)}")
+
+@app.get("/papers/{paper_id}")
+def get_paper_details(paper_id: str):
+    paper = chat_manager.vector_db.get_paper(paper_id)
+    if not paper:
+        raise HTTPException(status_code=404, detail="Paper not found.")
+    return paper
+
+@app.get("/extraction/status/{job_id}")
+def get_extraction_status(job_id: str):
+    if job_id not in extraction_jobs:
+        raise HTTPException(status_code=404, detail="Extraction job not found.")
+    return extraction_jobs[job_id]
+
+# Set up uploaded papers storage path
+UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "papers", "uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+def run_pipeline_in_background(job_id: str, pdf_path: str, constraints: dict, model_name: str, paper_id: str):
+    start_time = time.time()
+    log_observability_event("extraction_started", paper_id=paper_id, job_id=job_id)
+    
+    job = extraction_jobs[job_id]
+    job["status"] = "running"
+    job["logs"].append("EXTRACTION_STARTED")
+    job["progress"] = 10
+    
+    initial_state = {
+        "pdf_path": pdf_path,
+        "constraints": constraints,
+        "model_name": model_name,
+        "loop_count": 0,
+        "raw_sections": {}
+    }
+    
+    try:
+        from pipeline import graph
+        # Stream events from LangGraph workflow
+        for event in graph.stream(initial_state):
+            if not event:
+                continue
+            node = list(event.keys())[0]
+            
+            # Map executing graph nodes to streaming SSE logging events
+            if node == "ingestion":
+                job["logs"].append("SECTION_DETECTED")
+                job["logs"].append("RAG_READY")
+                job["progress"] = 25
+            elif node == "decomposition":
+                job["logs"].append("ANALYSIS_STARTED")
+                job["progress"] = 45
+            elif node == "code_generation":
+                job["logs"].append("CODE_GENERATION_STARTED")
+                job["progress"] = 75
+            elif node in ["static_check", "automated_test", "code_verification"]:
+                if "VERIFICATION_STARTED" not in job["logs"]:
+                    job["logs"].append("VERIFICATION_STARTED")
+                job["progress"] = 90
+            elif node == "report":
+                job["logs"].append("COMPLETED")
+                job["progress"] = 100
+                
+        # Ensure job is marked completed
+        job["status"] = "completed"
+        if "COMPLETED" not in job["logs"]:
+            job["logs"].append("COMPLETED")
+        job["progress"] = 100
+        
+        latency = (time.time() - start_time) * 1000.0
+        log_observability_event("extraction_completed", paper_id=paper_id, job_id=job_id, latency_ms=latency)
+    except Exception as e:
+        print(f"[BACKGROUND PIPELINE ERROR] Job {job_id} failed: {e}")
+        job["status"] = "failed"
+        job["error"] = str(e)
+        job["logs"].append(f"ERROR: {str(e)}")
+        
+        latency = (time.time() - start_time) * 1000.0
+        log_observability_event("extraction_failed", paper_id=paper_id, job_id=job_id, latency_ms=latency, errors=str(e))
+
+@app.post("/papers/upload")
+def upload_paper(file: UploadFile = File(...), background_tasks: BackgroundTasks = None):
+    # Enforce PDF files only by extension
+    if not file.filename.endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF documents are supported.")
+        
+    paper_id = f"paper_{str(uuid.uuid4())[:8]}"
+    job_id = f"job_{str(uuid.uuid4())[:8]}"
+    
+    # Save the file
+    upload_path = os.path.join(UPLOAD_DIR, f"{paper_id}.pdf")
+    try:
+        contents = file.file.read()
+        
+        # Enforce maximum file size (50MB)
+        MAX_SIZE = 50 * 1024 * 1024
+        if len(contents) > MAX_SIZE:
+            raise HTTPException(status_code=400, detail="File size exceeds maximum limit of 50MB.")
+            
+        # Validate PDF magic signature bytes
+        if not contents.startswith(b"%PDF"):
+            raise HTTPException(status_code=400, detail="Invalid PDF file signature.")
+            
+        with open(upload_path, "wb") as f:
+            f.write(contents)
+    except HTTPException as http_err:
+        raise http_err
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to store PDF file: {str(e)}")
+        
+    # Register job configuration entry
+    extraction_jobs[job_id] = {
+        "job_id": job_id,
+        "paper_id": paper_id,
+        "status": "queued",
+        "progress": 0,
+        "logs": [],
+        "error": None
+    }
+    
+    # Spawn pipeline processing asynchronously
+    if background_tasks:
+        background_tasks.add_task(
+            run_pipeline_in_background,
+            job_id=job_id,
+            pdf_path=upload_path,
+            constraints={"hardware": "RTX 3060", "vram_limit": "12GB"},
+            model_name="qwen2.5-coder:1.5b",
+            paper_id=paper_id
+        )
+        
+    return {
+        "job_id": job_id,
+        "paper_id": paper_id,
+        "status": "queued"
+    }
+
+@app.get("/extraction/stream/{job_id}")
+def stream_extraction(job_id: str):
+    if job_id not in extraction_jobs:
+        raise HTTPException(status_code=404, detail="Extraction job ID not found.")
+        
+    async def sse_generator():
+        job = extraction_jobs[job_id]
+        last_index = 0
+        while True:
+            # Yield any newly appended logs as SSE events
+            while last_index < len(job["logs"]):
+                log_tag = job["logs"][last_index]
+                payload = {
+                    "progress": job["progress"],
+                    "status": job["status"],
+                    "error": job["error"]
+                }
+                yield f"event: {log_tag}\ndata: {json.dumps(payload)}\n\n"
+                last_index += 1
+                
+            if job["status"] in ["completed", "failed"]:
+                break
+                
+            await asyncio.sleep(0.5)
+            
+    return StreamingResponse(sse_generator(), media_type="text/event-stream")
+
+
 
 @app.post("/conversations")
 def create_conversation(req: CreateConversationRequest):
@@ -285,11 +482,22 @@ def delete_conversation(conversation_id: str):
         raise HTTPException(status_code=500, detail=f"Failed to delete conversation: {str(e)}")
 
 @app.post("/conversations/{conversation_id}/chat")
-def conversations_chat(conversation_id: str, req: ChatResponseRequest, background_tasks: BackgroundTasks):
+def conversations_chat(
+    conversation_id: str, 
+    req: ChatResponseRequest, 
+    background_tasks: BackgroundTasks,
+    x_user_id: Optional[str] = Header(None)
+):
+    start_time = time.time()
+    
     # Verify the conversation exists and retrieve its owning user_id
     conv_meta = db.get_conversation(conversation_id)
     if not conv_meta:
         raise HTTPException(status_code=404, detail="Conversation session not found.")
+        
+    # Enforce Day 47 authorization
+    if x_user_id and conv_meta["user_id"] != x_user_id:
+        raise HTTPException(status_code=403, detail="Unauthorized access to this conversation thread.")
         
     user_id = conv_meta["user_id"]
     
@@ -307,8 +515,14 @@ def conversations_chat(conversation_id: str, req: ChatResponseRequest, backgroun
         # 4. Save the generated assistant response with the model_used metadata
         db.save_message(conversation_id, "assistant", reply, model_used=model_used)
         
+        # Log Day 48 observability metrics
+        latency = (time.time() - start_time) * 1000.0
+        log_observability_event("chat_completed", conversation_id=conversation_id, model=model_used, latency_ms=latency)
+        
         return {"response": reply, "model_used": model_used}
     except Exception as e:
+        latency = (time.time() - start_time) * 1000.0
+        log_observability_event("chat_failed", conversation_id=conversation_id, latency_ms=latency, errors=str(e))
         raise HTTPException(status_code=500, detail=f"Chat execution failed: {str(e)}")
 
 
