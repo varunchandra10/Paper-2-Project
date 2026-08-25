@@ -3,13 +3,18 @@ import json
 import time
 from typing import Any, Dict, Optional
 
+import os
+
+backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+log_file_path = os.path.join(backend_dir, "backend_observability.log")
+
 # Set up logging level and formats
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler("backend_observability.log", encoding="utf-8")
+        logging.FileHandler(log_file_path, encoding="utf-8")
     ]
 )
 
