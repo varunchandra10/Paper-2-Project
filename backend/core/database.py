@@ -115,9 +115,12 @@ class ChatDatabase:
                         conversation_id TEXT NOT NULL REFERENCES conversations(conversation_id) ON DELETE CASCADE,
                         role TEXT NOT NULL CHECK (role IN ('user', 'assistant')),
                         content TEXT NOT NULL,
+                        model_used TEXT,
                         created_at TIMESTAMP NOT NULL DEFAULT NOW()
                     );
                 """)
+                # Alter table to support adding it dynamically to existing schemas
+                cur.execute("ALTER TABLE messages ADD COLUMN IF NOT EXISTS model_used TEXT;")
                 # 5. Summaries Table
                 cur.execute("""
                     CREATE TABLE IF NOT EXISTS conversation_summaries (
@@ -402,8 +405,8 @@ class ChatDatabase:
 
     # --- CRUD operations: MESSAGES ---
 
-    def save_message(self, conversation_id: str, role: str, content: str) -> str:
-        """Saves a message in the thread, updating conversation timestamp."""
+    def save_message(self, conversation_id: str, role: str, content: str, model_used: Optional[str] = None) -> str:
+        """Saves a message in the thread, updating conversation timestamp and recording model metadata."""
         msg_id = str(uuid.uuid4())
         now_str = datetime.datetime.now().isoformat()
         
@@ -415,6 +418,7 @@ class ChatDatabase:
                 "conversation_id": conversation_id,
                 "role": role,
                 "content": content,
+                "model_used": model_used,
                 "created_at": now_str
             }
             # Touch updated_at
@@ -426,8 +430,8 @@ class ChatDatabase:
         try:
             with conn.cursor() as cur:
                 cur.execute(
-                    "INSERT INTO messages (message_id, conversation_id, role, content) VALUES (%s, %s, %s, %s);",
-                    (msg_id, conversation_id, role, content)
+                    "INSERT INTO messages (message_id, conversation_id, role, content, model_used) VALUES (%s, %s, %s, %s, %s);",
+                    (msg_id, conversation_id, role, content, model_used)
                 )
                 cur.execute(
                     "UPDATE conversations SET updated_at = NOW() WHERE conversation_id = %s;",
@@ -450,6 +454,7 @@ class ChatDatabase:
                         "conversation_id": info["conversation_id"],
                         "role": info["role"],
                         "content": info["content"],
+                        "model_used": info.get("model_used"),
                         "created_at": info["created_at"]
                     })
             return sorted(results, key=lambda x: x["created_at"])
@@ -458,7 +463,7 @@ class ChatDatabase:
         try:
             with conn.cursor() as cur:
                 cur.execute(
-                    "SELECT message_id, conversation_id, role, content, created_at "
+                    "SELECT message_id, conversation_id, role, content, model_used, created_at "
                     "FROM messages WHERE conversation_id = %s ORDER BY created_at ASC;",
                     (conversation_id,)
                 )
@@ -469,12 +474,14 @@ class ChatDatabase:
                         "conversation_id": r[1],
                         "role": r[2],
                         "content": r[3],
-                        "created_at": r[4].isoformat()
+                        "model_used": r[4],
+                        "created_at": r[5].isoformat()
                     }
                     for r in rows
                 ]
         finally:
             conn.close()
+
 
     # --- CRUD operations: CONVERSATION SUMMARIES ---
 
