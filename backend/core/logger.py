@@ -1,18 +1,47 @@
 import logging
-import sys
+import json
+import time
+from typing import Any, Dict, Optional
 
-def setup_logger(name: str = "paper_to_project") -> logging.Logger:
-    """Configures and returns a consistent stream logger for the application."""
-    logger = logging.getLogger(name)
-    if not logger.handlers:
-        logger.setLevel(logging.INFO)
-        handler = logging.StreamHandler(sys.stdout)
-        formatter = logging.Formatter(
-            '[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
-        )
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-    return logger
+# Set up logging level and formats
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler("backend_observability.log", encoding="utf-8")
+    ]
+)
 
-logger = setup_logger()
+logger = logging.getLogger("Observability")
+
+
+def log_observability_event(
+    event_type: str,
+    paper_id: Optional[str] = None,
+    job_id: Optional[str] = None,
+    conversation_id: Optional[str] = None,
+    model: Optional[str] = None,
+    latency_ms: Optional[float] = None,
+    errors: Optional[str] = None,
+    pipeline_state: Optional[str] = None,
+    metadata: Optional[Dict[str, Any]] = None
+):
+    """Logs a structured observability event for analytics and tracing (Day 48)."""
+    payload = {
+        "event_type": event_type,
+        "timestamp": time.time(),
+        "paper_id": paper_id,
+        "job_id": job_id,
+        "conversation_id": conversation_id,
+        "model": model,
+        "latency_ms": latency_ms,
+        "errors": errors,
+        "pipeline_state": pipeline_state,
+        "metadata": metadata or {}
+    }
+    # Clean up None values for compact logs
+    filtered_payload = {k: v for k, v in payload.items() if v is not None}
+    
+    # Write JSON string to logger
+    logger.info(f"[OBSERVABILITY] {json.dumps(filtered_payload, ensure_ascii=False)}")

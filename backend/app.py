@@ -7,11 +7,14 @@ import threading
 import contextlib
 import io
 import uvicorn
-from fastapi import FastAPI, BackgroundTasks, HTTPException, UploadFile, File
+from typing import Optional
+from fastapi import FastAPI, BackgroundTasks, HTTPException, UploadFile, File, Header
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
+import time
+from core.logger import log_observability_event
 
 # Add parent directory to path to allow importing from backend
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -272,6 +275,9 @@ UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "papers", 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 def run_pipeline_in_background(job_id: str, pdf_path: str, constraints: dict, model_name: str, paper_id: str):
+    start_time = time.time()
+    log_observability_event("extraction_started", paper_id=paper_id, job_id=job_id)
+    
     job = extraction_jobs[job_id]
     job["status"] = "running"
     job["logs"].append("EXTRACTION_STARTED")
@@ -317,15 +323,21 @@ def run_pipeline_in_background(job_id: str, pdf_path: str, constraints: dict, mo
         if "COMPLETED" not in job["logs"]:
             job["logs"].append("COMPLETED")
         job["progress"] = 100
+        
+        latency = (time.time() - start_time) * 1000.0
+        log_observability_event("extraction_completed", paper_id=paper_id, job_id=job_id, latency_ms=latency)
     except Exception as e:
         print(f"[BACKGROUND PIPELINE ERROR] Job {job_id} failed: {e}")
         job["status"] = "failed"
         job["error"] = str(e)
         job["logs"].append(f"ERROR: {str(e)}")
+        
+        latency = (time.time() - start_time) * 1000.0
+        log_observability_event("extraction_failed", paper_id=paper_id, job_id=job_id, latency_ms=latency, errors=str(e))
 
 @app.post("/papers/upload")
 def upload_paper(file: UploadFile = File(...), background_tasks: BackgroundTasks = None):
-    # Enforce PDF files only
+    # Enforce PDF files only by extension
     if not file.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF documents are supported.")
         
@@ -336,8 +348,20 @@ def upload_paper(file: UploadFile = File(...), background_tasks: BackgroundTasks
     upload_path = os.path.join(UPLOAD_DIR, f"{paper_id}.pdf")
     try:
         contents = file.file.read()
+        
+        # Enforce maximum file size (50MB)
+        MAX_SIZE = 50 * 1024 * 1024
+        if len(contents) > MAX_SIZE:
+            raise HTTPException(status_code=400, detail="File size exceeds maximum limit of 50MB.")
+            
+        # Validate PDF magic signature bytes
+        if not contents.startswith(b"%PDF"):
+            raise HTTPException(status_code=400, detail="Invalid PDF file signature.")
+            
         with open(upload_path, "wb") as f:
             f.write(contents)
+    except HTTPException as http_err:
+        raise http_err
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to store PDF file: {str(e)}")
         
@@ -458,11 +482,22 @@ def delete_conversation(conversation_id: str):
         raise HTTPException(status_code=500, detail=f"Failed to delete conversation: {str(e)}")
 
 @app.post("/conversations/{conversation_id}/chat")
-def conversations_chat(conversation_id: str, req: ChatResponseRequest, background_tasks: BackgroundTasks):
+def conversations_chat(
+    conversation_id: str, 
+    req: ChatResponseRequest, 
+    background_tasks: BackgroundTasks,
+    x_user_id: Optional[str] = Header(None)
+):
+    start_time = time.time()
+    
     # Verify the conversation exists and retrieve its owning user_id
     conv_meta = db.get_conversation(conversation_id)
     if not conv_meta:
         raise HTTPException(status_code=404, detail="Conversation session not found.")
+        
+    # Enforce Day 47 authorization
+    if x_user_id and conv_meta["user_id"] != x_user_id:
+        raise HTTPException(status_code=403, detail="Unauthorized access to this conversation thread.")
         
     user_id = conv_meta["user_id"]
     
@@ -480,8 +515,14 @@ def conversations_chat(conversation_id: str, req: ChatResponseRequest, backgroun
         # 4. Save the generated assistant response with the model_used metadata
         db.save_message(conversation_id, "assistant", reply, model_used=model_used)
         
+        # Log Day 48 observability metrics
+        latency = (time.time() - start_time) * 1000.0
+        log_observability_event("chat_completed", conversation_id=conversation_id, model=model_used, latency_ms=latency)
+        
         return {"response": reply, "model_used": model_used}
     except Exception as e:
+        latency = (time.time() - start_time) * 1000.0
+        log_observability_event("chat_failed", conversation_id=conversation_id, latency_ms=latency, errors=str(e))
         raise HTTPException(status_code=500, detail=f"Chat execution failed: {str(e)}")
 
 

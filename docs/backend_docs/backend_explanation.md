@@ -383,3 +383,94 @@ Here is the quick breakdown of Day 6 for your logs:
 * **Parameter Alignment Scorecard**: Performs comparison checks for 5 primary parameters: model architecture, dataset loader names, optimizer parameters, learning rates, and target loss functions.
 * **Adaptation Deviation Tracing**: Detects and highlights scaled settings (such as flagging that the paper specified `SGD` or `batch_size=16`, but the code implemented `AdamW` or `batch_size=4` due to hardware adaptations).
 * **Verification Status Log**: Outputs match ratings categorized as matches (`✓`) or differences (`⚠`) directly to the final pipeline scorecard.
+
+---
+
+# 🧠 **Phase 9 — Persistent Chat + Memory (Days 34–38)**
+
+This phase adds context awareness and user profile caching to the conversational layer, keeping the LLM context size compact while maintaining long-term memory.
+
+### 📦 **Day 34: Database Foundation**
+* **Secured Password Hashing**: Implements PBKDF2 HMAC password salting and verification using the Python standard library's `hashlib` with 100,000 SHA-256 iterations and random 16-byte salts.
+* **Fallback Storage Parity**: Exposes database operations mapping PostgreSQL tables (`users`, `projects`, `conversations`, `messages`, `conversation_summaries`, `user_memory`) to a flat-file JSON local database (`backend/papers/chat_memory_db.json`) if the database server is offline.
+
+### 📦 **Day 35: Conversation API**
+* **REST Routing Endpoints**: Exposes thread and message session routes in `app.py`:
+  - `POST /users/register` & `POST /users/login` (Auth)
+  - `POST /conversations` & `GET /conversations` (Thread containers)
+  - `GET /conversations/{id}` & `POST /conversations/{id}/messages` (Thread details history, messages logging)
+  - `PUT /conversations/{id}` & `DELETE /conversations/{id}` (Thread renaming & cascade deletion of messages)
+
+### 📦 **Day 36: Context Assembly**
+* **Context Prompt Compilation**: Compiles a unified LLM prompt merging rolling conversation summaries, user memory preferences, hybrid RAG extracts (top 3 vector chunks matched locally or in PostgreSQL), and recent chat history.
+
+### 📦 **Day 37: Rolling Summaries**
+* **Active Context Pruning**: Triggers an LLM worker loop to summarize older messages once the active conversation thread length exceeds 10 messages. Updates the `conversation_summaries` registry and feeds only the summary and the last 4 active messages in subsequent LLM calls.
+
+### 📦 **Day 38: Long-Term Memory Fact Extraction**
+* **Memory Fact Registry**: Scans incoming user messages for persistent developer preferences or hardware constraints (e.g. GPU models, framework preferences) using a background thread. Saves them as category-deduplicated logs inside the `user_memory` registry.
+
+---
+
+# 🚦 **Phase 10 — Model Router (Days 39–41)**
+
+Enables local-first generation routing and cascading fallbacks across remote providers, avoiding API dependency.
+
+### 📦 **Day 39: Task Classification**
+* **Prompt Classifier**: Directs incoming requests to a fast classifier Ollama prompt that categorizes inputs into 6 classes: `explanation`, `extraction`, `reasoning`, `code_generation`, `debugging`, or `summarization`.
+
+### 📦 **Day 40: Local-First Routing**
+* **Resource Optimization Map**: Routes text explanations, summaries, and parameters extractions locally to Ollama (`qwen2.5-coder:1.5b`), preserving API traffic limits.
+
+### 📦 **Day 41: Hierarchical Fallbacks & Tracking**
+* **Model Fallback Chain**: Routes reasoning, code generation, and debugging queries through an automatic cascading chain:
+  `OpenRouter Primary (Claude-3.5-Sonnet) ➔ OpenRouter Secondary (Gemini-2.5-Flash) ➔ Groq Primary (Llama-3.3-70B) ➔ Groq Secondary (Llama-3.1-8B) ➔ Local Ollama Fallback`
+* **Metadata Logging**: Adds a `model_used` column to the messages database schema, tracking which LLM generated every message.
+
+---
+
+# ⚡ **Phase 11 — FastAPI + SSE (Days 42–44)**
+
+Integrates document uploads and real-time streaming pipeline log outputs.
+
+### 📦 **Day 42: API Foundation**
+* **API Controllers**: Exposes endpoint controllers for creating/listing projects (`POST /projects`, `GET /projects`) and listings metadata of parsed paper vector indexes (`GET /papers`, `GET /papers/{id}`).
+
+### 📦 **Day 43: Paper Upload**
+* **Asynchronous Queue**: Exposes `POST /papers/upload` which accepts PDF binary payloads, generates unique paper and job IDs, saves the PDF locally under `backend/papers/uploads/`, and queues the LangGraph pipeline execution asynchronously.
+
+### 📦 **Day 44: Streaming logs (SSE)**
+* **Server-Sent Events Stream**: Endpoint `GET /extraction/stream/{job_id}` returns a `StreamingResponse` that streams real-time status chunks (`EXTRACTION_STARTED`, `SECTION_DETECTED`, `RAG_READY`, `ANALYSIS_STARTED`, `CODE_GENERATION_STARTED`, `VERIFICATION_STARTED`, `COMPLETED`) as the LangGraph execution steps progress.
+
+---
+
+# 🛡️ **Phase 12 — Evaluation + Production (Days 45–50)**
+
+Ensures end-to-end security, performance benchmarks, and deployment modularity.
+
+### 📦 **Day 45: End-to-End Benchmark**
+* ** LangGraph Invocation**: Verifies unified pipeline execution correctness:
+  `PDF ➔ Extraction ➔ Representation ➔ RAG ➔ Feasibility ➔ Code Generation ➔ Verification`
+  Ensures that generated neural network layouts match the original paper constraints.
+
+### 📦 **Day 46: Failure Injections**
+* **Corrupted Payloads Rejections**: Restricts file uploads, returning a `400 Bad Request` with an appropriate error details log if signature magic bytes check fails.
+
+### 📦 **Day 47: Production Hardening**
+* **File Upload Size Constraints**: Rejects upload payloads exceeding 50MB.
+* **HTTP Header Authorization**: Exposes header parameter check `X-User-ID` validating that the active caller owns the requested conversation session container, protecting against unauthorized cross-user queries.
+* **Path Traversal Protection**: Sanitizes uploaded files on disk by utilizing randomly generated UUIDs (`paper_id.pdf`) instead of raw user-provided filenames.
+
+### 📦 **Day 48: Tracing & Observability**
+* **Structured observabilty**: Log entries are formatted as structured JSON strings containing `paper_id`, `job_id`, `conversation_id`, `model`, `latency_ms`, and `errors`. Saved to `backend_observability.log` without exposing sensitive user inputs.
+
+### 📦 **Day 49: Packaging & Deployment**
+* **Clean Machine Requirements**:
+  - Python >= 3.10
+  - Docker container running `grobid/grobid:0.9.0-crf`
+  - Local Ollama running `qwen2.5-coder:1.5b` and `nomic-embed-text`
+  - Optional `GROQ_API_KEY` or `OPENROUTER_API_KEY` declared in `.env`
+
+### 📦 **Day 50: Final Architecture Review**
+* **Modularity and Independence**: The backend architecture remains completely vendor-agnostic. The pipeline and model router decouple logic from any single cloud provider, allowing local fallbacks to function offline.
+

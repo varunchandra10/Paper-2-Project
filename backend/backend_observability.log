@@ -1,0 +1,1 @@
+2026-08-25 17:01:31,794 [INFO] [OBSERVABILITY] {"event_type": "test_observability_tracing", "timestamp": 1787657491.794192, "paper_id": "p123", "latency_ms": 45.2, "metadata": {}}
