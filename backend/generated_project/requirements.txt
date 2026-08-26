@@ -1,7 +1,0 @@
-torch>=2.0.0
-torchvision
-numpy
-psutil
-scikit-learn
-scikit-image
-pillow
