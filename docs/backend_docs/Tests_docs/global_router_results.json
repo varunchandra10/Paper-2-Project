@@ -1,0 +1,26 @@
+[
+  {
+    "query": "What is attention mechanism?",
+    "task_type": "reasoning",
+    "latency_seconds": 0.22,
+    "status": "PASS"
+  },
+  {
+    "query": "Extract the learning rate from this paper.",
+    "task_type": "extraction",
+    "latency_seconds": 0.057,
+    "status": "PASS"
+  },
+  {
+    "query": "Generate a full PyTorch DataLoader for this dataset.",
+    "task_type": "code_generation",
+    "latency_seconds": 0.048,
+    "status": "PASS"
+  },
+  {
+    "query": "Debug this import error: ModuleNotFoundError torch.nn",
+    "task_type": "debugging",
+    "latency_seconds": 0.049,
+    "status": "PASS"
+  }
+]

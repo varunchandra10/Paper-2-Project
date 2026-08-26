@@ -3,8 +3,6 @@
 open_models.md
 __pycache__/
 
-/backend/papers
-
 .env
 .env*
 *.env
@@ -16,15 +14,9 @@ website
 frontend/src/uploads
 
 # Internal planning docs
-docs/versioned_plan.md
-docs/llm_api_reference.md
-docs/frontend_ui_plan.md
-docs/implementation_plan.md
-docs/old_backend_docs
+docs/ignore_documents
+/backend/ignore_folders_documents
 
 /mascot_transition_tester.html
 
-/backend/storage
-/backend/tests/old_backend_tests
-/backend/outputs_1
-/backend_1
+

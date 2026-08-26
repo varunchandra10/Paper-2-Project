@@ -1,0 +1,198 @@
+{
+  "timestamp": "2026-08-25T21:19:39.000744",
+  "total_modules": 38,
+  "passed": 38,
+  "failed": 0,
+  "details": [
+    {
+      "module": "core.settings",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "core.database",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "core.chat_manager",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "core.model_router",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "core.hardware_profiler",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "core.resource_estimator",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "core.static_checker",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "core.test_runner",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "core.paper_code_verifier",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "core.security",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "core.logger",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "core.conventions",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "extraction.router",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "extraction.merger",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "extraction.validator",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "extraction.pdf_inspector",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "extraction.block_extractor",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "extraction.section_detector",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "extraction.grobid_parser",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "extraction.docling_parser",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "extraction.pymupdf_parser",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "extraction.confidence",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "extraction.benchmark",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "retrieval.chunker",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "retrieval.embeddings",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "retrieval.vector_db",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "retrieval.reranker",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "agents.ingestion_agent",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "agents.decomposition_agent",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "agents.parameter_agent",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "agents.gap_agent",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "agents.feasibility_agent",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "agents.code_generation_agent",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "agents.sequencing_agent",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "agents.specification_agent",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "agents.file_planning_agent",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "agents.report_agent",
+      "status": "OK",
+      "error": null
+    },
+    {
+      "module": "pipeline",
+      "status": "OK",
+      "error": null
+    }
+  ]
+}
