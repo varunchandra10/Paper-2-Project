@@ -1,0 +1,23 @@
+{
+  "users": {
+    "user_varun_chandra": {
+      "user_id": "user_varun_chandra",
+      "username": "Varun Chandra",
+      "email": "kola.varunchandra29@gmail.com",
+      "created_at": 1787762987.018493
+    },
+    "user_k_varun_chandra": {
+      "user_id": "user_k_varun_chandra",
+      "username": "K Varun Chandra",
+      "email": "kola.varunchandra29@gmail.com",
+      "created_at": 1787768994.494154
+    },
+    "user_developer": {
+      "user_id": "user_developer",
+      "username": "Developer",
+      "email": "dev@example.com",
+      "created_at": 1787769248.766006
+    }
+  },
+  "projects": {}
+}

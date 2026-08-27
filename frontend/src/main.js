@@ -440,7 +440,7 @@ ipcMain.on('upload-pdf', (event, { filePath, type, modelName }) => {
         fs.copyFileSync(filePath, destPath);
 
         sendMascotState('reading');
-        event.reply('upload-status', { success: true, filename, type });
+        event.reply('upload-status', { success: true, filename, type, filePath: destPath });
         runPipelineOrchestrator(filename, destPath, type, modelName);
     } catch (err) {
         console.error("File upload/copy error:", err);
@@ -448,9 +448,11 @@ ipcMain.on('upload-pdf', (event, { filePath, type, modelName }) => {
     }
 });
 
+// Stage-only file selector: opens dialog, copies file, sends back staged info WITHOUT running the pipeline.
+// Pipeline only fires when the user explicitly sends a message (via trigger-upload).
 ipcMain.on('open-file-selector', (event, type, modelName) => {
     const isDocx = (type === 'docx');
-    const dialogFilters = isDocx 
+    const dialogFilters = isDocx
         ? [ { name: 'Word Documents', extensions: ['docx', 'doc'] } ]
         : [ { name: 'PDF Papers', extensions: ['pdf'] } ];
 
@@ -463,25 +465,37 @@ ipcMain.on('open-file-selector', (event, type, modelName) => {
             const filename = path.basename(filePath);
 
             try {
-                  const uploadsDir = path.join(__dirname, 'uploads');
-                  if (!fs.existsSync(uploadsDir)) {
-                      fs.mkdirSync(uploadsDir, { recursive: true });
-                  }
+                const uploadsDir = path.join(__dirname, 'uploads');
+                if (!fs.existsSync(uploadsDir)) {
+                    fs.mkdirSync(uploadsDir, { recursive: true });
+                }
 
-                  const destPath = path.join(uploadsDir, filename);
-                  fs.copyFileSync(filePath, destPath);
+                const destPath = path.join(uploadsDir, filename);
+                fs.copyFileSync(filePath, destPath);
 
-                  event.reply('upload-status', { success: true, filename, type });
-                  runPipelineOrchestrator(filename, destPath, type, modelName);
-              } catch (err) {
-                  event.reply('upload-status', { success: false, error: err.message, type });
-              }
-          }
-      }).catch(err => {
-          console.error("File dialog error:", err);
-          event.reply('upload-status', { success: false, error: err.message, type });
-      });
-  });
+                // Only stage — do NOT trigger pipeline yet
+                event.reply('file-staged', { success: true, filename, type, filePath: destPath, modelName });
+            } catch (err) {
+                event.reply('file-staged', { success: false, error: err.message, type });
+            }
+        }
+    }).catch(err => {
+        console.error("File dialog error:", err);
+        event.reply('file-staged', { success: false, error: err.message, type });
+    });
+});
+
+// trigger-upload: called when the user actually sends (hits Send). Fires the pipeline.
+ipcMain.on('trigger-upload', (event, { filename, filePath, type, modelName }) => {
+    try {
+        sendMascotState('reading');
+        event.reply('upload-status', { success: true, filename, type, filePath });
+        runPipelineOrchestrator(filename, filePath, type, modelName);
+    } catch (err) {
+        console.error("Trigger upload error:", err);
+        event.reply('upload-status', { success: false, error: err.message, type });
+    }
+});
 
 // --- Sidebar Control Panel Window ---
 let panelWindow = null;

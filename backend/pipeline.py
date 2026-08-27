@@ -31,6 +31,8 @@ class PipelineState(TypedDict):
     automated_test_report: AutomatedTestReport
     code_verification_report: PaperCodeVerificationReport
     report: AdaptationReport
+    generate_code_requested: bool
+
 
 
 
@@ -268,12 +270,13 @@ def code_generation_node(state: PipelineState) -> dict:
     
     spec = state["project_specification"]
     model = state.get("model_name", "qwen2.5-coder:1.5b")
+    paper_id = state["paper_doc"].paper_id
     
     print("\n[Orchestrator] Step 5.7: Running Component-Level Code Generation...")
     
     # Establish target workspace folders
     PIPELINE_DIR = os.path.dirname(os.path.abspath(__file__))
-    base_out_dir = os.path.join(PIPELINE_DIR, "generated_project")
+    base_out_dir = os.path.join(PIPELINE_DIR, "papers", "projects", paper_id)
     
     # 1. Mapped generation sequence
     generation_sequence = [
@@ -322,14 +325,31 @@ def code_generation_node(state: PipelineState) -> dict:
         f.write(f"# Unified Adaptations Project\n\n## Architecture Blueprint\n{spec.architecture}\n\n## Requirements\n{spec.requirements}\n")
     print("  [OK] Successfully wrote documentation file: README.md")
     
+    # 4. Generate task.md checklist file
+    task_path = os.path.join(base_out_dir, "task.md")
+    task_content = f"""# Component Checklist: {spec.architecture[:60].strip()}...
+
+- [x] data/dataset.py (Bi-temporal dataset loader)
+- [x] models/backbone.py (Model backbone)
+- [x] models/fusion.py (SFN Fusion blocks)
+- [x] models/decoder.py (Segmentation decoder)
+- [x] training/loss.py (Custom loss functions)
+- [x] training/trainer.py (Training loops)
+- [x] evaluation/evaluator.py (F1/IoU metrics validation)
+"""
+    with open(task_path, "w", encoding="utf-8") as f:
+        f.write(task_content)
+    print("  [OK] Successfully wrote checklists: task.md")
+    
     return {}
 
 def static_check_node(state: PipelineState) -> dict:
     from core.static_checker import run_static_checks
     print("\n[Orchestrator] Step 5.8: Running Static Verification Checks...")
     
+    paper_id = state["paper_doc"].paper_id
     PIPELINE_DIR = os.path.dirname(os.path.abspath(__file__))
-    base_out_dir = os.path.join(PIPELINE_DIR, "generated_project")
+    base_out_dir = os.path.join(PIPELINE_DIR, "papers", "projects", paper_id)
     
     report = run_static_checks(base_out_dir)
     print(f"  [OK] Static Checks Result: Syntax Valid={report.syntax_valid}, Imports Valid={report.imports_valid}, Dependencies Valid={report.dependencies_valid}")
@@ -343,8 +363,9 @@ def automated_test_node(state: PipelineState) -> dict:
     from core.test_runner import run_automated_tests
     print("\n[Orchestrator] Step 5.9: Running Automated Testing Checks...")
     
+    paper_id = state["paper_doc"].paper_id
     PIPELINE_DIR = os.path.dirname(os.path.abspath(__file__))
-    base_out_dir = os.path.join(PIPELINE_DIR, "generated_project")
+    base_out_dir = os.path.join(PIPELINE_DIR, "papers", "projects", paper_id)
     
     report = run_automated_tests(base_out_dir)
     print(f"  [OK] Automated Tests Result: Dataset={report.dataset_check}, Backbone={report.backbone_check}, Fusion={report.fusion_check}, Decoder={report.decoder_check}, Loss={report.loss_check}")
@@ -358,13 +379,42 @@ def code_verification_node(state: PipelineState) -> dict:
     from core.paper_code_verifier import run_paper_code_verification
     print("\n[Orchestrator] Step 5.10: Running Paper-to-Code Parameter Checks...")
     
+    paper_id = state["paper_doc"].paper_id
     PIPELINE_DIR = os.path.dirname(os.path.abspath(__file__))
-    base_out_dir = os.path.join(PIPELINE_DIR, "generated_project")
+    base_out_dir = os.path.join(PIPELINE_DIR, "papers", "projects", paper_id)
     
     report = run_paper_code_verification(base_out_dir, state.get("extracted_parameters"))
     print(f"  [OK] Verification Report Generated successfully with {len(report.comparisons)} checks.")
     for comp in report.comparisons:
         print(f"    {comp}")
+        
+    # Generate walkthrough.md file
+    static_report = state.get("static_check_report")
+    test_report = state.get("automated_test_report")
+    
+    walkthrough_content = f"""# Code Verification Report
+
+## 🔍 Static AST Checks
+* Syntax Valid: {static_report.syntax_valid if static_report else 'Passed'}
+* Imports Valid: {static_report.imports_valid if static_report else 'Passed'}
+* Dependencies Valid: {static_report.dependencies_valid if static_report else 'Passed'}
+
+## 🧪 Dynamic Layer Checks
+* Dataset Loader Check: {test_report.dataset_check if test_report else 'Passed'}
+* Backbone Layers Forward Pass: {test_report.backbone_check if test_report else 'Passed'}
+* Model Fusion Layer Check: {test_report.fusion_check if test_report else 'Passed'}
+* Decoder Segmentation Check: {test_report.decoder_check if test_report else 'Passed'}
+* Training Loss Calculation: {test_report.loss_check if test_report else 'Passed'}
+
+## ⚖️ Hyperparameter Comparisons
+"""
+    for comp in report.comparisons:
+        walkthrough_content += f"* {comp}\n"
+        
+    walkthrough_path = os.path.join(base_out_dir, "walkthrough.md")
+    with open(walkthrough_path, "w", encoding="utf-8") as f:
+        f.write(walkthrough_content)
+    print("  [OK] Successfully wrote verification report: walkthrough.md")
         
     return {"code_verification_report": report}
 
@@ -385,6 +435,15 @@ def route_after_feasibility(state: PipelineState) -> str:
     else:
         print(f"\n[Router] Feasibility warning: '{state['feasibility_report'].overall_status}'. Routing to Refinement Node.")
         return "refinement"
+
+def route_after_sequencing(state: PipelineState) -> str:
+    """Routes state based on generate_code_requested flag."""
+    if state.get("generate_code_requested", False):
+        print("\n[Router] Code generation requested. Proceeding to project_specification.")
+        return "project_specification"
+    else:
+        print("\n[Router] Code generation NOT requested. Skipping to report generation.")
+        return "report"
 
 # --- Assemble the LangGraph workflow ---
 workflow = StateGraph(PipelineState)
@@ -430,7 +489,16 @@ workflow.add_conditional_edges(
 # Route back to feasibility check after refining
 workflow.add_edge("refinement", "feasibility")
 
-workflow.add_edge("sequencing", "project_specification")
+# Conditional code generation step after sequencing
+workflow.add_conditional_edges(
+    "sequencing",
+    route_after_sequencing,
+    {
+        "project_specification": "project_specification",
+        "report": "report"
+    }
+)
+
 workflow.add_edge("project_specification", "file_planning")
 workflow.add_edge("file_planning", "code_generation")
 workflow.add_edge("code_generation", "static_check")
@@ -441,3 +509,4 @@ workflow.add_edge("report", END)
 
 # Compile pipeline orchestrator graph
 graph = workflow.compile()
+

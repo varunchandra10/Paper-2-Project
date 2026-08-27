@@ -23,8 +23,14 @@ contextBridge.exposeInMainWorld('mascotAPI', {
     openFileSelector: (type, modelName) => {
         ipcRenderer.send('open-file-selector', type, modelName);
     },
+    triggerUpload: (filename, filePath, type, modelName) => {
+        ipcRenderer.send('trigger-upload', { filename, filePath, type, modelName });
+    },
     onUploadStatus: (callback) => {
         ipcRenderer.on('upload-status', (event, status) => callback(status));
+    },
+    onFileStaged: (callback) => {
+        ipcRenderer.on('file-staged', (event, data) => callback(data));
     },
     onFileSelected: (callback) => {
         ipcRenderer.on('selected-file', (event, data) => callback(data));

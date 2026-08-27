@@ -1,6 +1,6 @@
 import React from 'react';
 import { usePanelStore } from '../../store/panelStore';
-import { FiUser } from 'react-icons/fi';
+import { FiUser, FiPlus } from 'react-icons/fi';
 
 import mrNerdyStandSleep from '../../assets/mr_nerdy_stand_sleep-removebg-preview.png';
 import mrNerdyStandToExcite from '../../assets/mr_nerdy_stand_to_excite-removebg-preview.png';
@@ -16,7 +16,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isMaximized, isOpen })
     resetAnalysis,
     isAnalyzing,
     activeMilestoneIndex,
-    reportContent
+    reportContent,
+    username,
+    setActiveView
   } = usePanelStore();
 
   const [isSleeping, setIsSleeping] = React.useState(false);
@@ -32,7 +34,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isMaximized, isOpen })
       return;
     }
 
-    let idleTimeout: any;
+    let idleTimeout: ReturnType<typeof setTimeout>;
 
     const resetIdleTimer = () => {
       setIsSleeping(false);
@@ -82,7 +84,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isMaximized, isOpen })
     targetFrame = 0; // Stand pose
   }
 
-  // Handle mascot transitions exactly like mascot.js state machine (no micro-animations)
+  // Handle mascot transitions matching state machine
   React.useEffect(() => {
     const prevSheet = prevSheetRef.current;
     const prevFrame = prevFrameRef.current;
@@ -94,12 +96,11 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isMaximized, isOpen })
 
     if (prevSheet === nextSheet && prevFrame === nextFrame) return;
 
-    const timeouts: any[] = [];
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
 
     // Case 1: Image sheet changed
     if (prevSheet !== nextSheet) {
       if (nextSheet !== mrNerdyStandSleep) {
-        // Transitioning to action: Action sheet frame 0 -> 1 -> 2
         setDisplaySprite(nextSheet);
         setFrameIndex(0);
 
@@ -107,7 +108,6 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isMaximized, isOpen })
         const t2 = setTimeout(() => setFrameIndex(2), 300);
         timeouts.push(t1, t2);
       } else {
-        // Transitioning back to standing/sleep: Action sheet frame 2 -> 1 -> 0 -> Standing sheet frame 0 (or 2 if sleeping)
         setDisplaySprite(prevSheet);
         setFrameIndex(2);
 
@@ -127,17 +127,15 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isMaximized, isOpen })
         timeouts.push(t1, t2, t3);
       }
     } 
-    // Case 2: Same sheet, but target pose changed (e.g. stand 0 <-> sleep 2)
+    // Case 2: Same sheet, but target pose changed
     else {
       setDisplaySprite(nextSheet);
       if (prevFrame < nextFrame) {
-        // Falling asleep: 0 -> 1 -> 2
         setFrameIndex(0);
         const t1 = setTimeout(() => setFrameIndex(1), 150);
         const t2 = setTimeout(() => setFrameIndex(2), 300);
         timeouts.push(t1, t2);
       } else {
-        // Waking up: 2 -> 1 -> 0
         setFrameIndex(2);
         const t1 = setTimeout(() => setFrameIndex(1), 150);
         const t2 = setTimeout(() => setFrameIndex(0), 300);
@@ -150,45 +148,49 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isMaximized, isOpen })
     };
   }, [targetSheet, targetFrame]);
 
-  if (!isMaximized) return null;
-
   return (
     <aside
-      className={`h-full flex flex-col bg-card border-r border-border/60 z-20 select-none shrink-0 overflow-hidden transition-all duration-300 ease-in-out ${
-        isOpen ? 'w-[260px]' : 'w-[56px]'
+      className={`h-full flex flex-col bg-card/95 backdrop-blur-md z-20 select-none shrink-0 overflow-hidden transition-all duration-300 ease-in-out ${
+        !isMaximized 
+          ? 'w-0 border-r-0' 
+          : `${isOpen ? 'w-[260px]' : 'w-[64px]'} border-r border-border/40 shadow-xl`
       }`}
     >
-      {/* ── Project Title ─────────────────────────────────── */}
-      <div className={`border-b border-border/40 flex items-center shrink-0 ${isOpen ? 'px-4 py-3.5' : 'px-0 py-3.5 justify-center'}`}>
-        {isOpen ? (
-          <>
-            <h1 className="text-[11px] font-black tracking-[0.2em] font-mono bg-gradient-to-r from-brass to-foreground text-transparent bg-clip-text leading-none">
-              Paper_2_Project
+      {/* ── Project Title & Logo ─────────────────────────── */}
+      <div className={`border-b border-border/30 flex items-center shrink-0 ${isOpen ? 'px-4 h-14 gap-3' : 'px-0 h-14 justify-center'}`}>
+        <div className="relative group cursor-pointer">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brass/20 to-brass/5 flex items-center justify-center font-serif text-sm font-bold text-brass border border-brass/30 shrink-0 shadow-[0_0_10px_rgba(212,175,55,0.1)] group-hover:border-brass/50 group-hover:shadow-[0_0_14px_rgba(212,175,55,0.2)] transition-all">
+            S
+          </div>
+          <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-brass animate-pulse" />
+        </div>
+        {isOpen && (
+          <div className="flex flex-col">
+            <h1 className="text-[11px] font-black tracking-[0.25em] font-mono bg-gradient-to-r from-brass via-brass/90 to-foreground text-transparent bg-clip-text leading-none">
+              SYNTHEXIS
             </h1>
-          </>
-        ) : (
-          <span className="text-[11px] font-black font-mono text-brass/90 tracking-widest leading-none text-center">
-            P_2_P
-          </span>
+            <span className="text-[8px] font-mono text-muted-foreground tracking-wider mt-1">ANALYTICS ENGINE</span>
+          </div>
         )}
       </div>
 
       {/* ── New Analysis Button ───────────────────────────── */}
-      <div className={`border-b border-border/40 shrink-0 ${isOpen ? 'px-4 py-3' : 'px-2 py-3 flex justify-center'}`}>
+      <div className={`border-b border-border/30 shrink-0 ${isOpen ? 'p-3' : 'p-2 flex justify-center'}`}>
         {isOpen ? (
           <button
             onClick={resetAnalysis}
-            className="py-1.5 px-3 rounded-lg bg-brass/8 hover:bg-brass/15 text-[10px] font-mono tracking-wide font-bold text-brass uppercase transition-all duration-200 active:scale-95 cursor-pointer flex items-center gap-1.5"
+            className="w-full group relative py-2 px-3 rounded-lg bg-brass/10 hover:bg-brass/20 border border-brass/20 hover:border-brass/40 text-[10px] font-mono tracking-wider font-bold text-brass uppercase transition-all duration-200 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 shadow-[0_2px_8px_rgba(212,175,55,0.08)]"
           >
-            <span className="text-[12px] leading-none">+</span> New Analysis
+            <FiPlus className="text-xs transition-transform group-hover:rotate-90 duration-300" />
+            <span>New Analysis</span>
           </button>
         ) : (
           <button
             onClick={resetAnalysis}
             title="New Analysis"
-            className="w-10 h-8 rounded-lg bg-brass/8 hover:bg-brass/15 text-brass transition-all duration-200 active:scale-95 cursor-pointer flex items-center justify-center"
+            className="w-10 h-10 rounded-lg bg-brass/10 hover:bg-brass/20 border border-brass/20 hover:border-brass/40 text-brass transition-all duration-200 active:scale-95 cursor-pointer flex items-center justify-center shadow-[0_2px_8px_rgba(212,175,55,0.08)]"
           >
-            <span className="text-[9px] font-mono uppercase tracking-wider font-bold">New</span>
+            <FiPlus className="text-base" />
           </button>
         )}
       </div>
@@ -197,24 +199,31 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isMaximized, isOpen })
       <div className="flex-1" />
 
       {/* ── Bottom: Mascot + Profile ──────────────────────── */}
-      <div className={`border-t border-border/40 flex flex-col bg-background/30 backdrop-blur-md shrink-0 ${isOpen ? 'p-4 gap-2.5' : 'p-2 gap-2 items-center'}`}>
+      <div className={`border-t border-border/30 flex flex-col bg-background/40 shrink-0 ${isOpen ? 'p-3.5 gap-3' : 'p-2 gap-2.5 items-center'}`}>
 
-        {/* Mascot box */}
+        {/* Mascot Box */}
         {isOpen ? (
-          <div className="w-[148px] aspect-square mx-auto rounded-xl border border-border/50 bg-black/15 flex flex-col items-center justify-between p-2.5 relative overflow-hidden shadow-[inset_0_2px_8px_rgba(0,0,0,0.3)] mb-1 select-none">
-            <div className="absolute inset-0 bg-gradient-to-b from-brass/5 to-transparent pointer-events-none opacity-30" />
+          <div className="w-full aspect-[4/3] rounded-xl border border-border/60 bg-gradient-to-b from-muted/40 to-muted/80 flex flex-col items-center justify-between p-2.5 relative overflow-hidden shadow-inner group">
+            <div className="absolute inset-0 bg-gradient-to-b from-brass/5 via-transparent to-brass/5 pointer-events-none opacity-50" />
+            
+            {/* Status indicator badge */}
+            <div className="w-full flex justify-between items-center z-10 px-1">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-background/60 border border-border/40 text-[8px] font-mono text-muted-foreground backdrop-blur-sm">
+                <span className={`w-1.5 h-1.5 rounded-full ${isAnalyzing ? 'bg-amber-400 animate-ping' : isSleeping ? 'bg-blue-400' : 'bg-emerald-400'}`} />
+                {isAnalyzing ? 'THINKING' : isSleeping ? 'IDLE' : 'READY'}
+              </span>
 
-            {isSleeping && (
-              <div className="absolute top-2 right-4 flex flex-col gap-0.5 pointer-events-none z-10">
-                <span className="text-[10px] font-bold text-brass/70 animate-bounce select-none" style={{ animationDelay: '0s', animationDuration: '2.5s' }}>Z</span>
-                <span className="text-[7px] font-bold text-brass/55 animate-bounce select-none ml-1" style={{ animationDelay: '0.6s', animationDuration: '2.5s' }}>z</span>
-                <span className="text-[6px] font-bold text-brass/40 animate-bounce select-none ml-2" style={{ animationDelay: '1.2s', animationDuration: '2.5s' }}>z</span>
-              </div>
-            )}
+              {isSleeping && (
+                <div className="flex items-center gap-0.5 pointer-events-none z-10">
+                  <span className="text-[10px] font-bold text-brass/80 animate-bounce" style={{ animationDelay: '0s', animationDuration: '2s' }}>Z</span>
+                  <span className="text-[8px] font-bold text-brass/60 animate-bounce" style={{ animationDelay: '0.4s', animationDuration: '2s' }}>z</span>
+                  <span className="text-[6px] font-bold text-brass/40 animate-bounce" style={{ animationDelay: '0.8s', animationDuration: '2s' }}>z</span>
+                </div>
+              )}
+            </div>
 
-            <div className="flex-1" />
             <div
-              className="h-[88px] aspect-[5/6] filter drop-shadow-[0_2px_6px_rgba(0,0,0,0.25)] shrink-0"
+              className="h-[84px] aspect-[5/6] filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.35)] shrink-0 transition-transform duration-300 group-hover:scale-105"
               style={{
                 backgroundImage: `url(${displaySprite})`,
                 backgroundSize: '300% 100%',
@@ -222,16 +231,19 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isMaximized, isOpen })
                 backgroundRepeat: 'no-repeat',
               }}
             />
-            <div className="flex-1" />
-            <span className="text-[8px] font-mono font-black tracking-[0.25em] text-brass/90 uppercase shrink-0">
+
+            <span className="text-[9px] font-mono font-black tracking-[0.2em] text-brass/90 uppercase shrink-0">
               Mr. Nerd
             </span>
           </div>
         ) : (
-          /* Icon-rail mascot — tiny sprite only */
-          <div className="w-10 h-10 rounded-lg border border-border/40 bg-black/15 relative overflow-hidden flex items-center justify-center shadow-[inset_0_1px_4px_rgba(0,0,0,0.3)]">
+          /* Rail view mascot */
+          <div 
+            title={isSleeping ? 'Mr. Nerd (Sleeping)' : 'Mr. Nerd'}
+            className="w-10 h-10 rounded-xl border border-border/60 bg-muted/60 relative overflow-hidden flex items-center justify-center shadow-inner hover:border-brass/30 transition-all cursor-pointer"
+          >
             <div
-              className="h-[36px] aspect-[5/6]"
+              className="h-[34px] aspect-[5/6]"
               style={{
                 backgroundImage: `url(${displaySprite})`,
                 backgroundSize: '300% 100%',
@@ -242,20 +254,27 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isMaximized, isOpen })
           </div>
         )}
 
-        {/* Profile row */}
+        {/* Profile Card */}
         {isOpen ? (
-          <div className="w-full flex items-center gap-3.5 p-3.5 rounded-xl border border-border/50 bg-black/10 hover:bg-foreground/5 hover:border-border/70 transition-all duration-300 cursor-pointer select-none">
-            <div className="w-10 h-10 rounded-full bg-brass/10 border border-brass/35 text-brass flex items-center justify-center font-mono shadow-[0_0_8px_rgba(212,175,55,0.1)] shrink-0">
-              <FiUser className="text-lg" />
+          <div 
+            onClick={() => setActiveView('profile')}
+            className="w-full flex items-center gap-3 p-2.5 rounded-xl border border-border/50 bg-muted/40 hover:bg-muted/80 hover:border-border/80 transition-all duration-200 cursor-pointer select-none group"
+          >
+            <div className="w-9 h-9 rounded-lg bg-brass/10 border border-brass/30 text-brass flex items-center justify-center font-mono shadow-[0_0_10px_rgba(212,175,55,0.1)] shrink-0 group-hover:scale-105 transition-transform">
+              <FiUser className="text-base" />
             </div>
-            <div className="flex flex-col items-start min-w-0">
-              <span className="text-xs font-black tracking-wide text-foreground/80 leading-none">Varun</span>
-              <span className="text-[10px] font-mono text-foreground/40 leading-none mt-1.5">Developer</span>
+            <div className="flex flex-col items-start min-w-0 flex-1">
+              <span className="text-xs font-bold tracking-wide text-foreground leading-tight truncate">{username || 'Varun'}</span>
+              <span className="text-[9px] font-mono text-muted-foreground leading-none mt-1">Developer</span>
             </div>
           </div>
         ) : (
-          /* Icon-rail profile — avatar only */
-          <div className="w-10 h-10 rounded-full bg-brass/10 border border-brass/35 text-brass flex items-center justify-center cursor-pointer hover:bg-brass/20 transition-all duration-200 shadow-[0_0_8px_rgba(212,175,55,0.08)]">
+          /* Rail view profile */
+          <div 
+            onClick={() => setActiveView('profile')}
+            title={`${username || 'Varun'} (Developer)`}
+            className="w-10 h-10 rounded-xl bg-brass/10 border border-brass/30 text-brass flex items-center justify-center cursor-pointer hover:bg-brass/20 transition-all duration-200 shadow-[0_0_8px_rgba(212,175,55,0.08)] active:scale-95"
+          >
             <FiUser className="text-base" />
           </div>
         )}
