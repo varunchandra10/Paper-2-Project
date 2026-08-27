@@ -14,7 +14,7 @@ export const DocumentsDrawer: React.FC = () => {
 
   return (
     <aside 
-      className={`absolute left-0 right-0 bottom-0 h-[300px] bg-background/80 border-t border-border/50 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] backdrop-blur-xl flex flex-col z-10 transform transition-all duration-400 cubic-bezier(0.4, 0, 0.2, 1) rounded-t-2xl ${
+      className={`absolute left-0 right-0 bottom-0 h-[300px] bg-background/80 border-t border-border/50 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] backdrop-blur-xl flex flex-col z-30 transform transition-all duration-400 cubic-bezier(0.4, 0, 0.2, 1) rounded-t-2xl ${
         isHistoryOpen 
           ? 'translate-y-0 opacity-100' 
           : 'translate-y-full opacity-0 pointer-events-none'

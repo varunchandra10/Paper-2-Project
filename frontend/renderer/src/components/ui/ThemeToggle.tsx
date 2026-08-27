@@ -9,13 +9,13 @@ export const ThemeToggle: React.FC = () => {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2.5 text-sm text-foreground/45 hover:bg-foreground/10 hover:text-foreground transition-all cursor-pointer flex items-center justify-center w-9 h-9"
+      className="text-foreground/55 hover:bg-foreground/10 hover:text-foreground transition-all cursor-pointer flex items-center justify-center w-6 h-6 rounded-full"
       title={isLight ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
       aria-label={isLight ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
     >
       {isLight
-        ? <FaMoon className="text-[13px]" />
-        : <FaSun  className="text-[13px] text-brass/70" />
+        ? <FaMoon className="text-[9.5px]" />
+        : <FaSun  className="text-[9.5px] text-brass" />
       }
     </button>
   );

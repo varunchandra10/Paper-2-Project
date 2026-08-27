@@ -106,12 +106,52 @@ Category:"""
 
         Returns: (response_text, model_used_label)
         """
+        # Check for dynamic routing mappings matching selected model
+        # DeepSeek R1 -> route to Groq distill first, then OpenRouter, then local
+        if self.local_model == "deepseek-r1":
+            if self.groq_api_key:
+                res = self._route_groq(prompt, "deepseek-r1-distill-llama-70b")
+                if res:
+                    return res, "DeepSeek R1"
+            if self.openrouter_api_key:
+                res = self._route_openrouter(prompt, "deepseek/deepseek-r1:free")
+                if res:
+                    return res, "DeepSeek R1"
+
+        # GPT-OSS 120B -> route to OpenRouter 405B first
+        elif self.local_model == "gpt-oss-120b":
+            if self.openrouter_api_key:
+                res = self._route_openrouter(prompt, "meta-llama/llama-3.1-405b-instruct")
+                if res:
+                    return res, "GPT-OSS 120B"
+
+        # Qwen3 Next 80B -> route to OpenRouter 72B first
+        elif self.local_model == "qwen3-next-80b":
+            if self.openrouter_api_key:
+                res = self._route_openrouter(prompt, "qwen/qwen-2.5-72b-instruct")
+                if res:
+                    return res, "Qwen3 Next 80B"
+
+        # Qwen3 Coder 480B -> route to OpenRouter Coder first
+        elif self.local_model == "qwen3-coder-480b":
+            if self.openrouter_api_key:
+                res = self._route_openrouter(prompt, "qwen/qwen-2.5-coder-32b-instruct")
+                if res:
+                    return res, "Qwen3 Coder 480B"
+
+        # Qwen 3.6 27B -> route to OpenRouter 7B first
+        elif self.local_model == "qwen3.6-27b":
+            if self.openrouter_api_key:
+                res = self._route_openrouter(prompt, "qwen/qwen-2.5-7b-instruct")
+                if res:
+                    return res, "Qwen 3.6 27B"
+
         # Local-First Routing Map (Day 40)
         local_categories = ["explanation", "extraction", "summarization"]
         if category in local_categories:
             try:
                 resp = ollama.generate(model=self.local_model, prompt=prompt)
-                return resp.get("response", "").strip(), f"Ollama ({self.local_model})"
+                return resp.get("response", "").strip(), self.local_model
             except Exception as e:
                 print(f"[ROUTER WARN] Local Ollama generate failed: {e}")
 

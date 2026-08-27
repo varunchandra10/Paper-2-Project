@@ -9,7 +9,7 @@ class Settings:
     
     def __init__(self):
         # Default LLM configurations
-        self.model_name: str = os.getenv("LLM_MODEL", "qwen2.5-coder:1.5b")
+        self.model_name: str = os.getenv("LLM_MODEL", "gpt-oss-120b")
         
         # Respect user permission for hardware diagnostics
         # Defaults to False to prevent unauthorized command execution on installation

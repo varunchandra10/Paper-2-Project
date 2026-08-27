@@ -61,7 +61,26 @@ class ChatManager:
             except Exception as e:
                 print(f"[CHAT WARN] Failed to retrieve paper chunks: {e}")
 
-        # 4. Fetch Recent Messages (Last 5 messages to prevent window overflow)
+        # 4. Retrieve Extracted Structured Paper JSON
+        extracted_json_text = "No extracted JSON specifications available."
+        if paper_id:
+            try:
+                backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                extracted_json_path = os.path.join(backend_dir, "papers", "extracted_json", f"{paper_id}.json")
+                if os.path.exists(extracted_json_path):
+                    with open(extracted_json_path, "r", encoding="utf-8") as f:
+                        extracted_data = json.load(f)
+                    # Limit to core keys to prevent overfilling context if extremely large
+                    core_data = {
+                        k: extracted_data[k] 
+                        for k in ["metadata", "extracted_parameters", "feasibility_report", "build_sequence"] 
+                        if k in extracted_data
+                    }
+                    extracted_json_text = json.dumps(core_data, indent=2)
+            except Exception as e:
+                print(f"[CHAT WARN] Failed to load extracted JSON file: {e}")
+
+        # 5. Fetch Recent Messages (Last 5 messages to prevent window overflow)
         all_messages = self.db.get_messages(conversation_id)
         recent_messages = all_messages[-5:] if all_messages else []
         
@@ -71,9 +90,16 @@ class ChatManager:
         else:
             history_str = "No recent messages."
 
-        # 5. Compile Prompt Template
-        prompt = f"""You are a helpful remote sensing and deep learning engineering assistant.
-Answer the user's query utilizing the following context elements.
+        # 6. Compile Prompt Template
+        prompt = f"""You are a helpful remote sensing and deep learning engineering assistant operating under a ReACT framework (Reasoning + Action).
+Answer the user's query utilizing the context elements provided below.
+
+For every response, you MUST think step-by-step and write out your internal thought process using the following explicit structure before giving your final answer:
+
+THOUGHT: [Explain your reasoning on how you will address the user's query using the provided context elements, preferences, history, and retrieved paper extracts.]
+ACTION: [Detail what information you are retrieving, searching, or verifying from the context.]
+OBSERVATION: [Identify the specific facts, equations, or hyperparameters from the context/extracts that answer the query.]
+ANSWER: [Your final concise, technically sound engineering response to the user. Ground your answer strictly in the facts from the observation. If the query is ambiguous, lacks data, or asks to perform actions outside the constraints, you must ask the user for clarification or permission here.]
 
 =========================================
 [CONTEXT: USER PREFERENCES & CONSTRAINTS]
@@ -88,23 +114,30 @@ Answer the user's query utilizing the following context elements.
 {rag_text}
 
 =========================================
+[CONTEXT: EXTRACTED STRUCTURED PAPER JSON]
+{extracted_json_text}
+
+=========================================
 [RECENT CHAT HISTORY]
 {history_str}
 
 =========================================
 User Query: {query}
 
-Provide a concise, technically sound engineering response. Ground your answers in the contexts provided above.
 Assistant:"""
         return prompt
 
-    def generate_response(self, conversation_id: str, user_id: str, query: str, paper_id: Optional[str] = None) -> Tuple[str, str]:
+    def generate_response(self, conversation_id: str, user_id: str, query: str, paper_id: Optional[str] = None, model_name: Optional[str] = None) -> Tuple[str, str]:
         """Assembles prompt, classifies task, routes generation, and returns (reply, model_used)."""
         prompt = self.build_context_prompt(conversation_id, user_id, query, paper_id)
         try:
-            category = self.router.classify_task(query)
-            print(f"[ROUTER] User query classified as: '{category}'")
-            reply, model_used = self.router.generate_routed_response(prompt, category)
+            # Dynamically override the router's model settings with the user's active choice
+            router = self.router
+            if model_name:
+                router = ModelRouter(local_model=model_name)
+            category = router.classify_task(query)
+            print(f"[ROUTER] User query classified as: '{category}' using router model '{router.local_model}'")
+            reply, model_used = router.generate_routed_response(prompt, category)
             return reply, model_used
         except Exception as e:
             return f"Error routing or generating response: {str(e)}", "N/A"

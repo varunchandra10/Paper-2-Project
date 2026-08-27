@@ -159,7 +159,7 @@ def run_gap_agent(
                 parameter_name=field_name,
                 classification=classification,
                 value=param.value,
-                details=param.rationale
+                details=getattr(param, "rationale", f"Source: {getattr(param, 'source', 'unknown')}, Status: {getattr(param, 'status', 'unknown')}")
             ))
         gap_report = GapReport(
             parameter_gaps=fallback_gaps,

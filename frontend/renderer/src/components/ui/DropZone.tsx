@@ -3,7 +3,7 @@ import { usePanelStore } from '../../store/panelStore';
 import { FaFilePdf, FaFileWord } from 'react-icons/fa6';
 
 export const DropZone: React.FC = () => {
-  const { triggerUpload, isAnalyzing, selectedModel } = usePanelStore();
+  const { uploadPaper, isAnalyzing, selectedModel } = usePanelStore();
   const [isPdfOver, setIsPdfOver] = useState(false);
   const [isDocxOver, setIsDocxOver] = useState(false);
 
@@ -32,10 +32,12 @@ export const DropZone: React.FC = () => {
     if (files && files.length > 0) {
       const file = files[0];
       if (window.mascotAPI?.getPathForFile) {
+        // Electron path
         const filePath = window.mascotAPI.getPathForFile(file);
         window.mascotAPI.uploadPDF(filePath, type, selectedModel);
       } else {
-        triggerUpload(file.name, type);
+        // Browser path — real upload
+        uploadPaper(file);
       }
     }
   };
@@ -45,10 +47,12 @@ export const DropZone: React.FC = () => {
     if (files && files.length > 0) {
       const file = files[0];
       if (window.mascotAPI?.getPathForFile) {
+        // Electron path
         const filePath = window.mascotAPI.getPathForFile(file);
         window.mascotAPI.uploadPDF(filePath, type, selectedModel);
       } else {
-        triggerUpload(file.name, type);
+        // Browser path — real upload
+        uploadPaper(file);
       }
     }
   };

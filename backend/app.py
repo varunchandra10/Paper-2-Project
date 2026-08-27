@@ -44,9 +44,44 @@ vram_gb = settings.vram_gb
 ram_gb = settings.ram_gb
 cpu_cores = settings.cpu_cores
 
+import re
+
+EXTRACTED_JSON_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "papers", "extracted_json")
+os.makedirs(EXTRACTED_JSON_DIR, exist_ok=True)
+
+def get_paper_id(filename: str) -> str:
+    base_name = os.path.splitext(filename)[0]
+    clean_title = re.sub(r'[^a-z0-9\s]', '', base_name.lower()).strip()
+    slug = re.sub(r'\s+', '_', clean_title)[:30].strip('_')
+    return f"paper_{slug}"
+
+def save_extracted_json(paper_id: str, state: dict):
+    try:
+        extracted = {}
+        for key in ["metadata", "component_graph", "extracted_parameters", "feasibility_report", "build_sequence"]:
+            val = state.get(key)
+            if val:
+                if hasattr(val, "model_dump"):
+                    extracted[key] = val.model_dump()
+                elif hasattr(val, "dict"):
+                    extracted[key] = val.dict()
+                else:
+                    extracted[key] = val
+        
+        json_path = os.path.join(EXTRACTED_JSON_DIR, f"{paper_id}.json")
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(extracted, f, indent=2, default=str)
+        print(f"[SUCCESS] Saved extracted JSON for paper {paper_id} at {json_path}")
+    except Exception as e:
+        print(f"[WARN] Failed to save extracted JSON for paper {paper_id}: {e}")
+
 class AnalyzeRequest(BaseModel):
     filePath: str
-    modelName: str = "qwen2.5-coder:1.5b"
+    modelName: str = "gpt-oss-120b"
+
+class LocalLoginRequest(BaseModel):
+    username: str
+    email: str
 
 class SSEStreamWriter(io.TextIOBase):
     def __init__(self, callback):
@@ -69,10 +104,16 @@ def run_pipeline_thread(run_id, pdf_path, model_name, loop, event_queue):
         send_event("log", f"[System] Target PDF Path: {pdf_path}")
         send_event("log", f"[System] Detected GPU: {gpu_name} (VRAM: {vram_gb} GB)")
         
+        # Force local Ollama model for LangGraph workflow execution
+        pipeline_model = model_name
+        if model_name in ["gpt-oss-120b", "qwen3-coder-480b", "qwen3-next-80b", "deepseek-r1", "qwen3.6-27b"]:
+            pipeline_model = "qwen2.5-coder:1.5b"
+
         initial_state = {
             "pdf_path": pdf_path,
             "constraints": default_constraints,
-            "model_name": model_name
+            "model_name": pipeline_model,
+            "generate_code_requested": False
         }
 
         # Intercept print statements within this execution thread to stream as logs
@@ -97,6 +138,10 @@ def run_pipeline_thread(run_id, pdf_path, model_name, loop, event_queue):
         if report and report.markdown_content:
             runs[run_id]["status"] = "completed"
             runs[run_id]["report"] = report.markdown_content
+            # Save the extracted JSON for conversational lookup
+            filename = os.path.basename(pdf_path)
+            paper_id = get_paper_id(filename)
+            save_extracted_json(paper_id, final_state)
             send_event("mascot-state", "idle")
             send_event("completed", {"report": report.markdown_content})
         else:
@@ -207,6 +252,7 @@ class RenameConversationRequest(BaseModel):
 class ChatResponseRequest(BaseModel):
     content: str
     paper_id: str = None
+    model_name: Optional[str] = "gpt-oss-120b"
 
 class CreateProjectRequest(BaseModel):
     name: str
@@ -234,6 +280,57 @@ def login_user(req: UserAuthRequest):
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid username or password.")
     return {"user_id": user_id, "username": req.username, "status": "authenticated"}
+
+def trigger_webhook_sync(webhook_url: str, username: str, email: str):
+    import httpx
+    try:
+        payload = {
+            "username": username,
+            "email": email
+        }
+        resp = httpx.post(webhook_url, json=payload, timeout=10.0)
+        print(f"[WEBHOOK SYNC] Status: {resp.status_code}, Response: {resp.text}")
+    except Exception as e:
+        print(f"[WEBHOOK SYNC WARN] Google Sheets synchronization failed: {e}")
+
+@app.post("/auth/local-login")
+def local_login(req: LocalLoginRequest, background_tasks: BackgroundTasks):
+    username_clean = req.username.strip()
+    email_clean = req.email.strip()
+    
+    if not username_clean or not email_clean:
+        raise HTTPException(status_code=400, detail="Username and Email cannot be empty.")
+        
+    # Generate file-safe user_id slug
+    slug = re.sub(r'[^a-z0-9_]', '', username_clean.lower().replace(' ', '_')).strip('_')
+    if not slug:
+        slug = "user"
+    user_id = f"user_{slug}"
+    
+    # 1. Register in fallback JSON DB
+    try:
+        data = db._load_fallback()
+        if user_id not in data["users"]:
+            data["users"][user_id] = {
+                "user_id": user_id,
+                "username": username_clean,
+                "email": email_clean,
+                "created_at": time.time()
+            }
+            db._save_fallback(data)
+    except Exception as e:
+        print(f"[AUTH ERROR] Failed to register user locally: {e}")
+        
+    # 2. Trigger Google Sheet Webhook Sync in background if configured
+    webhook_url = os.getenv("USER_REGISTRY_WEBHOOK")
+    if webhook_url:
+        background_tasks.add_task(trigger_webhook_sync, webhook_url, username_clean, email_clean)
+        
+    return {
+        "user_id": user_id,
+        "username": username_clean,
+        "email": email_clean
+    }
 
 @app.post("/projects")
 def create_project(req: CreateProjectRequest):
@@ -283,20 +380,30 @@ def run_pipeline_in_background(job_id: str, pdf_path: str, constraints: dict, mo
     job["logs"].append("EXTRACTION_STARTED")
     job["progress"] = 10
     
+    # Force local Ollama model for LangGraph workflow execution
+    pipeline_model = model_name
+    if model_name in ["gpt-oss-120b", "qwen3-coder-480b", "qwen3-next-80b", "deepseek-r1", "qwen3.6-27b"]:
+        pipeline_model = "qwen2.5-coder:1.5b"
+
     initial_state = {
         "pdf_path": pdf_path,
         "constraints": constraints,
-        "model_name": model_name,
+        "model_name": pipeline_model,
         "loop_count": 0,
-        "raw_sections": {}
+        "raw_sections": {},
+        "generate_code_requested": False
     }
     
     try:
         from pipeline import graph
+        final_state = {}
         # Stream events from LangGraph workflow
         for event in graph.stream(initial_state):
             if not event:
                 continue
+            for node_name, output in event.items():
+                final_state.update(output)
+            
             node = list(event.keys())[0]
             
             # Map executing graph nodes to streaming SSE logging events
@@ -318,6 +425,15 @@ def run_pipeline_in_background(job_id: str, pdf_path: str, constraints: dict, mo
                 job["logs"].append("COMPLETED")
                 job["progress"] = 100
                 
+        # Save the report markdown and the extracted JSON
+        report = final_state.get("report")
+        if report and hasattr(report, "markdown_content"):
+            job["report"] = report.markdown_content
+        elif report:
+            job["report"] = str(report)
+
+        save_extracted_json(paper_id, final_state)
+
         # Ensure job is marked completed
         job["status"] = "completed"
         if "COMPLETED" not in job["logs"]:
@@ -336,7 +452,7 @@ def run_pipeline_in_background(job_id: str, pdf_path: str, constraints: dict, mo
         log_observability_event("extraction_failed", paper_id=paper_id, job_id=job_id, latency_ms=latency, errors=str(e))
 
 @app.post("/papers/upload")
-def upload_paper(file: UploadFile = File(...), background_tasks: BackgroundTasks = None):
+def upload_paper(file: UploadFile = File(...), model_name: Optional[str] = "gpt-oss-120b", background_tasks: BackgroundTasks = None):
     # Enforce PDF files only by extension
     if not file.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF documents are supported.")
@@ -382,7 +498,7 @@ def upload_paper(file: UploadFile = File(...), background_tasks: BackgroundTasks
             job_id=job_id,
             pdf_path=upload_path,
             constraints={"hardware": "RTX 3060", "vram_limit": "12GB"},
-            model_name="qwen2.5-coder:1.5b",
+            model_name=model_name,
             paper_id=paper_id
         )
         
@@ -510,7 +626,7 @@ def conversations_chat(
         background_tasks.add_task(chat_manager.extract_and_save_facts, user_id, req.content)
         
         # 3. Compile prompt, classify task, and generate routed response
-        reply, model_used = chat_manager.generate_response(conversation_id, user_id, req.content, req.paper_id)
+        reply, model_used = chat_manager.generate_response(conversation_id, user_id, req.content, req.paper_id, model_name=req.model_name)
         
         # 4. Save the generated assistant response with the model_used metadata
         db.save_message(conversation_id, "assistant", reply, model_used=model_used)
@@ -524,6 +640,32 @@ def conversations_chat(
         latency = (time.time() - start_time) * 1000.0
         log_observability_event("chat_failed", conversation_id=conversation_id, latency_ms=latency, errors=str(e))
         raise HTTPException(status_code=500, detail=f"Chat execution failed: {str(e)}")
+
+
+@app.get("/papers/{paper_id}/task")
+def get_paper_task_checklist(paper_id: str):
+    """Exposes paper-specific dynamic tasks checklist (task.md)."""
+    task_file = os.path.join(backend_dir, "pipeline", "papers", "projects", paper_id, "task.md")
+    if os.path.exists(task_file):
+        try:
+            with open(task_file, "r", encoding="utf-8") as f:
+                return {"paper_id": paper_id, "content": f.read()}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to read task checklist: {str(e)}")
+    return {"paper_id": paper_id, "content": "# Task Checklist\n\n- [ ] Code generation has not been triggered yet."}
+
+
+@app.get("/papers/{paper_id}/walkthrough")
+def get_paper_verification_walkthrough(paper_id: str):
+    """Exposes paper-specific verification report (walkthrough.md)."""
+    walkthrough_file = os.path.join(backend_dir, "pipeline", "papers", "projects", paper_id, "walkthrough.md")
+    if os.path.exists(walkthrough_file):
+        try:
+            with open(walkthrough_file, "r", encoding="utf-8") as f:
+                return {"paper_id": paper_id, "content": f.read()}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to read walkthrough: {str(e)}")
+    return {"paper_id": paper_id, "content": "# Verification Report\n\nNo verification checks have been run yet."}
 
 
 if __name__ == "__main__":

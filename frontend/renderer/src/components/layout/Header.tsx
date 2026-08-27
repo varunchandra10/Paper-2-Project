@@ -26,91 +26,100 @@ export const Header: React.FC<HeaderProps> = ({
   } = usePanelStore();
 
   return (
-    <header className="h-[55px] border-b border-border/45 px-3 flex items-center gap-2 bg-background/40 backdrop-blur-xl z-20 shrink-0 select-none">
+    <header className="h-[52px] border-b border-border/40 px-3 flex items-center justify-between bg-card/80 backdrop-blur-xl z-20 shrink-0 select-none shadow-xs">
 
-      {/* ── Hamburger (maximized only) ─────────────────────── */}
-      {isMaximized && (
-        <button
-          onClick={onToggleSidebar}
-          className={`p-2 rounded-lg transition-all duration-200 cursor-pointer flex flex-col gap-[4.5px] items-center justify-center w-9 h-9 shrink-0 ${
-            isSidebarOpen
-              ? 'text-brass bg-brass/10 hover:bg-brass/15'
-              : 'text-foreground/50 hover:bg-foreground/8 hover:text-foreground'
-          }`}
-          title={isSidebarOpen ? 'Collapse Sidebar' : 'Expand Sidebar'}
-          aria-label="Toggle sidebar"
-        >
-          {/* Three-line hamburger drawn with spans */}
-          <span className={`block h-[1.5px] rounded-full bg-current transition-all duration-300 ${isSidebarOpen ? 'w-4' : 'w-4'}`} />
-          <span className={`block h-[1.5px] rounded-full bg-current transition-all duration-300 ${isSidebarOpen ? 'w-3' : 'w-4'}`} />
-          <span className={`block h-[1.5px] rounded-full bg-current transition-all duration-300 ${isSidebarOpen ? 'w-2' : 'w-4'}`} />
-        </button>
-      )}
+      {/* ── Left Section: Sidebar Toggle or Monogram Logo ── */}
+      <div className="flex items-center gap-3">
+        {/* Hamburger Toggle (Maximized View) */}
+        {isMaximized && (
+          <button
+            onClick={onToggleSidebar}
+            className={`p-2 rounded-xl transition-all duration-200 cursor-pointer flex flex-col gap-[4px] items-center justify-center w-8 h-8 shrink-0 group border ${
+              isSidebarOpen
+                ? 'text-brass bg-brass/10 border-brass/30 hover:bg-brass/15'
+                : 'text-muted-foreground border-border/40 hover:bg-muted/60 hover:text-foreground'
+            }`}
+            title={isSidebarOpen ? 'Collapse Sidebar' : 'Expand Sidebar'}
+            aria-label="Toggle sidebar"
+          >
+            {/* Animated hamburger lines */}
+            <span className={`block h-[1.5px] rounded-full bg-current transition-all duration-300 ${isSidebarOpen ? 'w-3.5' : 'w-4'}`} />
+            <span className={`block h-[1.5px] rounded-full bg-current transition-all duration-300 ${isSidebarOpen ? 'w-2.5' : 'w-4'}`} />
+            <span className={`block h-[1.5px] rounded-full bg-current transition-all duration-300 ${isSidebarOpen ? 'w-3.5' : 'w-4'}`} />
+          </button>
+        )}
 
-      {/* ── Logo (compact mode only — in maximized it lives in sidebar) ── */}
-      {!isMaximized && (
-        <div className="flex items-center border-r border-border/40 pr-4 h-full">
-          <h1 className="text-xs font-black tracking-[0.2em] font-mono bg-gradient-to-r from-brass to-foreground text-transparent bg-clip-text">
-            Paper_2_Project
-          </h1>
+        {/* Branding Monogram (Compact View) */}
+        {!isMaximized && (
+          <div className="flex items-center gap-2.5">
+            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-brass/20 to-brass/5 flex items-center justify-center font-serif text-[10px] font-bold text-brass border border-brass/30 shrink-0 shadow-[0_0_8px_rgba(212,175,55,0.12)]">
+              S
+            </div>
+            <h1 className="text-xs font-black tracking-[0.25em] font-mono bg-gradient-to-r from-brass via-brass/90 to-foreground text-transparent bg-clip-text">
+              SYNTHEXIS
+            </h1>
+          </div>
+        )}
+      </div>
+
+      {/* ── Right Section: Unified Pill Toolbar ── */}
+      <div className="flex items-center gap-1.5 p-1 border border-border/50 rounded-full bg-muted/40 backdrop-blur-md shadow-inner select-none">
+
+        {/* 1. Theme Switcher */}
+        <div className="flex items-center px-0.5">
+          <ThemeToggle />
         </div>
-      )}
-
-      {/* ── Spacer pushes controls to the right ─────────────── */}
-      <div className="flex-1" />
-
-      {/* ── Unified Segmented Control Group ─────────────────── */}
-      <div className="flex items-center border border-border/50 rounded-xl overflow-hidden bg-black/15 divide-x divide-border/50 shadow-sm mr-1.5">
-
-        {/* 1. Theme Toggle */}
-        <ThemeToggle />
 
         {isMaximized && (
           <>
+            <div className="w-[1px] h-3.5 bg-border/40 my-auto" />
+
             {/* 2. Documents Toggle */}
             <button
               onClick={toggleHistory}
-              className={`p-2.5 text-sm transition-all cursor-pointer flex items-center justify-center w-9 h-9 ${
+              className={`w-6 h-6 rounded-full text-xs transition-all duration-200 cursor-pointer flex items-center justify-center ${
                 isHistoryOpen
-                  ? 'bg-red-500/15 text-red-500'
-                  : 'text-foreground/45 hover:bg-red-500/10 hover:text-red-500'
+                  ? 'bg-red-500/20 text-red-400 shadow-[0_0_8px_rgba(239,68,68,0.2)]'
+                  : 'text-muted-foreground hover:bg-red-500/10 hover:text-red-400'
               }`}
               title="Documents & History"
             >
-              <FiFileText />
+              <FiFileText className="text-[11px]" />
             </button>
 
             {/* 3. Terminal Toggle */}
             <button
               onClick={toggleLogs}
-              className={`p-2.5 text-sm transition-all cursor-pointer flex items-center justify-center w-9 h-9 ${
+              className={`w-6 h-6 rounded-full text-xs transition-all duration-200 cursor-pointer flex items-center justify-center ${
                 isLogsOpen
-                  ? 'bg-amber-500/15 text-amber-500'
-                  : 'text-foreground/45 hover:bg-amber-500/10 hover:text-amber-500'
+                  ? 'bg-amber-500/20 text-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.2)]'
+                  : 'text-muted-foreground hover:bg-amber-500/10 hover:text-amber-400'
               }`}
               title="Terminal Console"
             >
-              <FiTerminal />
+              <FiTerminal className="text-[11px]" />
             </button>
           </>
         )}
 
+        <div className="w-[1px] h-3.5 bg-border/40 my-auto" />
+
         {/* 4. Maximize / Restore */}
         <button
           onClick={handleToggleMaximize}
-          className="p-2.5 text-sm text-foreground/45 hover:bg-brass/15 hover:text-brass transition-all cursor-pointer flex items-center justify-center w-9 h-9"
-          title={isMaximized ? 'Restore Mascot Panel' : 'Maximize Viewport'}
+          className="w-6 h-6 rounded-full text-xs text-muted-foreground hover:bg-brass/15 hover:text-brass transition-all duration-200 cursor-pointer flex items-center justify-center active:scale-95"
+          title={isMaximized ? 'Restore Viewport' : 'Maximize Viewport'}
         >
-          {isMaximized ? <FiMinimize2 /> : <FiMaximize2 />}
+          {isMaximized ? <FiMinimize2 className="text-[11px]" /> : <FiMaximize2 className="text-[11px]" />}
         </button>
 
-        {/* 5. Close */}
+        {/* 5. Close Button */}
         <button
-          onClick={() => window.mascotAPI ? window.mascotAPI.togglePanel() : togglePanel()}
-          className="p-2.5 text-sm text-foreground/40 hover:bg-red-500/15 hover:text-red-500 transition-all cursor-pointer flex items-center justify-center w-9 h-9"
-          title="Close Application"
+          onClick={() => togglePanel()}
+          className="w-6 h-6 rounded-full text-xs text-muted-foreground hover:bg-red-500/20 hover:text-red-400 transition-all duration-200 cursor-pointer flex items-center justify-center active:scale-95"
+          title="Close Panel"
         >
-          <FaTimes />
+          <FaTimes className="text-[10px]" />
         </button>
       </div>
     </header>

@@ -3,13 +3,21 @@ import { useLogsStore } from '../../../store/logsStore';
 import { usePanelStore } from '../../../store/panelStore';
 import { MilestoneTracker } from '../analysis/MilestoneTracker';
 import { StatsCharts } from '../analysis/StatsCharts';
-import { FaTerminal, FaMagnifyingGlass, FaCircleInfo, FaTriangleExclamation, FaCircleXmark, FaCheck } from 'react-icons/fa6';
+import { 
+  FaTerminal, 
+  FaMagnifyingGlass, 
+  FaCircleInfo, 
+  FaTriangleExclamation, 
+  FaCircleXmark, 
+  FaCheck 
+} from 'react-icons/fa6';
 import { FaTasks } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
+import { FiTrash2 } from 'react-icons/fi';
 
 export const LogsDrawer: React.FC = () => {
   const [activeTab, setActiveTab] = React.useState<'logs' | 'process'>('logs');
-  const { logs, filter, setFilter, searchQuery, setSearchQuery } = useLogsStore();
+  const { logs, filter, setFilter, searchQuery, setSearchQuery, clearLogs } = useLogsStore();
   const { isLogsOpen, toggleLogs, isAnalyzing } = usePanelStore();
   const consoleRef = useRef<HTMLDivElement>(null);
 
@@ -29,123 +37,155 @@ export const LogsDrawer: React.FC = () => {
   const getLogIcon = (type: string) => {
     switch (type) {
       case 'success':
-        return <FaCheck className="text-confirmed text-[10px] shrink-0 mt-0.5" />;
+        return <FaCheck className="text-emerald-400 text-[10px] shrink-0 mt-0.5" />;
       case 'warning':
-        return <FaTriangleExclamation className="text-inferred text-[10px] shrink-0 mt-0.5" />;
+        return <FaTriangleExclamation className="text-amber-400 text-[10px] shrink-0 mt-0.5" />;
       case 'error':
-        return <FaCircleXmark className="text-error text-[10px] shrink-0 mt-0.5" />;
+        return <FaCircleXmark className="text-red-400 text-[10px] shrink-0 mt-0.5" />;
       case 'info':
-        return <FaCircleInfo className="text-brass/80 text-[10px] shrink-0 mt-0.5" />;
+        return <FaCircleInfo className="text-brass text-[10px] shrink-0 mt-0.5" />;
       default:
-        return <span className="text-foreground/30 font-bold select-none text-[10px] shrink-0">&gt;</span>;
+        return <span className="text-muted-foreground/40 font-bold select-none text-[10px] shrink-0">&gt;</span>;
     }
+  };
+
+  const getLogCount = (type: string) => {
+    if (type === 'all') return logs.length;
+    return logs.filter((l) => l.type === type).length;
   };
 
   return (
     <aside 
-      className={`absolute left-0 right-0 bottom-0 h-[360px] bg-background/85 border-t border-border/55 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] backdrop-blur-xl flex flex-col z-30 transform transition-all duration-400 cubic-bezier(0.4, 0, 0.2, 1) rounded-t-2xl select-none ${
+      className={`absolute left-0 right-0 bottom-0 h-[380px] bg-card/95 border-t border-border/60 shadow-[0_-12px_40px_rgba(0,0,0,0.4)] backdrop-blur-2xl flex flex-col z-30 transform transition-all duration-300 ease-in-out rounded-t-2xl select-none ${
         isLogsOpen 
           ? 'translate-y-0 opacity-100' 
           : 'translate-y-full opacity-0 pointer-events-none'
       }`}
       aria-label="System Logs Console"
     >
-      {/* Header controls and Tab triggers inside drawer */}
-      <div className="flex flex-col gap-2.5 px-5 py-3 border-b border-border/45 bg-background/50 shrink-0">
+      {/* ── Header Controls & Tab Triggers ────────────────────────── */}
+      <div className="flex flex-col gap-2.5 px-4 py-3 border-b border-border/40 bg-muted/20 shrink-0">
         <div className="flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            {/* Tabs Selector */}
-            <div className="flex items-center gap-1.5 p-0.5 bg-foreground/5 border border-border/20 rounded-lg">
+          
+          {/* Main Navigation Tabs */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 p-0.5 bg-muted/60 border border-border/50 rounded-xl">
               <button
                 onClick={() => setActiveTab('logs')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider font-mono transition-all duration-300 cursor-pointer ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider font-mono transition-all duration-200 cursor-pointer ${
                   activeTab === 'logs'
-                    ? 'bg-card text-foreground border border-border/30 shadow-xs'
-                    : 'text-foreground/45 hover:text-foreground hover:bg-foreground/5'
+                    ? 'bg-card text-foreground border border-border/40 shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
                 }`}
               >
                 <FaTerminal className="text-xs shrink-0" />
-                Console Logs
+                <span>Console Logs</span>
                 {isAnalyzing && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
                 )}
               </button>
+              
               <button
                 onClick={() => setActiveTab('process')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider font-mono transition-all duration-300 cursor-pointer ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider font-mono transition-all duration-200 cursor-pointer ${
                   activeTab === 'process'
-                    ? 'bg-card text-foreground border border-border/30 shadow-xs'
-                    : 'text-foreground/45 hover:text-foreground hover:bg-foreground/5'
+                    ? 'bg-card text-foreground border border-border/40 shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
                 }`}
               >
                 <FaTasks className="text-xs shrink-0" />
-                Process Tracker
+                <span>Process Tracker</span>
               </button>
             </div>
           </div>
 
-          <button 
-            onClick={toggleLogs}
-            className="p-1.5 rounded-full text-foreground/50 hover:text-foreground hover:bg-foreground/10 transition-colors focus:outline-none focus:ring-2 focus:ring-brass/50 cursor-pointer"
-            aria-label="Close Logs Panel"
-          >
-            <IoClose className="text-lg" />
-          </button>
+          {/* Right Header Actions */}
+          <div className="flex items-center gap-2">
+            {activeTab === 'logs' && logs.length > 0 && (
+              <button
+                onClick={clearLogs}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                title="Clear Logs"
+              >
+                <FiTrash2 className="text-sm" />
+              </button>
+            )}
+
+            <button 
+              onClick={toggleLogs}
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors cursor-pointer"
+              aria-label="Close Logs Panel"
+            >
+              <IoClose className="text-xl" />
+            </button>
+          </div>
         </div>
 
-        {/* Filter bar and search controls (Only visible under logs tab) */}
+        {/* Filter bar and search controls (Console tab only) */}
         {activeTab === 'logs' && (
-          <div className="flex items-center justify-between gap-3 animate-fade-in">
+          <div className="flex items-center justify-between gap-3 pt-1">
             {/* Search Input Field */}
-            <div className="relative flex-1 max-w-[170px]">
-              <FaMagnifyingGlass className="absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground/30 text-[10px]" />
+            <div className="relative flex-1 max-w-[200px]">
+              <FaMagnifyingGlass className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 text-[10px]" />
               <input 
                 type="text"
                 placeholder="Search logs..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-background/70 border border-border/40 pl-7 pr-2 py-1 rounded-lg text-[10px] text-foreground placeholder-foreground/30 focus:outline-none focus:border-brass/50 focus:ring-1 focus:ring-brass/30 font-mono transition-all"
+                className="w-full bg-background/80 border border-border/50 pl-7 pr-2 py-1 rounded-lg text-[10px] text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-brass/50 focus:ring-1 focus:ring-brass/30 font-mono transition-all"
               />
             </div>
 
             {/* Level Filters Segmented Pills */}
-            <div className="flex items-center gap-1 p-0.5 bg-foreground/5 border border-border/30 rounded-lg">
-              {(['all', 'info', 'warning', 'error'] as const).map((lvl) => (
-                <button
-                  key={lvl}
-                  onClick={() => setFilter(lvl)}
-                  className={`px-2 py-0.5 rounded-md text-[9px] font-mono capitalize transition-all duration-200 cursor-pointer ${
-                    filter === lvl 
-                      ? 'bg-brass text-ink font-bold shadow-xs' 
-                      : 'text-muted-foreground hover:text-foreground hover:bg-foreground/5'
-                  }`}
-                >
-                  {lvl}
-                </button>
-              ))}
+            <div className="flex items-center gap-1 p-0.5 bg-muted/50 border border-border/40 rounded-lg">
+              {(['all', 'info', 'warning', 'error'] as const).map((lvl) => {
+                const count = getLogCount(lvl);
+                return (
+                  <button
+                    key={lvl}
+                    onClick={() => setFilter(lvl)}
+                    className={`px-2 py-0.5 rounded-md text-[9px] font-mono capitalize transition-all duration-200 cursor-pointer flex items-center gap-1 ${
+                      filter === lvl 
+                        ? 'bg-brass text-slate-950 font-bold shadow-xs' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
+                    }`}
+                  >
+                    <span>{lvl}</span>
+                    {count > 0 && (
+                      <span className={`text-[8px] px-1 rounded-full ${filter === lvl ? 'bg-black/20 text-slate-950' : 'bg-background/80 text-muted-foreground'}`}>
+                        {count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
       </div>
 
-      {/* Terminal log rows container */}
+      {/* ── Terminal Console Logs Stream ────────────────────────── */}
       {activeTab === 'logs' && (
         <div 
           ref={consoleRef}
-          className="flex-1 overflow-y-auto p-4 font-mono text-[10px] flex flex-col gap-1.5 bg-black/20 select-text scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent animate-fade-in"
+          className="flex-1 overflow-y-auto p-3.5 font-mono text-[11px] flex flex-col gap-1 bg-black/40 select-text scrollbar-thin scrollbar-thumb-border/30 scrollbar-track-transparent"
         >
           {filteredLogs.map((log) => (
             <div 
               key={log.id} 
-              className="flex items-start gap-2 py-1 px-2 rounded-md hover:bg-foreground/5 transition-colors group"
+              className="flex items-start gap-2.5 py-1 px-2.5 rounded-lg hover:bg-white/5 transition-colors group border border-transparent hover:border-white/5"
             >
-              <span className="text-foreground/30 select-none font-light shrink-0">[{log.timestamp}]</span>
+              <span className="text-muted-foreground/50 select-none font-light shrink-0 text-[10px]">
+                [{log.timestamp}]
+              </span>
+              
               {getLogIcon(log.type)}
+              
               <span className={`flex-1 break-all leading-relaxed ${
-                log.type === 'system' ? 'text-foreground/60 font-semibold' :
-                log.type === 'success' ? 'text-confirmed font-medium' :
-                log.type === 'warning' ? 'text-inferred font-medium' :
-                log.type === 'error' ? 'text-error font-semibold' : 'text-foreground/90'
+                log.type === 'system' ? 'text-muted-foreground font-semibold' :
+                log.type === 'success' ? 'text-emerald-400 font-medium' :
+                log.type === 'warning' ? 'text-amber-300 font-medium' :
+                log.type === 'error' ? 'text-red-400 font-semibold' : 'text-foreground/90'
               }`}>
                 {log.text}
               </span>
@@ -153,28 +193,29 @@ export const LogsDrawer: React.FC = () => {
           ))}
           
           {filteredLogs.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-full gap-2 text-foreground/30 py-8">
-              <FaTerminal className="text-2xl opacity-40" />
-              <span className="text-[11px] font-mono">No matching console logs.</span>
+            <div className="flex flex-col items-center justify-center h-full gap-2 text-muted-foreground/40 py-8 select-none">
+              <FaTerminal className="text-3xl opacity-30" />
+              <span className="text-[11px] font-mono">No console logs available.</span>
             </div>
           )}
         </div>
       )}
 
-      {/* Process tracker container (Milestone steps + charts) */}
+      {/* ── Process Tracker (Milestones & Charts) ───────────────── */}
       {activeTab === 'process' && (
-        <div className="flex-1 overflow-y-auto p-5 flex flex-col md:flex-row gap-8 bg-black/15 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent animate-fade-in select-none">
-          {/* Milestone steps checklist */}
-          <div className="flex-1 flex flex-col gap-3 min-w-[200px]">
-            <span className="text-[9px] font-mono font-bold tracking-[0.2em] text-brass uppercase">
+        <div className="flex-1 overflow-y-auto p-5 flex flex-col md:flex-row gap-6 bg-black/20 scrollbar-thin scrollbar-thumb-border/30 scrollbar-track-transparent select-none">
+          
+          {/* Pipeline Step Checklist */}
+          <div className="flex-1 flex flex-col gap-3 min-w-[220px] bg-card/40 border border-border/40 p-4 rounded-xl">
+            <span className="text-[9.5px] font-mono font-bold tracking-[0.2em] text-brass uppercase">
               {'//'} Pipeline Step Checklist
             </span>
             <MilestoneTracker />
           </div>
 
-          {/* Stats charts */}
-          <div className="w-full md:w-[280px] flex flex-col gap-3 shrink-0">
-            <span className="text-[9px] font-mono font-bold tracking-[0.2em] text-brass uppercase">
+          {/* Stats Charts */}
+          <div className="w-full md:w-[300px] flex flex-col gap-3 shrink-0 bg-card/40 border border-border/40 p-4 rounded-xl">
+            <span className="text-[9.5px] font-mono font-bold tracking-[0.2em] text-brass uppercase">
               {'//'} Analytics Metric Depth
             </span>
             <StatsCharts />

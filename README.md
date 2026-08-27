@@ -114,3 +114,6 @@ python backend/tests/test_full_orchestration.py
 *Output Report:* Saves the final proposal report to `backend/papers/vlcd_adaptation_report_langgraph.md`.
 
 For advanced execution options (such as multi-model benchmarking, custom model arguments, and edge-case testing), refer to the [**Backend Setup Guide**](backend/README.md#running-the-tests--benchmarks).
+
+<!-- "Synthexis" (Synthesis + Thesis)
+Concept: Blends the act of "Synthesis" (compilation and creation of software code) with "Thesis" (scientific documents and research). -->

@@ -3,7 +3,7 @@ import './App.css';
 
 function App() {
   return (
-    <div className="w-full h-full min-h-screen bg-ink select-none relative overflow-hidden">
+    <div className="w-full h-full bg-ink select-none relative flex flex-col overflow-hidden">
       <Panel />
     </div>
   );
