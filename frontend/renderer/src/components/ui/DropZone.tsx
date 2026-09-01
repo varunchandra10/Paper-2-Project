@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { usePanelStore } from '../../store/panelStore';
 import { FaFilePdf, FaFileWord } from 'react-icons/fa6';
+import { FiLoader, FiUploadCloud } from 'react-icons/fi';
 
 export const DropZone: React.FC = () => {
   const { uploadPaper, isAnalyzing, selectedModel } = usePanelStore();
@@ -22,6 +23,17 @@ export const DropZone: React.FC = () => {
     else setIsDocxOver(false);
   };
 
+  const processFile = (file: File, type: 'pdf' | 'docx') => {
+    if (window.mascotAPI?.getPathForFile) {
+      // Electron runtime
+      const filePath = window.mascotAPI.getPathForFile(file);
+      window.mascotAPI.uploadPDF(filePath, type, selectedModel);
+    } else {
+      // Web browser runtime
+      uploadPaper(file);
+    }
+  };
+
   const handleDrop = (e: React.DragEvent, type: 'pdf' | 'docx') => {
     e.preventDefault();
     if (isAnalyzing) return;
@@ -30,30 +42,14 @@ export const DropZone: React.FC = () => {
 
     const files = e.dataTransfer.files;
     if (files && files.length > 0) {
-      const file = files[0];
-      if (window.mascotAPI?.getPathForFile) {
-        // Electron path
-        const filePath = window.mascotAPI.getPathForFile(file);
-        window.mascotAPI.uploadPDF(filePath, type, selectedModel);
-      } else {
-        // Browser path — real upload
-        uploadPaper(file);
-      }
+      processFile(files[0], type);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'pdf' | 'docx') => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      const file = files[0];
-      if (window.mascotAPI?.getPathForFile) {
-        // Electron path
-        const filePath = window.mascotAPI.getPathForFile(file);
-        window.mascotAPI.uploadPDF(filePath, type, selectedModel);
-      } else {
-        // Browser path — real upload
-        uploadPaper(file);
-      }
+      processFile(files[0], type);
     }
   };
 
@@ -67,9 +63,16 @@ export const DropZone: React.FC = () => {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent, type: 'pdf' | 'docx') => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      triggerPicker(type);
+    }
+  };
+
   return (
-    <div className="flex gap-3">
-      {/* Hidden file browsers */}
+    <div className="flex gap-3 w-full">
+      {/* Hidden File Inputs */}
       <input 
         type="file" 
         ref={pdfInputRef} 
@@ -85,46 +88,74 @@ export const DropZone: React.FC = () => {
         onChange={(e) => handleFileChange(e, 'docx')} 
       />
 
-      {/* PDF dropzone */}
+      {/* PDF Dropzone */}
       <div
         onClick={() => triggerPicker('pdf')}
+        onKeyDown={(e) => handleKeyDown(e, 'pdf')}
         onDragOver={(e) => handleDragOver(e, 'pdf')}
         onDragLeave={() => handleDragLeave('pdf')}
         onDrop={(e) => handleDrop(e, 'pdf')}
-        className={`flex-1 border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 transform select-none ${
-          isAnalyzing 
-            ? 'opacity-40 cursor-not-allowed border-border/5 bg-black/5' 
-            : isPdfOver
-              ? 'border-brass bg-brass/10 -translate-y-0.5 shadow-md scale-102'
-              : 'border-border bg-black/10 hover:border-brass/50 hover:bg-foreground/5 hover:-translate-y-0.5'
-        }`}
+        aria-disabled={isAnalyzing}
         role="button"
-        tabIndex={0}
+        tabIndex={isAnalyzing ? -1 : 0}
+        className={`relative flex-1 border-2 border-dashed rounded-xl p-3.5 flex flex-col items-center justify-center text-center transition-all duration-200 select-none group outline-none focus-visible:ring-2 focus-visible:ring-brass/80 ${
+          isAnalyzing 
+            ? 'opacity-50 cursor-not-allowed border-border/30 bg-muted/20' 
+            : isPdfOver
+              ? 'border-brass bg-brass/10 shadow-[0_0_18px_rgba(212,163,56,0.2)] -translate-y-0.5'
+              : 'border-border bg-card/60 hover:border-brass/60 hover:bg-brass/5 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)]'
+        }`}
       >
-        <FaFilePdf className="text-2xl text-brass/75 mb-2 transition-transform duration-300" />
-        <span className="text-[10px] font-bold text-foreground">Paper (PDF)</span>
-        <span className="text-[7.5px] text-muted-foreground mt-0.5">Drop or browse</span>
+        <div className="relative mb-2 flex items-center justify-center">
+          {isAnalyzing ? (
+            <FiLoader className="text-xl text-brass animate-spin" />
+          ) : (
+            <FaFilePdf className={`text-2xl transition-transform duration-200 group-hover:scale-110 ${
+              isPdfOver ? 'text-brass' : 'text-brass/80 group-hover:text-brass'
+            }`} />
+          )}
+        </div>
+        <span className="text-xs font-mono font-bold tracking-tight text-foreground">
+          Paper (PDF)
+        </span>
+        <span className="text-[10px] font-mono text-muted-foreground mt-0.5 flex items-center gap-1">
+          <FiUploadCloud className="text-[10px]" /> Drop or browse
+        </span>
       </div>
 
-      {/* DOCX dropzone */}
+      {/* DOCX Dropzone */}
       <div
         onClick={() => triggerPicker('docx')}
+        onKeyDown={(e) => handleKeyDown(e, 'docx')}
         onDragOver={(e) => handleDragOver(e, 'docx')}
         onDragLeave={() => handleDragLeave('docx')}
         onDrop={(e) => handleDrop(e, 'docx')}
-        className={`flex-1 border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 transform select-none ${
-          isAnalyzing 
-            ? 'opacity-40 cursor-not-allowed border-border/5 bg-black/5' 
-            : isDocxOver
-              ? 'border-brass bg-brass/10 -translate-y-0.5 shadow-md scale-102'
-              : 'border-border bg-black/10 hover:border-brass/50 hover:bg-foreground/5 hover:-translate-y-0.5'
-        }`}
+        aria-disabled={isAnalyzing}
         role="button"
-        tabIndex={0}
+        tabIndex={isAnalyzing ? -1 : 0}
+        className={`relative flex-1 border-2 border-dashed rounded-xl p-3.5 flex flex-col items-center justify-center text-center transition-all duration-200 select-none group outline-none focus-visible:ring-2 focus-visible:ring-brass/80 ${
+          isAnalyzing 
+            ? 'opacity-50 cursor-not-allowed border-border/30 bg-muted/20' 
+            : isDocxOver
+              ? 'border-brass bg-brass/10 shadow-[0_0_18px_rgba(212,163,56,0.2)] -translate-y-0.5'
+              : 'border-border bg-card/60 hover:border-brass/60 hover:bg-brass/5 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)]'
+        }`}
       >
-        <FaFileWord className="text-2xl text-brass/75 mb-2 transition-transform duration-300" />
-        <span className="text-[10px] font-bold text-foreground">Context (DOCX)</span>
-        <span className="text-[7.5px] text-muted-foreground mt-0.5">Drop or browse</span>
+        <div className="relative mb-2 flex items-center justify-center">
+          {isAnalyzing ? (
+            <FiLoader className="text-xl text-brass animate-spin" />
+          ) : (
+            <FaFileWord className={`text-2xl transition-transform duration-200 group-hover:scale-110 ${
+              isDocxOver ? 'text-brass' : 'text-brass/80 group-hover:text-brass'
+            }`} />
+          )}
+        </div>
+        <span className="text-xs font-mono font-bold tracking-tight text-foreground">
+          Context (DOCX)
+        </span>
+        <span className="text-[10px] font-mono text-muted-foreground mt-0.5 flex items-center gap-1">
+          <FiUploadCloud className="text-[10px]" /> Drop or browse
+        </span>
       </div>
     </div>
   );

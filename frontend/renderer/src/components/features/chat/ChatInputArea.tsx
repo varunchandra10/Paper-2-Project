@@ -83,8 +83,8 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
   const progressPercent = isAnalyzing ? Math.min(95, (activeMilestoneIndex + 1) * 20) : 100;
 
   return (
-    <footer className="px-4 pb-4 pt-2 z-20 shrink-0 bg-background/80 backdrop-blur-md">
-      <div className="max-w-[800px] mx-auto flex flex-col gap-2">
+    <div className="w-full max-w-[800px] px-4 pt-2 pb-1 z-20 shrink-0">
+      <div className="flex flex-col gap-2">
         
         {/* Header Toolbar (Docs & Terminal toggles) */}
         {!isMaximized && (
@@ -123,13 +123,13 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
           </div>
         )}
 
-        {/* Chat Card Box — set overflow-visible to prevent clipping ModelSelector */}
-        <div className="flex flex-col bg-card/90 border border-border/60 rounded-2xl shadow-xl relative overflow-visible transition-all duration-200 focus-within:border-brass/40 focus-within:ring-1 focus-within:ring-brass/30">
-
-          {/* Staged File Chip & Status Badges */}
+        {/* Floating Input Card Container */}
+        <div className="relative border app-border rounded-2xl bg-[var(--bg-card)] backdrop-blur-xl shadow-[0_10px_35px_rgba(0,0,0,0.08)] focus-within:border-[var(--accent-border)] focus-within:shadow-[0_0_24px_var(--accent-subtle)] transition-all duration-300 flex flex-col">
+          
+          {/* Staged File Pill Badge */}
           {stagedFile && (
-            <div className="px-3.5 pt-3 pb-1 select-none flex items-center gap-2 flex-wrap border-b border-border/30 bg-muted/20 rounded-t-2xl overflow-hidden">
-              <div className="relative inline-flex items-center gap-2 rounded-lg bg-brass/10 border border-brass/30 text-brass text-[11px] font-mono font-medium px-2.5 py-1.5 max-w-full overflow-hidden shadow-sm">
+            <div className="px-3.5 pt-3 pb-1 select-none flex items-center gap-2 flex-wrap border-b app-border bg-[var(--bg-base)]/50 rounded-t-2xl overflow-hidden">
+              <div className="relative inline-flex items-center gap-2 rounded-xl bg-[var(--accent-subtle)] border border-[var(--accent-border)] text-[var(--accent)] text-[11px] font-mono font-semibold px-3 py-1.5 max-w-full overflow-hidden shadow-xs">
                 <FiFile className="shrink-0 text-xs" />
                 <span className="truncate max-w-[240px]" title={stagedFile.filename}>
                   {stagedFile.filename}
@@ -138,7 +138,7 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                 {!isAnalyzing && onClearStagedFile && (
                   <button
                     onClick={onClearStagedFile}
-                    className="ml-1 p-0.5 rounded-full hover:bg-brass/20 text-brass/70 hover:text-brass transition-colors shrink-0 cursor-pointer"
+                    className="ml-1 p-0.5 rounded-full hover:bg-[var(--accent-subtle)] text-[var(--accent)] transition-colors shrink-0 cursor-pointer"
                     title="Remove file"
                   >
                     <FiX className="text-xs" />
@@ -147,9 +147,9 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 
                 {/* Progress bar overlay during active analysis */}
                 {isAnalyzing && (
-                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-brass/20">
+                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--accent-subtle)]">
                     <div 
-                      className="h-full bg-brass transition-all duration-500 ease-out shadow-[0_0_6px_rgba(212,175,55,0.8)]"
+                      className="h-full bg-[var(--accent)] transition-all duration-500 ease-out"
                       style={{ width: `${progressPercent}%` }}
                     />
                   </div>
@@ -158,13 +158,13 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
 
               {/* Status Badges */}
               {analysisStatus === 'success' && (
-                <div className="inline-flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold font-mono tracking-wider uppercase px-2.5 py-1 rounded-lg select-none shadow-sm shrink-0">
+                <div className="inline-flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold font-mono tracking-wider uppercase px-2.5 py-1 rounded-xl select-none shadow-xs shrink-0">
                   <FiCheckCircle className="text-xs" />
                   <span>Verified</span>
                 </div>
               )}
               {analysisStatus === 'error' && (
-                <div className="inline-flex items-center gap-1.5 bg-red-500/15 border border-red-500/30 text-red-400 text-[10px] font-bold font-mono tracking-wider uppercase px-2.5 py-1 rounded-lg select-none shadow-sm shrink-0">
+                <div className="inline-flex items-center gap-1.5 bg-red-500/15 border border-red-500/30 text-red-400 text-[10px] font-bold font-mono tracking-wider uppercase px-2.5 py-1 rounded-xl select-none shadow-xs shrink-0">
                   <FiAlertCircle className="text-xs" />
                   <span>Ingestion Failed</span>
                 </div>
@@ -173,7 +173,7 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
           )}
 
           {/* Dynamic Auto-Resizing Textarea */}
-          <div className="px-3.5 pt-3 pb-1">
+          <div className="px-3 pt-2 pb-0.5">
             <textarea 
               ref={textareaRef}
               rows={1}
@@ -188,23 +188,23 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                   ? "Add query instructions or hit Send..."
                   : "Ask anything, @ to mention, / for actions"
               }
-              className="w-full bg-transparent outline-none resize-none text-xs text-foreground placeholder:text-muted-foreground/60 font-sans leading-relaxed min-h-[42px] max-h-[180px] disabled:opacity-50"
+              className="w-full bg-transparent outline-none resize-none text-[13px] text-[var(--text-main)] placeholder-[var(--text-muted)] font-sans leading-relaxed min-h-[28px] max-h-[160px] disabled:opacity-50"
             />
           </div>
 
           {/* Bottom Bar: Model Selector & Actions */}
-          <div className="px-3 pb-2.5 pt-1 flex justify-between items-center select-none border-t border-transparent relative z-30">
+          <div className="px-2.5 pb-1.5 pt-0.5 flex justify-between items-center select-none relative z-30">
             <div className="flex items-center gap-1.5">
               <button 
                 onClick={handleBrowseFile}
                 disabled={isAnalyzing}
-                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-lg transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
+                className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-subtle)] rounded-lg transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 border border-transparent"
                 title="Upload PDF/Document"
               >
-                <FiPlus className="text-base" />
+                <FiPlus className="text-sm" />
               </button>
 
-              <div className="h-4 w-[1px] bg-border/40 mx-0.5" />
+              <div className="h-3.5 w-[1px] bg-[var(--border-color)] mx-0.5" />
 
               <ModelSelector />
             </div>
@@ -213,18 +213,18 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
             <button 
               onClick={handleSubmit}
               disabled={!canSend}
-              className={`p-2 rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center shrink-0 shadow-sm ${
+              className={`w-7 h-7 rounded-lg transition-all duration-200 cursor-pointer flex items-center justify-center shrink-0 shadow-xs ${
                 canSend 
-                  ? 'bg-brass hover:bg-brass/90 text-background font-bold active:scale-95 shadow-brass/20' 
-                  : 'bg-muted/50 text-muted-foreground/40 cursor-not-allowed'
+                  ? 'bg-[var(--accent)] hover:opacity-90 text-white font-bold active:scale-95' 
+                  : 'bg-[var(--bg-base)] text-[var(--text-muted)] opacity-40 cursor-not-allowed border app-border'
               }`}
-              title="Send Message (Enter)"
+              title="Send Message"
             >
-              <FiArrowUp className="text-base stroke-[2.5]" />
+              <FiArrowUp className="text-xs" />
             </button>
           </div>
         </div>
       </div>
-    </footer>
+    </div>
   );
 };

@@ -16,10 +16,34 @@ import { IoClose } from 'react-icons/io5';
 import { FiTrash2 } from 'react-icons/fi';
 
 export const LogsDrawer: React.FC = () => {
-  const [activeTab, setActiveTab] = React.useState<'logs' | 'process'>('logs');
+  const [activeTab, setActiveTab] = React.useState<'logs' | 'traces' | 'process'>('logs');
+  const [traces, setTraces] = React.useState<any[]>([]);
   const { logs, filter, setFilter, searchQuery, setSearchQuery, clearLogs } = useLogsStore();
-  const { isLogsOpen, toggleLogs, isAnalyzing } = usePanelStore();
+  const { isLogsOpen, toggleLogs, isAnalyzing, activePaperId } = usePanelStore();
   const consoleRef = useRef<HTMLDivElement>(null);
+
+  // Poll execution traces when drawer is open and activePaperId is present
+  useEffect(() => {
+    if (isLogsOpen && activePaperId) {
+      const fetchTraces = async () => {
+        try {
+          const apiBase = (typeof window !== 'undefined' && (!!window.mascotAPI || window.location.protocol === 'file:'))
+            ? 'http://localhost:8000'
+            : '/api';
+          const resp = await fetch(`${apiBase}/history/${activePaperId}/traces`);
+          if (resp.ok) {
+            const data = await resp.json();
+            setTraces(data.traces || []);
+          }
+        } catch (e) {
+          // Silent fallback
+        }
+      };
+      fetchTraces();
+      const interval = setInterval(fetchTraces, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [isLogsOpen, activePaperId]);
 
   // Auto-scroll to bottom of logs on updates or drawer toggle
   useEffect(() => {
@@ -85,6 +109,23 @@ export const LogsDrawer: React.FC = () => {
                 )}
               </button>
               
+              <button
+                onClick={() => setActiveTab('traces')}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider font-mono transition-all duration-200 cursor-pointer ${
+                  activeTab === 'traces'
+                    ? 'bg-card text-foreground border border-border/40 shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
+                }`}
+              >
+                <FaCircleInfo className="text-xs text-brass shrink-0" />
+                <span>Agent Traces</span>
+                {traces.length > 0 && (
+                  <span className="text-[9px] font-mono px-1.5 py-0.2 bg-brass/20 text-brass rounded-full border border-brass/30">
+                    {traces.length}
+                  </span>
+                )}
+              </button>
+
               <button
                 onClick={() => setActiveTab('process')}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider font-mono transition-all duration-200 cursor-pointer ${
@@ -152,7 +193,7 @@ export const LogsDrawer: React.FC = () => {
                   >
                     <span>{lvl}</span>
                     {count > 0 && (
-                      <span className={`text-[8px] px-1 rounded-full ${filter === lvl ? 'bg-black/20 text-slate-950' : 'bg-background/80 text-muted-foreground'}`}>
+                      <span className={`text-[8px] px-1 rounded-full ${filter === lvl ? 'bg-brass/20 text-brass font-bold' : 'bg-background/80 text-muted-foreground'}`}>
                         {count}
                       </span>
                     )}
@@ -168,7 +209,7 @@ export const LogsDrawer: React.FC = () => {
       {activeTab === 'logs' && (
         <div 
           ref={consoleRef}
-          className="flex-1 overflow-y-auto p-3.5 font-mono text-[11px] flex flex-col gap-1 bg-black/40 select-text scrollbar-thin scrollbar-thumb-border/30 scrollbar-track-transparent"
+          className="flex-1 overflow-y-auto p-3.5 font-mono text-[11px] flex flex-col gap-1 bg-card/60 select-text scrollbar-thin scrollbar-thumb-border/30 scrollbar-track-transparent"
         >
           {filteredLogs.map((log) => (
             <div 
@@ -196,6 +237,47 @@ export const LogsDrawer: React.FC = () => {
             <div className="flex flex-col items-center justify-center h-full gap-2 text-muted-foreground/40 py-8 select-none">
               <FaTerminal className="text-3xl opacity-30" />
               <span className="text-[11px] font-mono">No console logs available.</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Agent Telemetry Traces Timeline View ───────────────────── */}
+      {activeTab === 'traces' && (
+        <div className="flex-1 overflow-y-auto p-4 font-mono text-[11px] flex flex-col gap-2 bg-card/60 select-text scrollbar-thin scrollbar-thumb-border/30 scrollbar-track-transparent">
+          {traces.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full gap-2 text-muted-foreground/40 py-8 select-none">
+              <FaCircleInfo className="text-3xl opacity-30 text-brass" />
+              <span className="text-[11px] font-mono">No telemetry trace logs recorded yet for this paper.</span>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {traces.map((tr, idx) => (
+                <div 
+                  key={idx} 
+                  className="flex flex-col gap-1 p-2.5 rounded-xl border border-border/40 bg-muted/20 hover:border-brass/40 transition-all"
+                >
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-brass uppercase text-[10px]">
+                      Step: {tr.step_name}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="bg-foreground/10 text-foreground font-mono text-[8px] px-2 py-0.5 rounded-full border border-border/40">
+                        {tr.model_used}
+                      </span>
+                      <span className="bg-emerald-500/15 text-emerald-400 font-mono text-[8px] px-2 py-0.5 rounded-full border border-emerald-500/30 font-bold">
+                        {tr.duration_ms}ms
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-foreground/80 font-mono text-[10px] leading-tight">
+                    {tr.details}
+                  </p>
+                  <span className="text-[8px] text-muted-foreground/50 self-end">
+                    {tr.timestamp}
+                  </span>
+                </div>
+              ))}
             </div>
           )}
         </div>

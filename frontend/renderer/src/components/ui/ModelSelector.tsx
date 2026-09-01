@@ -1,54 +1,99 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { usePanelStore } from '../../store/panelStore';
+import { API_BASE } from '../../store/utils/storeUtils';
+import { SkinLoader } from './SkinLoader';
 import { FaRobot, FaCode, FaBrain } from 'react-icons/fa6';
-import { FiChevronUp, FiCheck } from 'react-icons/fi';
+import { FiChevronUp, FiCheck, FiCpu } from 'react-icons/fi';
 
 interface ModelOption {
   id: string;
   name: string;
+  tag: string;
   description: string;
   icon: React.ReactNode;
 }
 
-const MODEL_OPTIONS: ModelOption[] = [
+const FALLBACK_MODELS: ModelOption[] = [
   {
-    id: 'gpt-oss-120b',
-    name: 'GPT-OSS 120B',
-    description: 'Main reasoning + architecture + difficult code',
+    id: 'llama-3.3-70b',
+    name: 'Llama 3.3 70B',
+    tag: 'CLOUD',
+    description: 'Main reasoning & paper Q&A synthesis (Groq / OpenRouter)',
     icon: <FaBrain className="text-brass text-xs shrink-0" />
   },
   {
-    id: 'qwen3-coder-480b',
-    name: 'Qwen3 Coder 480B',
-    description: 'Code generation / repository-level coding',
+    id: 'qwen-2.5-coder-32b',
+    name: 'Qwen 2.5 Coder 32B',
+    tag: 'CODE',
+    description: 'Code generation & repository module synthesis',
     icon: <FaCode className="text-brass text-xs shrink-0" />
-  },
-  {
-    id: 'qwen3-next-80b',
-    name: 'Qwen3 Next 80B',
-    description: 'General paper understanding + RAG',
-    icon: <FaRobot className="text-brass text-xs shrink-0" />
   },
   {
     id: 'deepseek-r1',
     name: 'DeepSeek R1',
-    description: 'Deep reasoning / verification',
+    tag: 'REASONING',
+    description: 'Deep mathematical derivations & verification',
     icon: <FaBrain className="text-brass text-xs shrink-0" />
   },
   {
-    id: 'qwen3.6-27b',
-    name: 'Qwen 3.6 27B',
-    description: 'Vision + equations/figures + extraction assistance',
+    id: 'gemini-2.0-flash',
+    name: 'Gemini 2.0 Flash',
+    tag: 'LONG CTX',
+    description: 'Long-document RAG & fast paper processing',
     icon: <FaRobot className="text-brass text-xs shrink-0" />
+  },
+  {
+    id: 'qwen2.5-coder:1.5b',
+    name: 'Qwen 2.5 Coder 1.5B',
+    tag: 'LOCAL',
+    description: 'Offline Ollama local fallback engine',
+    icon: <FiCpu className="text-brass text-xs shrink-0" />
   }
 ];
 
 export const ModelSelector: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [models, setModels] = useState<ModelOption[]>(FALLBACK_MODELS);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
   const { selectedModel, setSelectedModel } = usePanelStore();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const activeOption = MODEL_OPTIONS.find(opt => opt.id === selectedModel) || MODEL_OPTIONS[0];
+  const activeOption = models.find(opt => opt.id === selectedModel) || models[0] || FALLBACK_MODELS[0];
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchModels = async () => {
+      setIsLoading(true);
+      try {
+        const res = await fetch(`${API_BASE}/models`);
+        if (res.ok) {
+          const data = await res.json();
+          const apiModels = data.models || [];
+          if (apiModels.length > 0 && isMounted) {
+            const mapped: ModelOption[] = apiModels.map((m: any) => ({
+              id: m.id,
+              name: m.name,
+              tag: m.tag || 'MODEL',
+              description: m.description || '',
+              icon: m.tag === 'LOCAL' ? <FiCpu className="text-brass text-xs shrink-0" />
+                  : m.tag === 'CODE' ? <FaCode className="text-brass text-xs shrink-0" />
+                  : m.tag === 'LONG CTX' ? <FaRobot className="text-brass text-xs shrink-0" />
+                  : <FaBrain className="text-brass text-xs shrink-0" />
+            }));
+            setModels(mapped);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch dynamic inference models:", err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    fetchModels();
+    return () => { isMounted = false; };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -61,25 +106,34 @@ export const ModelSelector: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative font-mono" ref={dropdownRef}>
+    <div className="relative font-mono select-none" ref={dropdownRef}>
       {/* Dropdown Toggle Trigger Button */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-border/50 bg-card/80 hover:bg-muted/50 text-[11px] text-foreground outline-none hover:border-brass/40 transition-all duration-200 shadow-sm cursor-pointer select-none active:scale-[0.98]"
-        title="Select Active LLM Engine"
+        className={`flex items-center justify-between gap-1.5 px-2.5 py-1 rounded-lg border transition-all duration-200 text-[11px] font-mono outline-none cursor-pointer active:scale-[0.98] ${
+          isOpen 
+            ? 'border-[var(--accent)] bg-[var(--accent-subtle)] text-[var(--text-main)] shadow-xs' 
+            : 'border-[var(--border-color)] bg-[var(--bg-base)] hover:bg-[var(--accent-subtle)] text-[var(--text-main)] hover:border-[var(--accent-border)]'
+        }`}
+        title="Select Active Inference Engine"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
         <div className="flex items-center gap-1.5 min-w-0">
-          {activeOption.icon}
-          <span className="font-semibold text-foreground/90 truncate max-w-[120px]">
+          <div className="shrink-0 text-[var(--accent)] text-xs">
+            {activeOption.icon}
+          </div>
+          <span className="font-semibold text-[11px] text-[var(--text-main)] truncate max-w-[130px] leading-none">
             {activeOption.name}
+          </span>
+          <span className="text-[9px] text-[var(--accent)] font-mono font-semibold">
+            [{activeOption.tag}]
           </span>
         </div>
         <FiChevronUp 
-          className={`text-xs text-muted-foreground/70 transition-transform duration-200 shrink-0 ${
-            isOpen ? 'rotate-180' : ''
+          className={`text-xs text-[var(--text-muted)] transition-transform duration-200 shrink-0 ml-1 ${
+            isOpen ? 'rotate-180 text-[var(--accent)]' : ''
           }`} 
         />
       </button>
@@ -87,54 +141,71 @@ export const ModelSelector: React.FC = () => {
       {/* Floating Dropdown Option List */}
       {isOpen && (
         <div 
-          className="absolute bottom-[calc(100%+8px)] left-0 w-[260px] max-w-[calc(100vw-32px)] bg-card border border-border/70 rounded-2xl shadow-2xl z-50 p-1.5 flex flex-col gap-1 select-none animate-fade-in"
+          className="absolute bottom-[calc(100%+8px)] left-0 w-[280px] max-w-[calc(100vw-32px)] bg-[var(--bg-card)] border app-border rounded-2xl shadow-[0_12px_32px_rgba(0,0,0,0.4)] z-50 p-1.5 flex flex-col gap-1 animate-fade-in text-[var(--text-main)]"
           role="listbox"
         >
           {/* Menu Header */}
-          <div className="px-2.5 py-1.5 text-[9px] font-mono font-bold text-brass/80 uppercase tracking-wider border-b border-border/30">
-            Select Pipeline Model
+          <div className="px-2.5 py-1.5 text-[9px] font-mono font-bold text-[var(--accent)] uppercase tracking-widest border-b app-border flex items-center justify-between">
+            <span>Inference Model Engine</span>
+            <span className="text-[8px] px-1.5 py-0.5 rounded bg-[var(--accent-subtle)] border border-[var(--accent-border)] text-[var(--accent)]">
+              {isLoading ? 'DISCOVERING...' : `${models.length} Available`}
+            </span>
           </div>
 
-          {/* Model Options List */}
-          <div className="flex flex-col gap-0.5 max-h-[220px] overflow-y-auto scrollbar-thin scrollbar-thumb-border/40 scrollbar-track-transparent">
-            {MODEL_OPTIONS.map((option) => {
-              const isSelected = selectedModel === option.id;
-              return (
-                <div
-                  key={option.id}
-                  onClick={() => {
-                    setSelectedModel(option.id);
-                    setIsOpen(false);
-                  }}
-                  className={`flex items-start gap-2.5 p-2 rounded-xl transition-all duration-150 cursor-pointer group ${
-                    isSelected
-                      ? 'bg-brass/10 border border-brass/30 text-foreground'
-                      : 'border border-transparent hover:bg-muted/50 text-muted-foreground hover:text-foreground'
-                  }`}
-                  role="option"
-                  aria-selected={isSelected}
-                >
-                  <div className="mt-0.5 p-1 rounded-lg bg-background/50 border border-border/30 shrink-0 group-hover:border-brass/30 transition-colors">
-                    {option.icon}
-                  </div>
-                  
-                  <div className="flex flex-col flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-1">
-                      <span className={`text-[11px] font-bold truncate ${isSelected ? 'text-brass' : 'text-foreground'}`}>
-                        {option.name}
-                      </span>
-                      {isSelected && (
-                        <FiCheck className="text-brass text-xs shrink-0" />
-                      )}
+          {/* Model Options List or Skeleton Loader */}
+          {isLoading ? (
+            <SkinLoader type="model" />
+          ) : (
+            <div className="flex flex-col gap-1 max-h-[240px] overflow-y-auto scrollbar-thin scrollbar-thumb-[var(--border-color)] scrollbar-track-transparent pr-0.5">
+              {models.map((option) => {
+                const isSelected = selectedModel === option.id;
+                return (
+                  <div
+                    key={option.id}
+                    onClick={() => {
+                      setSelectedModel(option.id);
+                      setIsOpen(false);
+                    }}
+                    className={`flex items-start gap-2.5 p-2 rounded-xl transition-all duration-150 cursor-pointer group ${
+                      isSelected
+                        ? 'bg-[var(--accent-subtle)] border border-[var(--accent-border)] text-[var(--accent)] font-semibold'
+                        : 'border border-transparent hover:bg-[var(--accent-subtle)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                    }`}
+                    role="option"
+                    aria-selected={isSelected}
+                  >
+                    <div className={`mt-0.5 p-1.5 rounded-lg border shrink-0 transition-colors ${
+                      isSelected 
+                        ? 'bg-[var(--accent-subtle)] border-[var(--accent-border)]' 
+                        : 'bg-[var(--bg-base)] app-border group-hover:border-[var(--accent-border)]'
+                    }`}>
+                      {option.icon}
                     </div>
-                    <span className="text-[9px] text-muted-foreground leading-relaxed truncate font-sans">
-                      {option.description}
-                    </span>
+                    
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className={`text-[11px] font-mono font-bold truncate ${
+                          isSelected ? 'text-[var(--accent)]' : 'text-[var(--text-main)]'
+                        }`}>
+                          {option.name}
+                        </span>
+                        {isSelected ? (
+                          <FiCheck className="text-[var(--accent)] text-xs shrink-0" />
+                        ) : (
+                          <span className="text-[8px] font-mono px-1 py-0.2 rounded bg-[var(--bg-base)] text-[var(--text-muted)] border app-border">
+                            {option.tag}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[9.5px] text-[var(--text-muted)] leading-relaxed font-sans line-clamp-2 mt-0.5">
+                        {option.description}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>

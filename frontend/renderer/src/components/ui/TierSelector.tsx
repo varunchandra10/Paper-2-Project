@@ -11,7 +11,7 @@ export const TierSelector: React.FC = () => {
   ] as const;
 
   return (
-    <div className="flex bg-black/15 border border-border rounded-lg p-0.5" role="radiogroup" aria-label="Select blueprint depth">
+    <div className="flex bg-muted/40 border border-border rounded-lg p-0.5" role="radiogroup" aria-label="Select blueprint depth">
       {tiers.map((tier) => (
         <button
           key={tier.id}
