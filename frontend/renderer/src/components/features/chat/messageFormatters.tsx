@@ -3,7 +3,7 @@ import React from 'react';
 // ─── Code Copy Button ─────────────────────────────────────────────────────────
 
 import { useState } from 'react';
-import { FiCopy, FiCheck } from 'react-icons/fi';
+import { IconCopy, IconCheck } from '../../ui/Icons';
 
 const CodeCopyButton: React.FC<{ code: string }> = ({ code }) => {
   const [copied, setCopied] = useState(false);
@@ -26,13 +26,13 @@ const CodeCopyButton: React.FC<{ code: string }> = ({ code }) => {
     >
       {copied ? (
         <>
-          <FiCheck className="text-emerald-400 text-[10px]" />
-          <span className="text-emerald-400">Copied</span>
+          <IconCheck className="text-emerald-400 text-[10px]" />
+          <span className="text-emerald-400 font-bold">COPIED</span>
         </>
       ) : (
         <>
-          <FiCopy className="text-[10px]" />
-          <span>Copy</span>
+          <IconCopy className="text-[10px]" />
+          <span>COPY</span>
         </>
       )}
     </button>

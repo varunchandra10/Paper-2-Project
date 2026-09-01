@@ -1,15 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { usePanelStore } from '../../store/panelStore';
 import { SkinLoader } from '../ui/SkinLoader';
-import { 
-  FaFilePdf, 
-  FaFileWord, 
-  FaTrash, 
-  FaTimes, 
-  FaFileAlt, 
-  FaSearch 
-} from 'react-icons/fa';
-import { BsBoxArrowUpRight } from 'react-icons/bs';
+import {
+  IconPdf, IconWord, IconDoc, IconTrash,
+  IconClose, IconSearch, IconExternalLink,
+  IconColor
+} from '../ui/Icons';
 
 interface HistoryItem {
   id: string;
@@ -69,13 +65,13 @@ export const DocumentHistoryList: React.FC<{ isOpen: boolean }> = ({ isOpen }) =
   const renderFileIcon = (type: string) => {
     switch (type?.toLowerCase()) {
       case 'pdf':
-        return <FaFilePdf className="text-red-400 text-lg group-hover:scale-110 transition-transform duration-200" />;
+        return <IconPdf className={`${IconColor.accent} text-lg group-hover:scale-110 transition-transform duration-200`} />;
       case 'docx':
       case 'doc':
       case 'word':
-        return <FaFileWord className="text-sky-400 text-lg group-hover:scale-110 transition-transform duration-200" />;
+        return <IconWord className={`${IconColor.accent} text-lg group-hover:scale-110 transition-transform duration-200`} />;
       default:
-        return <FaFileAlt className="text-amber-400 text-lg group-hover:scale-110 transition-transform duration-200" />;
+        return <IconDoc className={`${IconColor.muted} text-lg group-hover:scale-110 transition-transform duration-200`} />;
     }
   };
 
@@ -86,7 +82,7 @@ export const DocumentHistoryList: React.FC<{ isOpen: boolean }> = ({ isOpen }) =
       {/* Search Input Filter */}
       <div className="px-3 pt-2.5 pb-2 shrink-0 font-mono">
         <div className="relative w-full">
-          <FaSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-[10px]" />
+          <IconSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-[10px]" />
           <input 
             type="text"
             value={searchQuery}
@@ -99,7 +95,7 @@ export const DocumentHistoryList: React.FC<{ isOpen: boolean }> = ({ isOpen }) =
               onClick={() => setSearchQuery('')}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-main)] text-[10px] p-0.5 rounded cursor-pointer"
             >
-              <FaTimes />
+              <IconClose />
             </button>
           )}
         </div>
@@ -111,7 +107,7 @@ export const DocumentHistoryList: React.FC<{ isOpen: boolean }> = ({ isOpen }) =
           <SkinLoader type="document" />
         ) : filteredHistory.length === 0 ? (
           <div className="py-8 flex flex-col items-center justify-center text-center p-3 rounded-xl border border-dashed app-border bg-[var(--bg-base)] font-sans">
-            <FaFileAlt className="text-[var(--text-muted)] text-xl mb-1.5" />
+            <IconDoc className="text-[var(--text-muted)] text-xl mb-1.5" />
             <span className="text-[11px] text-[var(--text-muted)]">
               {searchQuery ? 'No documents match search' : 'No research papers uploaded'}
             </span>
@@ -164,7 +160,7 @@ export const DocumentHistoryList: React.FC<{ isOpen: boolean }> = ({ isOpen }) =
                     className="p-1.5 rounded-lg text-[var(--accent)] bg-[var(--accent-subtle)] border border-[var(--accent-border)] hover:bg-[var(--accent)] hover:text-white transition-all cursor-pointer flex items-center justify-center shrink-0 active:scale-95 shadow-xs"
                     title="View PDF in embedded reader"
                   >
-                    <BsBoxArrowUpRight className="text-xs" />
+                    <IconExternalLink className="text-xs" />
                   </button>
 
                   {/* Delete Button */}
@@ -176,7 +172,7 @@ export const DocumentHistoryList: React.FC<{ isOpen: boolean }> = ({ isOpen }) =
                     className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer shrink-0"
                     title="Delete document"
                   >
-                    <FaTrash className="text-xs" />
+                    <IconTrash className="text-xs" />
                   </button>
                 </div>
               </div>

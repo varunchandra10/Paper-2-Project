@@ -2,8 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { usePanelStore } from '../../store/panelStore';
 import { API_BASE } from '../../store/utils/storeUtils';
 import { SkinLoader } from './SkinLoader';
-import { FaRobot, FaCode, FaBrain } from 'react-icons/fa6';
-import { FiChevronUp, FiCheck, FiCpu } from 'react-icons/fi';
+import { IconRobot, IconCode, IconBrain, IconUp, IconCheck, IconCpu } from './Icons';
 
 interface ModelOption {
   id: string;
@@ -19,35 +18,35 @@ const FALLBACK_MODELS: ModelOption[] = [
     name: 'Llama 3.3 70B',
     tag: 'CLOUD',
     description: 'Main reasoning & paper Q&A synthesis (Groq / OpenRouter)',
-    icon: <FaBrain className="text-brass text-xs shrink-0" />
+    icon: <IconBrain className="text-[var(--accent)] text-xs shrink-0" />
   },
   {
     id: 'qwen-2.5-coder-32b',
     name: 'Qwen 2.5 Coder 32B',
-    tag: 'CODE',
-    description: 'Code generation & repository module synthesis',
-    icon: <FaCode className="text-brass text-xs shrink-0" />
+    tag: 'CLOUD',
+    description: 'Code extraction, schema generation & LaTeX formulas',
+    icon: <IconCode className="text-[var(--accent)] text-xs shrink-0" />
   },
   {
-    id: 'deepseek-r1',
-    name: 'DeepSeek R1',
-    tag: 'REASONING',
-    description: 'Deep mathematical derivations & verification',
-    icon: <FaBrain className="text-brass text-xs shrink-0" />
+    id: 'deepseek-r1-distill',
+    name: 'DeepSeek R1 Distill',
+    tag: 'CLOUD',
+    description: 'Advanced logical step-by-step chain-of-thought analysis',
+    icon: <IconRobot className="text-[var(--accent)] text-xs shrink-0" />
   },
   {
     id: 'gemini-2.0-flash',
     name: 'Gemini 2.0 Flash',
     tag: 'LONG CTX',
     description: 'Long-document RAG & fast paper processing',
-    icon: <FaRobot className="text-brass text-xs shrink-0" />
+    icon: <IconRobot className="text-[var(--accent)] text-xs shrink-0" />
   },
   {
     id: 'qwen2.5-coder:1.5b',
     name: 'Qwen 2.5 Coder 1.5B',
     tag: 'LOCAL',
     description: 'Offline Ollama local fallback engine',
-    icon: <FiCpu className="text-brass text-xs shrink-0" />
+    icon: <IconCpu className="text-[var(--accent)] text-xs shrink-0" />
   }
 ];
 
@@ -76,10 +75,10 @@ export const ModelSelector: React.FC = () => {
               name: m.name,
               tag: m.tag || 'MODEL',
               description: m.description || '',
-              icon: m.tag === 'LOCAL' ? <FiCpu className="text-brass text-xs shrink-0" />
-                  : m.tag === 'CODE' ? <FaCode className="text-brass text-xs shrink-0" />
-                  : m.tag === 'LONG CTX' ? <FaRobot className="text-brass text-xs shrink-0" />
-                  : <FaBrain className="text-brass text-xs shrink-0" />
+              icon: m.tag === 'LOCAL' ? <IconCpu className="text-[var(--accent)] text-xs shrink-0" />
+                  : m.tag === 'CODE' ? <IconCode className="text-[var(--accent)] text-xs shrink-0" />
+                  : m.tag === 'LONG CTX' ? <IconRobot className="text-[var(--accent)] text-xs shrink-0" />
+                  : <IconBrain className="text-[var(--accent)] text-xs shrink-0" />
             }));
             setModels(mapped);
           }
@@ -131,7 +130,7 @@ export const ModelSelector: React.FC = () => {
             [{activeOption.tag}]
           </span>
         </div>
-        <FiChevronUp 
+        <IconUp 
           className={`text-xs text-[var(--text-muted)] transition-transform duration-200 shrink-0 ml-1 ${
             isOpen ? 'rotate-180 text-[var(--accent)]' : ''
           }`} 
@@ -190,7 +189,7 @@ export const ModelSelector: React.FC = () => {
                           {option.name}
                         </span>
                         {isSelected ? (
-                          <FiCheck className="text-[var(--accent)] text-xs shrink-0" />
+                          <IconCheck className="text-[var(--accent)] text-xs shrink-0" />
                         ) : (
                           <span className="text-[8px] font-mono px-1 py-0.2 rounded bg-[var(--bg-base)] text-[var(--text-muted)] border app-border">
                             {option.tag}

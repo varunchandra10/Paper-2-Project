@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { FiClock, FiMessageSquare, FiChevronRight } from 'react-icons/fi';
+import { IconClock, IconMessageSquare, IconForward } from '../ui/Icons';
 import { usePanelStore } from '../../store/panelStore';
 
 interface CompactHistoryDropdownProps {
@@ -50,7 +50,7 @@ export const CompactHistoryDropdown: React.FC<CompactHistoryDropdownProps> = ({ 
       {/* Dropdown Header */}
       <div className="px-2 py-1 flex items-center justify-between border-b app-border">
         <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[var(--accent)] flex items-center gap-1.5">
-          <FiClock className="text-xs shrink-0" />
+          <IconClock className="text-xs shrink-0" />
           <span>Research Threads</span>
         </span>
         <span className="text-[9px] font-mono text-[var(--accent)] font-bold px-1.5 py-0.5 rounded-md bg-[var(--accent-subtle)] border border-[var(--accent-border)]">
@@ -62,7 +62,7 @@ export const CompactHistoryDropdown: React.FC<CompactHistoryDropdownProps> = ({ 
       <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-[var(--border-color)] scrollbar-track-transparent py-0.5 space-y-1 pr-0.5">
         {conversations.length === 0 ? (
           <div className="py-7 flex flex-col items-center justify-center text-center p-3 rounded-xl border border-dashed app-border bg-[var(--bg-base)]/50 my-1">
-            <FiMessageSquare className="text-[var(--text-muted)] text-sm mb-1" />
+            <IconMessageSquare className="text-[var(--text-muted)] text-sm mb-1" />
             <span className="text-[10px] font-mono text-[var(--text-muted)]">No active research history</span>
           </div>
         ) : (
@@ -82,13 +82,13 @@ export const CompactHistoryDropdown: React.FC<CompactHistoryDropdownProps> = ({ 
                     : 'bg-[var(--bg-base)]/50 hover:bg-[var(--accent-subtle)] border-transparent hover:border-[var(--accent-border)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
                 }`}
               >
-                <FiMessageSquare className={`text-xs shrink-0 transition-colors ${
+                <IconMessageSquare className={`text-xs shrink-0 transition-colors ${
                   isActive ? 'text-[var(--accent)]' : 'text-[var(--text-muted)] group-hover:text-[var(--accent)]'
                 }`} />
                 <span className="text-xs font-mono truncate leading-snug flex-1">
                   {conv.title}
                 </span>
-                <FiChevronRight className={`text-xs transition-transform duration-150 ${
+                <IconForward className={`text-xs transition-transform duration-150 ${
                   isActive ? 'text-[var(--accent)] translate-x-0.5' : 'text-[var(--text-muted)] group-hover:text-[var(--accent)] group-hover:translate-x-0.5'
                 }`} />
               </button>

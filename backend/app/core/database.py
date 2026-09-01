@@ -64,6 +64,7 @@ class ChatDatabase:
             "full_name": full_name,
             "created_at": datetime.datetime.now().isoformat()
         }
+        data["users"][user_id] = user_data
         self._save_fallback(data)
         return user_data
 

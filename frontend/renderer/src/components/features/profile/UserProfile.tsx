@@ -2,18 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { usePanelStore } from '../../../store/panelStore';
 import { useLogsStore } from '../../../store/logsStore';
 import { 
-  FiUser, 
-  FiMail, 
-  FiPhone, 
-  FiCalendar, 
-  FiClock, 
-  FiFolder, 
-  FiCheckCircle, 
-  FiChevronLeft, 
-  FiSave,
-  FiSmile,
-  FiLoader
-} from 'react-icons/fi';
+  IconUser, 
+  IconMail, 
+  IconPhone, 
+  IconCalendar, 
+  IconClock, 
+  IconFolder, 
+  IconCheckCircle, 
+  IconBack, 
+  IconSave,
+  IconSmile,
+  IconLoader
+} from '../../ui/Icons';
 import { MascotSelector } from './MascotSelector';
 import { OllamaConfigSection } from './OllamaConfigSection';
 
@@ -107,7 +107,7 @@ export const UserProfile: React.FC = () => {
               className="p-2 rounded-xl border app-border bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-subtle)] transition-all cursor-pointer flex items-center justify-center active:scale-95 shadow-xs"
               title="Return to Chat"
             >
-              <FiChevronLeft className="text-base" />
+              <IconBack className="text-base" />
             </button>
             <div className="flex flex-col">
               <h2 className="text-base font-bold tracking-tight text-[var(--text-main)]">
@@ -122,7 +122,7 @@ export const UserProfile: React.FC = () => {
           <div className="flex items-center gap-2">
             {saveSuccess && (
               <span className="text-[10px] font-mono text-emerald-400 font-bold flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 rounded-xl animate-fade-in shadow-xs">
-                <FiCheckCircle className="text-xs shrink-0" />
+                <IconCheckCircle className="text-xs shrink-0" />
                 SAVED SUCCESSFULLY
               </span>
             )}
@@ -137,7 +137,7 @@ export const UserProfile: React.FC = () => {
             <div className="absolute -top-12 -right-12 w-28 h-28 bg-[var(--accent-subtle)] rounded-full blur-2xl pointer-events-none" />
             
             <h3 className="text-xs font-mono font-bold text-[var(--accent)] uppercase tracking-wider border-b app-border pb-2.5 flex items-center gap-2 select-none">
-              <FiUser className="text-xs" />
+              <IconUser className="text-xs" />
               <span>Personal Identification</span>
             </h3>
 
@@ -149,7 +149,7 @@ export const UserProfile: React.FC = () => {
                   Name / Username
                 </label>
                 <div className="relative">
-                  <FiUser className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm" />
+                  <IconUser className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm" />
                   <input 
                     type="text"
                     required
@@ -167,7 +167,7 @@ export const UserProfile: React.FC = () => {
                   Email Address
                 </label>
                 <div className="relative">
-                  <FiMail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm" />
+                  <IconMail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm" />
                   <input 
                     type="email"
                     required
@@ -185,7 +185,7 @@ export const UserProfile: React.FC = () => {
                   Phone Number
                 </label>
                 <div className="relative">
-                  <FiPhone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm" />
+                  <IconPhone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm" />
                   <input 
                     type="tel"
                     value={formPhone}
@@ -203,7 +203,7 @@ export const UserProfile: React.FC = () => {
                     Date of Birth
                   </label>
                   <div className="relative">
-                    <FiCalendar className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm pointer-events-none" />
+                    <IconCalendar className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm pointer-events-none" />
                     <input 
                       type="date"
                       value={formDob}
@@ -218,7 +218,7 @@ export const UserProfile: React.FC = () => {
                     Age
                   </label>
                   <div className="relative">
-                    <FiClock className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm" />
+                    <IconClock className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm" />
                     <input 
                       type="number"
                       value={formAge}
@@ -238,7 +238,7 @@ export const UserProfile: React.FC = () => {
             <div className="absolute -top-12 -right-12 w-28 h-28 bg-[var(--accent-subtle)] rounded-full blur-2xl pointer-events-none" />
             
             <h3 className="text-xs font-mono font-bold text-[var(--accent)] uppercase tracking-wider border-b app-border pb-2.5 flex items-center gap-2 select-none">
-              <FiFolder className="text-xs" />
+              <IconFolder className="text-xs" />
               <span>Workspace Configurations</span>
             </h3>
 
@@ -253,7 +253,7 @@ export const UserProfile: React.FC = () => {
                   <span className="text-[8px] font-mono text-[var(--text-muted)]">LOCAL FOLDER DESTINATION</span>
                 </div>
                 <div className="relative">
-                  <FiFolder className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm" />
+                  <IconFolder className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm" />
                   <input 
                     type="text"
                     value={formPath}
@@ -275,7 +275,7 @@ export const UserProfile: React.FC = () => {
             <div className="absolute -top-12 -right-12 w-28 h-28 bg-[var(--accent-subtle)] rounded-full blur-2xl pointer-events-none" />
             
             <h3 className="text-xs font-mono font-bold text-[var(--accent)] uppercase tracking-wider border-b app-border pb-2.5 flex items-center gap-2 select-none">
-              <FiSmile className="text-xs" />
+              <IconSmile className="text-xs" />
               <span>Mascot Companion Selection</span>
             </h3>
 
@@ -299,12 +299,12 @@ export const UserProfile: React.FC = () => {
             >
               {isSaving ? (
                 <>
-                  <FiLoader className="text-sm animate-spin shrink-0" />
+                  <IconLoader className="text-sm animate-spin shrink-0" />
                   <span>Saving Settings...</span>
                 </>
               ) : (
                 <>
-                  <FiSave className="text-sm shrink-0" />
+                  <IconSave className="text-sm shrink-0" />
                   <span>Save Profile Changes</span>
                 </>
               )}

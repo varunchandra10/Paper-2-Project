@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiCpu } from 'react-icons/fi';
+import { IconCpu } from '../../ui/Icons';
 import { ReActStepsAccordion } from './ReActStepsAccordion';
 import { parseReAct } from './parseReAct';
 import { parseInlineMarkdown, formatMessageContent } from './messageFormatters';
@@ -22,16 +22,13 @@ interface MessageBubbleProps {
   msg: ChatMessage;
 }
 
-
-// ─── Main Component ───────────────────────────────────────────────────────────
-
 export const MessageBubble: React.FC<MessageBubbleProps> = ({ msg }) => {
   const isUser = msg.role === 'user';
   const reactParsed = !isUser ? parseReAct(msg.content) : null;
 
   return (
     <div
-      className={`flex flex-col gap-1.5 font-sans animate-fade-in ${
+      className={`flex flex-col gap-1 font-sans animate-fade-in ${
         isUser
           ? 'items-end self-end max-w-[78%]'
           : 'items-start self-start max-w-[92%] w-full'
@@ -46,49 +43,36 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ msg }) => {
         />
       )}
 
-      {/* ── Message Bubble — theme-aware via CSS vars ──────────────────── */}
-      <div
-        className={`px-5 py-3.5 text-[13px] leading-relaxed border transition-colors duration-200 ${
-          isUser
-            ? 'rounded-2xl rounded-tr-sm shadow-[0_3px_14px_rgba(0,0,0,0.22)]'
-            : 'rounded-2xl rounded-tl-sm w-full shadow-[0_2px_12px_rgba(0,0,0,0.05)]'
-        }`}
-        style={
-          isUser
-            ? {
-                backgroundColor: 'var(--bubble-user)',
-                borderColor: 'var(--bubble-user-border)',
-                color: 'var(--bubble-user-fg)',
-              }
-            : {
-                backgroundColor: 'var(--bubble-assistant)',
-                borderColor: 'var(--bubble-assistant-border)',
-                color: 'var(--bubble-assistant-fg)',
-              }
-        }
-      >
-        {/* ── Claude-style PDF attachment card (only in user bubble) ───── */}
-        {isUser && msg.attachment && (
-          <div className="mb-3 flex justify-end">
-            <PdfAttachmentCard
-              filename={msg.attachment.filename}
-              paperId={msg.attachment.paperId}
-            />
-          </div>
-        )}
+      {/* ── PDF attachment card — floats ABOVE the text bubble ── */}
+      {isUser && msg.attachment && (
+        <div className="flex justify-end w-full">
+          <PdfAttachmentCard
+            filename={msg.attachment.filename}
+            paperId={msg.attachment.paperId}
+          />
+        </div>
+      )}
 
-        {/* Model tag inside assistant bubble */}
+      {/* ── Main Message Bubble ─────────────────────────────────────────── */}
+      <div
+        className={`relative px-4 py-3 text-xs leading-relaxed transition-all duration-200 select-text ${
+          isUser
+            ? 'rounded-2xl rounded-tr-xs bg-[var(--accent)] text-white shadow-md font-medium'
+            : 'rounded-2xl rounded-tl-xs bg-[var(--bg-card)] border app-border text-[var(--text-main)] shadow-lg'
+        }`}
+      >
+        {/* Model Pill Header (Assistant only) */}
         {!isUser && msg.model_used && (
-          <div className="flex justify-end mb-2.5">
+          <div className="flex items-center justify-between gap-2 mb-2 pb-1.5 border-b app-border">
+            <span className="text-[10px] font-mono font-bold tracking-tight text-[var(--text-main)] uppercase flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Synthexis Assistant
+            </span>
             <span
-              className="inline-flex items-center gap-1 text-[9px] px-2 py-0.5 rounded-full font-mono border select-none"
-              style={{
-                backgroundColor: 'rgba(201,154,62,0.08)',
-                borderColor: 'rgba(201,154,62,0.22)',
-                color: 'var(--brass)',
-              }}
+              className="text-[9px] font-mono font-semibold px-2 py-0.5 rounded-md bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--accent-border)] flex items-center gap-1 select-none"
+              title={`Inference model: ${msg.model_used}`}
             >
-              <FiCpu className="text-[9px]" />
+              <IconCpu className="text-[9px]" />
               {msg.model_used}
             </span>
           </div>

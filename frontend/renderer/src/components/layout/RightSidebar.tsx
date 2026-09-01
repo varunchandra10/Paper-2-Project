@@ -1,13 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { usePanelStore } from '../../store/panelStore';
-import { 
-  FaFilePdf, 
-  FaFileWord, 
-  FaTrash, 
-  FaTimes, 
-  FaFileAlt, 
-  FaSearch 
-} from 'react-icons/fa';
+import {
+  IconPdf, IconWord, IconDoc, IconTrash,
+  IconClose, IconSearch, IconColor
+} from '../ui/Icons';
 
 interface HistoryItem {
   id: string;
@@ -70,13 +66,13 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ isMaximized }) => {
   const renderFileIcon = (type: string) => {
     switch (type?.toLowerCase()) {
       case 'pdf':
-        return <FaFilePdf className="text-destructive text-xl group-hover:scale-110 transition-transform duration-200" />;
+        return <IconPdf className={`${IconColor.accent} text-xl group-hover:scale-110 transition-transform duration-200`} />;
       case 'docx':
       case 'doc':
       case 'word':
-        return <FaFileWord className="text-synthesis text-xl group-hover:scale-110 transition-transform duration-200" />;
+        return <IconWord className={`${IconColor.accent} text-xl group-hover:scale-110 transition-transform duration-200`} />;
       default:
-        return <FaFileAlt className="text-brass text-xl group-hover:scale-110 transition-transform duration-200" />;
+        return <IconDoc className={`${IconColor.muted} text-xl group-hover:scale-110 transition-transform duration-200`} />;
     }
   };
 
@@ -106,14 +102,14 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ isMaximized }) => {
           title="Close documents pane"
           aria-label="Close documents pane"
         >
-          <FaTimes className="text-xs" />
+          <IconClose className="text-xs" />
         </button>
       </div>
 
       {/* ── Document Search Filter ───────────────────────────────────── */}
       <div className="w-[280px] px-3.5 pt-3 pb-1 shrink-0 font-mono">
         <div className="relative w-full">
-          <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-[10px]" />
+          <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-[10px]" />
           <input 
             type="text"
             value={searchQuery}
@@ -126,7 +122,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ isMaximized }) => {
               onClick={() => setSearchQuery('')}
               className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-[10px] p-1 rounded-md cursor-pointer"
             >
-              <FaTimes />
+              <IconClose />
             </button>
           )}
         </div>
@@ -136,7 +132,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ isMaximized }) => {
       <div className="w-[280px] flex-1 overflow-y-auto p-3.5 scrollbar-thin scrollbar-thumb-border/40 scrollbar-track-transparent">
         {filteredHistory.length === 0 ? (
           <div className="h-44 flex flex-col items-center justify-center gap-2 text-center text-muted-foreground border border-dashed border-border/40 rounded-2xl bg-muted/20 p-4 font-mono">
-            <FaFileAlt className="text-2xl text-muted-foreground/50" />
+            <IconDoc className="text-2xl text-muted-foreground/50" />
             <span className="text-[10px]">
               {searchQuery ? 'No documents match search' : 'No research papers uploaded'}
             </span>
@@ -180,7 +176,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ isMaximized }) => {
                     className="absolute top-1.5 right-1.5 p-1 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/15 transition-all opacity-0 group-hover:opacity-100 z-10 cursor-pointer outline-none"
                     title="Delete document"
                   >
-                    <FaTrash className="text-[9px]" />
+                    <IconTrash className="text-[9px]" />
                   </button>
 
                   {/* Thumbnail Preview Card */}

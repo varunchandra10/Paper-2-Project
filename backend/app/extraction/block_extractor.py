@@ -1,5 +1,5 @@
 import os
-import fitz  # PyMuPDF
+import pymupdf as fitz  # PyMuPDF
 from typing import List, Dict, Any
 from app.extraction.pymupdf_parser import (
     detect_pdf_layout,

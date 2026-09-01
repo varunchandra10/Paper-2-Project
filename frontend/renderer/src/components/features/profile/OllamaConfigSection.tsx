@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiLink, FiInfo, FiLoader } from 'react-icons/fi';
+import { IconLink, IconInfo, IconLoader } from '../../ui/Icons';
 
 interface OllamaConfigSectionProps {
   value: string;
@@ -62,7 +62,7 @@ export const OllamaConfigSection: React.FC<OllamaConfigSectionProps> = ({
             className="text-[var(--accent)] hover:bg-[var(--accent-subtle)] p-0.5 rounded transition-all cursor-pointer"
             title="Show Ollama Connection Guide"
           >
-            <FiInfo className="text-xs shrink-0" />
+            <IconInfo className="text-xs shrink-0" />
           </button>
         </label>
         {value.trim() && (
@@ -74,7 +74,7 @@ export const OllamaConfigSection: React.FC<OllamaConfigSectionProps> = ({
           >
             {isTestingOllama ? (
               <>
-                <FiLoader className="text-xs animate-spin text-[var(--accent)]" />
+                <IconLoader className="text-xs animate-spin text-[var(--accent)]" />
                 <span>TESTING...</span>
               </>
             ) : (
@@ -84,7 +84,7 @@ export const OllamaConfigSection: React.FC<OllamaConfigSectionProps> = ({
         )}
       </div>
       <div className="relative">
-        <FiLink className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm" />
+        <IconLink className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm" />
         <input 
           type="text"
           value={value}

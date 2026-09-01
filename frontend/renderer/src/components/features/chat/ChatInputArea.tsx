@@ -1,17 +1,11 @@
 import React, { useRef, useEffect } from 'react';
 import { usePanelStore } from '../../../store/panelStore';
 import { ModelSelector } from '../../ui/ModelSelector';
-import { 
-  FiPlus, 
-  FiFileText, 
-  FiTerminal, 
-  FiX, 
-  FiFile, 
-  FiArrowUp,
-  FiCheckCircle,
-  FiAlertCircle,
-  FiLoader
-} from 'react-icons/fi';
+import {
+  IconPlus, IconFileText, IconTerminal,
+  IconClose, IconFile, IconArrowUp,
+  IconCheckCircle, IconAlertCircle, IconLoader
+} from '../../ui/Icons';
 
 interface StagedFile {
   filename: string;
@@ -98,7 +92,7 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
               }`}
               title="Documents & History"
             >
-              <FiFileText className="text-xs transition-transform group-hover:scale-110" />
+              <IconFileText className="text-xs transition-transform group-hover:scale-110" />
             </button>
 
             <button 
@@ -110,7 +104,7 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
               }`}
               title="Terminal Console"
             >
-              <FiTerminal className="text-xs transition-transform group-hover:scale-110" />
+              <IconTerminal className="text-xs transition-transform group-hover:scale-110" />
             </button>
           </div>
         )}
@@ -118,7 +112,7 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
         {/* Status Loader */}
         {isAnalyzing && (
           <div className="flex items-center gap-2 px-2 py-1 select-none text-[10px] font-mono text-brass font-semibold tracking-wide bg-brass/5 border border-brass/20 rounded-lg w-fit animate-pulse">
-            <FiLoader className="w-3 h-3 animate-spin text-brass shrink-0" />
+            <IconLoader className="w-3 h-3 animate-spin text-brass shrink-0" />
             <span>Processing document pipeline...</span>
           </div>
         )}
@@ -130,7 +124,7 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
           {stagedFile && (
             <div className="px-3.5 pt-3 pb-1 select-none flex items-center gap-2 flex-wrap border-b app-border bg-[var(--bg-base)]/50 rounded-t-2xl overflow-hidden">
               <div className="relative inline-flex items-center gap-2 rounded-xl bg-[var(--accent-subtle)] border border-[var(--accent-border)] text-[var(--accent)] text-[11px] font-mono font-semibold px-3 py-1.5 max-w-full overflow-hidden shadow-xs">
-                <FiFile className="shrink-0 text-xs" />
+                <IconFile className="shrink-0 text-xs" />
                 <span className="truncate max-w-[240px]" title={stagedFile.filename}>
                   {stagedFile.filename}
                 </span>
@@ -141,7 +135,7 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                     className="ml-1 p-0.5 rounded-full hover:bg-[var(--accent-subtle)] text-[var(--accent)] transition-colors shrink-0 cursor-pointer"
                     title="Remove file"
                   >
-                    <FiX className="text-xs" />
+                    <IconClose className="text-xs" />
                   </button>
                 )}
 
@@ -159,13 +153,13 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
               {/* Status Badges */}
               {analysisStatus === 'success' && (
                 <div className="inline-flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold font-mono tracking-wider uppercase px-2.5 py-1 rounded-xl select-none shadow-xs shrink-0">
-                  <FiCheckCircle className="text-xs" />
+                  <IconCheckCircle className="text-xs" />
                   <span>Verified</span>
                 </div>
               )}
               {analysisStatus === 'error' && (
                 <div className="inline-flex items-center gap-1.5 bg-red-500/15 border border-red-500/30 text-red-400 text-[10px] font-bold font-mono tracking-wider uppercase px-2.5 py-1 rounded-xl select-none shadow-xs shrink-0">
-                  <FiAlertCircle className="text-xs" />
+                  <IconAlertCircle className="text-xs" />
                   <span>Ingestion Failed</span>
                 </div>
               )}
@@ -201,7 +195,7 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                 className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-subtle)] rounded-lg transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 border border-transparent"
                 title="Upload PDF/Document"
               >
-                <FiPlus className="text-sm" />
+                <IconPlus className="text-sm" />
               </button>
 
               <div className="h-3.5 w-[1px] bg-[var(--border-color)] mx-0.5" />
@@ -220,7 +214,7 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
               }`}
               title="Send Message"
             >
-              <FiArrowUp className="text-xs" />
+              <IconArrowUp className="text-xs" />
             </button>
           </div>
         </div>
