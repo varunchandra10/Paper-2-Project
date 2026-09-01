@@ -16,6 +16,7 @@ frontend/src/uploads
 # Internal planning docs
 docs/ignore_documents
 /backend/ignore_folders_documents
+/ignored_folders
 
 /mockups
 
