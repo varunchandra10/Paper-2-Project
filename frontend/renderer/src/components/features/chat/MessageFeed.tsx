@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { usePanelStore } from '../../../store/panelStore';
 import { DropZone } from '../../ui/DropZone';
-import { FiFileText, FiPlus } from 'react-icons/fi';
+import { IconFileText, IconPlus } from '../../ui/Icons';
 import { MessageBubble } from './MessageBubble';
 
 interface MessageFeedProps {
@@ -19,7 +19,7 @@ export const MessageFeed: React.FC<MessageFeedProps> = ({ isMaximized }) => {
         {messages.length === 0 && (
           <div className="flex-grow flex flex-col items-center justify-center text-center gap-4 max-w-[480px] mx-auto my-auto py-8 select-none animate-fade-in">
             <div className="w-12 h-12 rounded-2xl bg-[var(--accent-subtle)] border border-[var(--accent-border)] flex items-center justify-center shadow-lg shrink-0">
-              <FiFileText className="text-[var(--accent)] text-2xl animate-pulse" />
+              <IconFileText className="text-[var(--accent)] text-2xl animate-pulse" />
             </div>
             <div className="flex flex-col gap-1">
               <h2 className="text-base font-bold tracking-tight text-[var(--text-main)]">
@@ -27,8 +27,8 @@ export const MessageFeed: React.FC<MessageFeedProps> = ({ isMaximized }) => {
               </h2>
               <p className="text-[11px] text-[var(--text-muted)] font-mono tracking-wide leading-relaxed max-w-[400px]">
                 To begin, click the{' '}
-                {!isMaximized && <FiFileText className="inline text-xs mx-0.5 text-[var(--text-main)]" />}{' '}
-                file or <FiPlus className="inline text-xs mx-0.5 text-[var(--text-main)]" /> button in the chatbox
+                {!isMaximized && <IconFileText className="inline text-xs mx-0.5 text-[var(--text-main)]" />}{' '}
+                file or <IconPlus className="inline text-xs mx-0.5 text-[var(--text-main)]" /> button in the chatbox
                 {isMaximized ? ', or drop files directly below.' : '.'}
               </p>
             </div>

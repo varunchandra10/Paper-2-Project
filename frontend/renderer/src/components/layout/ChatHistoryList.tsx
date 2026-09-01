@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { usePanelStore } from '../../store/panelStore';
 import { SkinLoader } from '../ui/SkinLoader';
-import { FiMessageSquare, FiTrash2, FiClock } from 'react-icons/fi';
+import { IconMessageSquare, IconTrash, IconClock } from '../ui/Icons';
 
 export const ChatHistoryList: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
   const {
@@ -26,7 +26,7 @@ export const ChatHistoryList: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
       {/* Drawer Section Header */}
       <div className="px-3 pb-2 flex items-center justify-between shrink-0 font-sans">
         <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">
-          <FiClock className="text-[var(--accent)] text-xs shrink-0" />
+          <IconClock className="text-[var(--accent)] text-xs shrink-0" />
           <span>Research Threads</span>
         </div>
         <span className="text-[10px] font-mono text-[var(--accent)] font-semibold px-1.5 py-0.5 rounded-md bg-[var(--accent-subtle)] border border-[var(--accent)]/30">
@@ -39,8 +39,8 @@ export const ChatHistoryList: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
         {isConversationsLoading ? (
           <SkinLoader type="chat" />
         ) : conversations.length === 0 ? (
-          <div className="py-8 flex flex-col items-center justify-center text-center p-3 rounded-xl border border-dashed border-white/10 bg-white/5 font-sans">
-            <FiMessageSquare className="text-muted-foreground/50 text-base mb-1" />
+          <div className="py-8 flex flex-col items-center justify-center text-center p-3 rounded-xl border border-dashed app-border bg-[var(--bg-base)] font-sans">
+            <IconMessageSquare className="text-[var(--text-muted)] text-base mb-1" />
             <span className="text-[11px] text-[var(--text-muted)]">No previous research threads</span>
           </div>
         ) : (
@@ -53,12 +53,12 @@ export const ChatHistoryList: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
                 onClick={() => selectConversation(convId)}
                 className={`group relative flex items-center justify-between p-2 rounded-xl text-left transition-all duration-150 cursor-pointer border ${
                   isActive
-                    ? 'bg-[var(--accent-subtle)] border-[var(--accent)] text-[var(--accent)] font-bold shadow-xs'
-                    : 'bg-white/5 hover:bg-white/10 border-white/5 text-[var(--text-main)] hover:border-white/15'
+                    ? 'bg-[var(--accent-subtle)] border-[var(--accent)] text-[var(--accent)] font-semibold shadow-xs'
+                    : 'bg-[var(--bg-card)] hover:bg-[var(--accent-subtle)] border-[var(--border-color)] text-[var(--text-main)] hover:border-[var(--accent-border)]'
                 }`}
               >
                 <div className="flex items-center gap-2 min-w-0 flex-1 pr-1">
-                  <FiMessageSquare className={`text-xs shrink-0 transition-colors ${
+                  <IconMessageSquare className={`text-xs shrink-0 transition-colors ${
                     isActive ? 'text-[var(--accent)]' : 'text-[var(--text-muted)] group-hover:text-[var(--accent)]'
                   }`} />
                   <span className="text-xs font-sans truncate leading-snug">
@@ -75,7 +75,7 @@ export const ChatHistoryList: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
                   title="Delete chat thread"
                   className="opacity-0 group-hover:opacity-100 text-[var(--text-muted)] hover:text-red-400 p-1 rounded-lg hover:bg-red-400/10 transition-all duration-150 cursor-pointer shrink-0 outline-none"
                 >
-                  <FiTrash2 className="text-xs" />
+                  <IconTrash className="text-xs" />
                 </button>
               </div>
             );

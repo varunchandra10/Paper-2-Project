@@ -1,6 +1,6 @@
 import os
 import re
-import fitz  # PyMuPDF
+import pymupdf as fitz  # PyMuPDF
 
 
 def get_paper_slug_id(filename: str) -> str:

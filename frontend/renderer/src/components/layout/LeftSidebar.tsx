@@ -4,11 +4,11 @@ import { ChatHistoryList } from './ChatHistoryList';
 import { DocumentHistoryList } from './DocumentHistoryList';
 import { SkinLoader } from '../ui/SkinLoader';
 import { 
-  FiMessageSquare, 
-  FiBookOpen, 
-  FiActivity,
-  FiPlus
-} from 'react-icons/fi';
+  IconMessageSquare, 
+  IconBookOpen, 
+  IconActivity,
+  IconPlus
+} from '../ui/Icons';
 
 interface LeftSidebarProps {
   isMaximized: boolean;
@@ -79,7 +79,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onToggleOpen }
               className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer text-[var(--accent)] bg-[var(--accent-subtle)] border border-[var(--accent-border)] hover:scale-105 active:scale-95 shadow-xs mb-1"
               title="New Research Conversation"
             >
-              <FiPlus className="w-4 h-4" />
+              <IconPlus className="text-xs" />
             </button>
 
             {/* 1st Button: Chat / Conversation History */}
@@ -92,7 +92,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onToggleOpen }
               }`}
               title="Conversational History"
             >
-              <FiMessageSquare className="w-4 h-4" />
+                <IconMessageSquare className="text-xs shrink-0" />
             </button>
 
             {/* 2nd Button: Document History */}
@@ -105,7 +105,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onToggleOpen }
               }`}
               title="Document History"
             >
-              <FiBookOpen className="w-4 h-4" />
+                <IconBookOpen className="text-xs shrink-0" />
             </button>
 
             {/* 3rd Button: Hardware Radar */}
@@ -118,7 +118,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onToggleOpen }
               }`}
               title="Hardware Radar"
             >
-              <FiActivity className="w-4 h-4" />
+                <IconActivity className="text-xs shrink-0" />
             </button>
           </nav>
         </div>

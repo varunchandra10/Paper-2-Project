@@ -1,6 +1,6 @@
 import React from 'react';
 import { usePanelStore } from '../../../store/panelStore';
-import { FaArrowLeft, FaRegFilePdf } from 'react-icons/fa6';
+import { IconBack, IconPdf } from '../../ui/Icons';
 
 export const PdfViewerPage: React.FC = () => {
   const { activePaperId, uploadedFileName, setActiveView } = usePanelStore();
@@ -23,9 +23,10 @@ export const PdfViewerPage: React.FC = () => {
         <span className="text-xs font-mono text-[var(--text-muted)]">No PDF selected.</span>
         <button
           onClick={handleBack}
-          className="text-[10px] font-mono font-bold bg-[var(--accent-subtle)] hover:bg-[var(--accent)] hover:text-white text-[var(--accent)] border border-[var(--accent-border)] px-4 py-2 rounded-xl transition-all"
+          className="p-2 rounded-xl border app-border bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-subtle)] transition-all cursor-pointer flex items-center justify-center active:scale-95 shadow-xs"
+          title="Return to Chat"
         >
-          Return to Chat
+          <IconBack className="text-base" />
         </button>
       </div>
     );
@@ -33,27 +34,22 @@ export const PdfViewerPage: React.FC = () => {
 
   return (
     <div className="flex-1 w-full h-full flex flex-col overflow-hidden bg-[var(--bg-base)] text-[var(--text-main)]">
-      {/* ── Premium Header Navigation ── */}
-      <div className="h-14 px-6 border-b app-border flex justify-between items-center bg-[var(--bg-card)] shrink-0">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={handleBack}
-            className="flex items-center gap-2 text-[10px] font-mono font-bold bg-[var(--bg-base)] hover:bg-[var(--accent)] hover:text-white text-[var(--text-main)] border app-border px-3.5 py-1.5 rounded-xl transition-all duration-200 cursor-pointer shadow-xs"
-          >
-            <FaArrowLeft className="text-[10px]" />
-            BACK TO WORKSPACE
-          </button>
-          
-          <div className="flex items-center gap-2 border-l app-border pl-4">
-            <FaRegFilePdf className="text-[var(--accent)] text-sm shrink-0" />
-            <span className="text-[11px] font-mono font-semibold text-[var(--text-main)] truncate max-w-[400px]">
-              {uploadedFileName || `${activePaperId}.pdf`}
-            </span>
-          </div>
-        </div>
 
-        <div className="text-[8px] font-mono font-bold bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--accent-border)] px-2 py-0.5 rounded-full select-none">
-          EMBEDDED READER
+      {/* ── Slim inline nav strip — icon-only back + filename, no full top bar ── */}
+      <div className="flex items-center gap-3 px-4 py-2 border-b app-border bg-[var(--bg-base)] shrink-0">
+        <button
+          onClick={handleBack}
+          className="p-2 rounded-xl border app-border bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-subtle)] transition-all cursor-pointer flex items-center justify-center active:scale-95 shadow-xs"
+          title="Return to Chat"
+        >
+          <IconBack className="text-base" />
+        </button>
+
+        <div className="flex items-center gap-1.5 min-w-0">
+          <IconPdf className="text-[var(--accent)] text-xs shrink-0" />
+          <span className="text-[11px] font-mono font-semibold text-[var(--text-muted)] truncate max-w-[400px]">
+            {uploadedFileName || `${activePaperId}.pdf`}
+          </span>
         </div>
       </div>
 

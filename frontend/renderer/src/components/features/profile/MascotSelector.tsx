@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiCheck } from 'react-icons/fi';
+import { IconCheck } from '../../ui/Icons';
 import mrNerdyStandSleep from '../../../assets/mr_nerdy_stand_sleep-removebg-preview.png';
 
 export interface MascotOption {
@@ -66,7 +66,7 @@ export const MascotSelector: React.FC<MascotSelectorProps> = ({
               
               {isSelected && (
                 <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[var(--accent)] text-white rounded-full flex items-center justify-center text-[10px] font-black border-2 border-[var(--bg-base)] shadow-xs">
-                  <FiCheck className="stroke-[3]" />
+                  <IconCheck />
                 </span>
               )}
             </div>

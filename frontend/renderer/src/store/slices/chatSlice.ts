@@ -57,16 +57,31 @@ export const createChatSlice: StateCreator<PanelState, [], [], ChatSlice> = (set
       const data = await response.json();
       const rawMsgs = Array.isArray(data) ? data : (data.messages || []);
       const { activePaperId, uploadedFileName } = get();
-      
+
+      // Only the FIRST user message gets the PDF attachment card (Claude-style).
+      // All subsequent user messages are plain text prompts.
+      let firstUserMsgSeen = false;
+
       const loadedMessages: ChatMessage[] = rawMsgs.map((m: any, idx: number) => {
         let attachment = m.attachment;
-        if (!attachment && m.role === 'user') {
-          const pId = m.paper_id || activePaperId;
-          if (pId) {
-            const fName = uploadedFileName || `${pId.replace('paper_', '')}.pdf`;
-            attachment = { filename: fName, paperId: pId };
+
+        if (m.role === 'user') {
+          if (!firstUserMsgSeen) {
+            // First user message — attach PDF if available
+            firstUserMsgSeen = true;
+            if (!attachment) {
+              const pId = m.paper_id || activePaperId;
+              if (pId) {
+                const fName = uploadedFileName || `${pId.replace('paper_', '')}.pdf`;
+                attachment = { filename: fName, paperId: pId };
+              }
+            }
+          } else {
+            // Subsequent user messages — strip any attachment (plain prompt)
+            attachment = undefined;
           }
         }
+
         return {
           id: m.id || m.message_id || `msg_${idx}_${Math.random().toString(36).substring(7)}`,
           role: m.role || 'user',

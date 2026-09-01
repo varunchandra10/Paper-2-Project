@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiUser, FiChevronRight } from 'react-icons/fi';
+import { IconUser, IconForward } from './Icons';
 import { usePanelStore } from '../../store/panelStore';
 
 interface UserProfileCardProps {
@@ -33,7 +33,7 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({ isOpen }) => {
         <div className="flex items-center gap-3 min-w-0 flex-1">
           {/* Avatar Icon Box */}
           <div className="relative w-9 h-9 rounded-xl bg-brass/15 border border-brass/40 text-brass flex items-center justify-center font-mono shadow-[0_0_12px_rgba(212,163,56,0.15)] shrink-0 group-hover:scale-105 group-hover:border-brass transition-all duration-200">
-            <FiUser className="text-base" />
+            <IconUser className="text-base" />
             <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-processing animate-pulse shadow-[0_0_6px_var(--processing)]" />
           </div>
 
@@ -48,7 +48,7 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({ isOpen }) => {
           </div>
         </div>
 
-        <FiChevronRight className="text-xs text-muted-foreground/60 group-hover:text-brass group-hover:translate-x-0.5 transition-all duration-200 shrink-0 ml-1" />
+        <IconForward className="text-xs text-muted-foreground/60 group-hover:text-brass group-hover:translate-x-0.5 transition-all duration-200 shrink-0 ml-1" />
       </div>
     );
   }
@@ -64,7 +64,7 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({ isOpen }) => {
       aria-label="Open developer profile"
       className="relative w-10 h-10 rounded-xl bg-brass/15 border border-brass/40 text-brass flex items-center justify-center cursor-pointer hover:bg-brass/25 hover:border-brass transition-all duration-200 shadow-[0_0_10px_rgba(212,163,56,0.12)] hover:shadow-[0_0_18px_rgba(212,163,56,0.25)] active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-brass group"
     >
-      <FiUser className="text-base group-hover:scale-110 transition-transform duration-200" />
+      <IconUser className="text-base group-hover:scale-110 transition-transform duration-200" />
       <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-processing animate-pulse shadow-[0_0_6px_var(--processing)]" />
     </div>
   );

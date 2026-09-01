@@ -24,47 +24,47 @@ export const MilestoneTracker: React.FC = () => {
             key={idx}
             className={`relative flex items-center p-3 rounded-lg border transition-all duration-300 ${
               isCompleted 
-                ? 'border-confirmed/30 bg-confirmed/5' 
+                ? 'border-emerald-500/30 bg-emerald-500/10' 
                 : isActive 
-                  ? 'border-brass bg-brass/5 shadow-[0_0_12px_rgba(201,154,62,0.1)]' 
-                  : 'border-border bg-muted/20 opacity-55'
+                  ? 'border-[var(--accent)] bg-[var(--accent-subtle)] shadow-[0_0_12px_rgba(0,0,0,0.05)]' 
+                  : 'border app-border bg-[var(--bg-base)] opacity-60'
             }`}
           >
             {/* Visual Indicator (Dot or Ring) */}
             <div className="mr-3.5 flex-shrink-0 relative">
               <div className={`h-3 w-3 rounded-full border transition-all duration-300 ${
                 isCompleted 
-                  ? 'bg-confirmed border-confirmed shadow-[0_0_8px_rgba(107,155,124,0.4)]' 
+                  ? 'bg-emerald-500 border-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]' 
                   : isActive 
-                    ? 'bg-brass border-brass animate-pulse shadow-[0_0_8px_rgba(201,154,62,0.5)]' 
-                    : 'bg-transparent border-border'
+                    ? 'bg-[var(--accent)] border-[var(--accent)] animate-pulse shadow-[0_0_8px_rgba(0,0,0,0.2)]' 
+                    : 'bg-transparent border-[var(--border-color)]'
               }`} />
             </div>
 
             {/* Content Details */}
-            <div className="flex-1 flex flex-col">
-              <span className={`text-[11px] font-bold tracking-tight font-serif ${
+            <div className="flex-1 flex flex-col font-sans">
+              <span className={`text-[11px] font-bold tracking-tight ${
                 isCompleted 
-                  ? 'text-confirmed line-through decoration-confirmed/30' 
+                  ? 'text-emerald-500 line-through decoration-emerald-500/30' 
                   : isActive 
-                    ? 'text-brass font-extrabold' 
-                    : 'text-foreground/75'
+                    ? 'text-[var(--accent)] font-extrabold' 
+                    : 'text-[var(--text-main)]'
               }`}>
                 {milestone.name}
               </span>
-              <span className="text-[8px] text-muted-foreground mt-0.5 leading-normal">
+              <span className="text-[8px] text-[var(--text-muted)] mt-0.5 leading-normal">
                 {milestone.desc}
               </span>
             </div>
 
-            {/* Vintage Library Ink Stamp overlay */}
+            {/* Vintage Ink Stamp overlay */}
             {isCompleted && (
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 border-2 border-confirmed/50 text-confirmed text-[7px] font-mono uppercase tracking-widest font-extrabold px-1.5 py-0.5 rounded rotate-12 select-none pointer-events-none scale-110 opacity-70">
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 border-2 border-emerald-500/50 text-emerald-500 text-[7px] font-mono uppercase tracking-widest font-extrabold px-1.5 py-0.5 rounded rotate-12 select-none pointer-events-none scale-110 opacity-70">
                 PASSED
               </div>
             )}
             {isActive && (
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 border border-brass/50 text-brass text-[7px] font-mono uppercase tracking-widest font-extrabold px-1.5 py-0.5 rounded animate-pulse select-none pointer-events-none opacity-60">
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 border border-[var(--accent-border)] text-[var(--accent)] text-[7px] font-mono uppercase tracking-widest font-extrabold px-1.5 py-0.5 rounded animate-pulse select-none pointer-events-none opacity-80">
                 ACTIVE
               </div>
             )}
