@@ -27,7 +27,7 @@ export const MilestoneTracker: React.FC = () => {
                 ? 'border-confirmed/30 bg-confirmed/5' 
                 : isActive 
                   ? 'border-brass bg-brass/5 shadow-[0_0_12px_rgba(201,154,62,0.1)]' 
-                  : 'border-border bg-black/10 opacity-55'
+                  : 'border-border bg-muted/20 opacity-55'
             }`}
           >
             {/* Visual Indicator (Dot or Ring) */}

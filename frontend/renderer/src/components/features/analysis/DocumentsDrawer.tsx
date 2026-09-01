@@ -9,8 +9,13 @@ export const DocumentsDrawer: React.FC = () => {
     isHistoryOpen, 
     toggleHistory, 
     loadHistoryItem, 
-    deleteHistoryItem 
+    deleteHistoryItem,
+    fetchUploadedPapers 
   } = usePanelStore();
+
+  React.useEffect(() => {
+    fetchUploadedPapers();
+  }, [fetchUploadedPapers]);
 
   return (
     <aside 

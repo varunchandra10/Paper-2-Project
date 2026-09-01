@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { usePanelStore } from '../../store/panelStore';
 import { Header } from '../layout/Header';
 import { LeftSidebar } from '../layout/LeftSidebar';
@@ -9,7 +9,8 @@ import { LogsDrawer } from '../features/logs/LogsDrawer';
 import { DocumentsDrawer } from '../features/analysis/DocumentsDrawer';
 import { LocalAuthModal } from '../ui/LocalAuthModal';
 import { UserProfile } from '../features/profile/UserProfile';
-import { FiUploadCloud } from 'react-icons/fi';
+import { DragDropOverlay } from '../ui/DragDropOverlay';
+import { PdfViewerPage } from '../features/analysis/PdfViewerPage';
 
 interface StagedFile {
   filename: string;
@@ -24,10 +25,35 @@ export const Panel: React.FC = () => {
   const [stagedFile, setStagedFile] = useState<StagedFile | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  // Hidden file input ref — browser-native file picker
+  // Hidden file input ref & scroll container ref
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  const { isPanelOpen, uploadPaper, sendMessage, resetAnalysis, activeView } = usePanelStore();
+  const { 
+    isPanelOpen, 
+    uploadPaper, 
+    sendMessage, 
+    resetAnalysis, 
+    activeView, 
+    initIpcListeners,
+    messages,
+    isChatGenerating 
+  } = usePanelStore();
+
+  // ── Initialize Electron IPC listeners on mount ──
+  useEffect(() => {
+    initIpcListeners();
+  }, [initIpcListeners]);
+
+  // ── Auto-scroll full-height container to bottom on new messages ──
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
+  }, [messages, isChatGenerating]);
 
   // ── Maximize toggle ──
   const handleToggleMaximize = () => {
@@ -90,9 +116,10 @@ export const Panel: React.FC = () => {
   // ── User hits Send ──
   const handleSend = (message: string) => {
     if (message) {
-      sendMessage(message);
+      sendMessage(message, stagedFile !== null);
     }
     setChatInputValue('');
+    setStagedFile(null);
   };
 
   if (!isPanelOpen) return null;
@@ -102,7 +129,7 @@ export const Panel: React.FC = () => {
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className="relative w-full h-full flex bg-background text-foreground font-sans overflow-hidden select-none transition-colors duration-300"
+      className="relative w-full h-full flex flex-col bg-[var(--bg-rail)] text-[var(--text-main)] font-sans overflow-hidden select-none transition-colors duration-300"
     >
       {/* Hidden browser-native file input */}
       <input
@@ -114,63 +141,73 @@ export const Panel: React.FC = () => {
       />
 
       {/* ── Drag & Drop Active Backdrop Overlay ── */}
-      {isDragging && (
-        <div className="absolute inset-0 z-50 bg-background/90 backdrop-blur-md border-2 border-dashed border-brass/60 flex flex-col items-center justify-center gap-3 animate-fade-in pointer-events-none">
-          <div className="w-16 h-16 rounded-2xl bg-brass/10 border border-brass/40 flex items-center justify-center text-brass shadow-[0_0_20px_rgba(212,175,55,0.2)] animate-bounce">
-            <FiUploadCloud className="text-3xl" />
-          </div>
-          <div className="flex flex-col items-center gap-1">
-            <span className="text-sm font-bold font-mono text-foreground tracking-wide">
-              Drop Document Here
-            </span>
-            <span className="text-xs font-mono text-muted-foreground">
-              Supports PDF and DOCX analysis
-            </span>
-          </div>
-        </div>
-      )}
+      <DragDropOverlay isDragging={isDragging} />
 
-      {/* 1. Left Sidebar (Maximized mode view) */}
-      <LeftSidebar isMaximized={isMaximized} isOpen={isSidebarOpen} />
+      {/* ── FULL-WIDTH TOP HEADER (seamless inverted L-frame) ── */}
+      <Header
+        isMaximized={isMaximized}
+        handleToggleMaximize={handleToggleMaximize}
+        isSidebarOpen={isSidebarOpen}
+        onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+      />
 
-      {/* 2. Main Viewport Workspace */}
-      <section className="flex-1 h-full flex flex-col overflow-hidden relative min-w-0 bg-gradient-to-b from-transparent via-background/50 to-background/90">
-        
-        {/* Top Navigation Header */}
-        <Header
-          isMaximized={isMaximized}
-          handleToggleMaximize={handleToggleMaximize}
-          isSidebarOpen={isSidebarOpen}
-          onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+      {/* ── BELOW HEADER: RAIL + SIDEBAR + MAIN (seamless L-frame flex-row) ── */}
+      <div className="flex flex-1 overflow-hidden app-rail">
+        {/* Left Sidebar (Slim Icon Rail + Expanded Papers Drawer) */}
+        <LeftSidebar 
+          isMaximized={isMaximized} 
+          isOpen={isSidebarOpen} 
+          onToggleOpen={() => setIsSidebarOpen((prev) => !prev)}
         />
 
-        {activeView === 'profile' ? (
-          <UserProfile />
-        ) : (
-          <>
-            {/* Conversation Stream */}
-            <MessageFeed isMaximized={isMaximized} />
+        {/* ── CENTER MAIN CONTENT CONTAINER (Floating Editor Panel - No Top Gap) ── */}
+        <main className="flex-1 flex flex-col overflow-hidden bg-[var(--bg-base)] mb-1.5 mr-1.5 rounded-xl border app-border shadow-xs transition-colors relative min-w-0">
+          {activeView === 'profile' ? (
+            <UserProfile />
+          ) : activeView === 'pdf-viewer' ? (
+            <PdfViewerPage />
+          ) : (
+            <div 
+              ref={scrollRef}
+              className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-[var(--text-muted)]/30 scrollbar-track-transparent relative w-full flex flex-col justify-between"
+            >
+              {/* Conversation Stream */}
+              <MessageFeed isMaximized={isMaximized} />
 
-            {/* Input Dock Area */}
-            <ChatInputArea
-              isMaximized={isMaximized}
-              chatInputValue={chatInputValue}
-              setChatInputValue={setChatInputValue}
-              handleBrowseFile={handleBrowseFile}
-              stagedFile={stagedFile ? { filename: stagedFile.filename, filePath: '', type: stagedFile.type } : null}
-              onClearStagedFile={() => { setStagedFile(null); resetAnalysis(); }}
-              onSend={handleSend}
-            />
-          </>
-        )}
+              {/* Sticky Floating Bottom Area (Input Dock + Claude Footer) */}
+              <div className="sticky bottom-0 z-20 w-full flex flex-col items-center bg-gradient-to-t from-[var(--bg-base)] via-[var(--bg-base)]/95 to-transparent pt-4 pb-2 px-4 shrink-0">
+                <ChatInputArea
+                  isMaximized={isMaximized}
+                  chatInputValue={chatInputValue}
+                  setChatInputValue={setChatInputValue}
+                  handleBrowseFile={handleBrowseFile}
+                  stagedFile={stagedFile ? { filename: stagedFile.filename, filePath: '', type: stagedFile.type } : null}
+                  onClearStagedFile={() => { setStagedFile(null); resetAnalysis(); }}
+                  onSend={handleSend}
+                />
 
-        {/* Slide-Up Drawers */}
-        <LogsDrawer />
-        {!isMaximized && <DocumentsDrawer />}
-      </section>
+                {/* Claude-style Footer Disclaimer */}
+                <div className="w-full max-w-[800px] px-6 pt-1 pb-1 flex items-center justify-between text-[11px] text-[var(--text-muted)] font-sans">
+                  <span>Synthexis runs on free local models; apologies for any latency</span>
+                  <button 
+                    onClick={() => usePanelStore.getState().toggleLogs()} 
+                    className="underline underline-offset-2 hover:text-[var(--text-main)] transition-colors cursor-pointer font-mono text-[10px]"
+                  >
+                    Terminal Logs
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
-      {/* 3. Right Sidebar (Maximized documents history pane) */}
-      <RightSidebar isMaximized={isMaximized} />
+          {/* Slide-Up Drawers */}
+          <LogsDrawer />
+          {!isMaximized && <DocumentsDrawer />}
+        </main>
+
+        {/* Right Sidebar (Documents history pane) */}
+        <RightSidebar isMaximized={isMaximized} />
+      </div>
 
       {/* Authentication / Onboarding Modal */}
       <LocalAuthModal />

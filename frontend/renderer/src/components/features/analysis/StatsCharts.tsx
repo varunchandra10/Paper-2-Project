@@ -18,12 +18,12 @@ export const StatsCharts: React.FC = () => {
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   return (
-    <div className="flex items-center gap-5 bg-black/15 border border-border rounded-xl p-4 shadow-inner">
+    <div className="flex items-center gap-5 bg-[var(--bg-card)] border app-border rounded-xl p-4 shadow-inner text-[var(--text-main)]">
       {/* SVG Circular Ring */}
       <div className="relative w-20 h-20 flex-shrink-0">
         <svg className="w-full h-full transform -rotate-90" viewBox="0 0 80 80">
           <circle 
-            className="text-border" 
+            className="text-[var(--border-color)]" 
             strokeWidth="5" 
             stroke="currentColor" 
             fill="transparent" 
@@ -32,7 +32,7 @@ export const StatsCharts: React.FC = () => {
             cy="40" 
           />
           <circle 
-            className="text-brass transition-all duration-700 ease-out" 
+            className="text-[var(--accent)] transition-all duration-700 ease-out" 
             strokeWidth="5" 
             strokeDasharray={circumference} 
             strokeDashoffset={strokeDashoffset} 
@@ -45,8 +45,8 @@ export const StatsCharts: React.FC = () => {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-          <span className="text-[14px] font-mono font-extrabold tracking-tighter leading-none">{progress}%</span>
-          <span className="text-[6.5px] uppercase font-bold tracking-wider text-muted-foreground mt-0.5">Ingested</span>
+          <span className="text-[14px] font-mono font-extrabold tracking-tighter leading-none text-[var(--text-main)]">{progress}%</span>
+          <span className="text-[6.5px] uppercase font-bold tracking-wider text-[var(--text-muted)] mt-0.5">Ingested</span>
         </div>
       </div>
 
@@ -55,12 +55,12 @@ export const StatsCharts: React.FC = () => {
         {/* Metric 1 */}
         <div className="flex flex-col gap-1">
           <div className="flex justify-between items-center text-[10px] font-bold">
-            <span className="text-foreground/60">Decomposition Score</span>
-            <span className="text-brass font-mono">{decompScore}%</span>
+            <span className="text-[var(--text-muted)]">Decomposition Score</span>
+            <span className="text-[var(--accent)] font-mono">{decompScore}%</span>
           </div>
-          <div className="w-full h-1.5 bg-black/20 rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-[var(--bg-base)] rounded-full overflow-hidden">
             <div 
-              className="h-full bg-brass rounded-full shadow-[0_0_6px_rgba(201,154,62,0.3)] transition-all duration-700 ease-out"
+              className="h-full bg-[var(--accent)] rounded-full transition-all duration-700 ease-out"
               style={{ width: `${decompScore}%` }}
             />
           </div>
@@ -69,12 +69,12 @@ export const StatsCharts: React.FC = () => {
         {/* Metric 2 */}
         <div className="flex flex-col gap-1">
           <div className="flex justify-between items-center text-[10px] font-bold">
-            <span className="text-foreground/60">Param Certainty</span>
-            <span className="text-brass font-mono">{paramCertainty}%</span>
+            <span className="text-[var(--text-muted)]">Param Certainty</span>
+            <span className="text-[var(--accent)] font-mono">{paramCertainty}%</span>
           </div>
-          <div className="w-full h-1.5 bg-black/20 rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-[var(--bg-base)] rounded-full overflow-hidden">
             <div 
-              className="h-full bg-brass rounded-full shadow-[0_0_6px_rgba(201,154,62,0.3)] transition-all duration-700 ease-out"
+              className="h-full bg-[var(--accent)] rounded-full transition-all duration-700 ease-out"
               style={{ width: `${paramCertainty}%` }}
             />
           </div>
