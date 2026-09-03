@@ -76,44 +76,19 @@ def local_login(req: LocalLoginRequest):
 @router.get("/profile")
 @router.get("/user/profile")
 def get_user_profile(user_id: str = "usr_1"):
-    """Gets persistent user profile from database."""
-    data = db._load_fallback()
-    users = data.get("users", {})
-    user = users.get(user_id) or next(iter(users.values()), None)
-    if not user:
-        return {
-            "user_id": user_id,
-            "username": "Varun Chandra",
-            "email": "varunchandra10@gmail.com",
-            "dob": "2000-01-01",
-            "age": "26",
-            "phoneNumber": "+1 (555) 019-2834",
-            "projectPath": "c:\\Users\\kvcsu_ht23nk8\\OneDrive\\Desktop\\all_Projects\\Projects\\agentic_projects\\Paper-2-Project",
-            "ollamaLink": "http://localhost:11434",
-            "avatarId": "mr-nerdy"
-        }
-    return {
-        "user_id": user.get("id", user_id),
-        "username": user.get("username") or user.get("full_name") or "Varun Chandra",
-        "email": user.get("email") or "varunchandra10@gmail.com",
-        "dob": user.get("dob"),
-        "age": user.get("age"),
-        "phoneNumber": user.get("phoneNumber") or user.get("phone_number"),
-        "projectPath": user.get("projectPath") or user.get("project_path"),
-        "ollamaLink": user.get("ollamaLink") or user.get("ollama_link"),
-        "avatarId": user.get("avatarId") or user.get("avatar_id") or "mr-nerdy"
-    }
+    """Gets persistent user profile from storage/history/user_profile.json."""
+    return db.get_standalone_user_profile()
 
 
 @router.put("/profile")
 @router.put("/user/profile")
 @router.post("/user/profile")
 def update_user_profile_endpoint(req: UserProfileUpdate, user_id: str = "usr_1"):
-    """Persists extended user profile into JSON database and exports to user_profiles.xlsx spreadsheet."""
+    """Persists user profile directly into storage/history/user_profile.json."""
     profile_dict = req.model_dump(exclude_unset=True)
-    updated = db.update_user_profile(user_id, profile_dict)
+    updated = db.save_standalone_user_profile(profile_dict)
     return {
         "status": "success",
-        "message": "User profile saved and exported to user_profiles.xlsx",
+        "message": "User profile saved to user_profile.json",
         "user": updated
     }

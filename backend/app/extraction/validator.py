@@ -111,7 +111,9 @@ def validate_paper_document(doc: PaperDocument) -> ExtractionQualityReport:
     seen_sentences = {}
     
     for sec in sections:
-        text = sec.content + " " + " ".join(sec.subsections.values())
+        subs = getattr(sec, "subsections", {})
+        sub_text = " ".join(subs.values()) if isinstance(subs, dict) else ""
+        text = (getattr(sec, "content", "") or "") + " " + sub_text
         sentences = [s.strip() for s in re.split(r'\.\s+', text) if len(s.strip()) > 80]
         
         for sentence in sentences:
@@ -143,15 +145,21 @@ def validate_paper_document(doc: PaperDocument) -> ExtractionQualityReport:
 
     # 5. Suspicious Empty Pages Check
     empty_pages = []
-    for page_info in doc.pages:
-        p_num = page_info.page
-        char_count = page_info.character_count
+    doc_pages = getattr(doc, "pages", [])
+    doc_figures = getattr(doc, "figures", [])
+    doc_tables = getattr(doc, "tables", [])
+    doc_equations = getattr(doc, "equations", [])
+    doc_algorithms = getattr(doc, "algorithms", [])
+
+    for page_info in doc_pages:
+        p_num = getattr(page_info, "page", 1)
+        char_count = getattr(page_info, "character_count", 0)
         
         has_fig_or_tab = (
-            any(f.page == p_num for f in doc.figures) or
-            any(t.page == p_num for t in doc.tables) or
-            any(eq.page == p_num for eq in doc.equations) or
-            any(alg.page == p_num for alg in doc.algorithms)
+            any(getattr(f, "page", None) == p_num for f in doc_figures) or
+            any(getattr(t, "page", None) == p_num for t in doc_tables) or
+            any(getattr(eq, "page", None) == p_num for eq in doc_equations) or
+            any(getattr(alg, "page", None) == p_num for alg in doc_algorithms)
         )
         
         if char_count < 100 and not has_fig_or_tab:
@@ -171,7 +179,7 @@ def validate_paper_document(doc: PaperDocument) -> ExtractionQualityReport:
         )
 
     # 6. References Check
-    refs = doc.references
+    refs = getattr(doc, "references", [])
     if len(refs) < 3:
         scorecard["references_check"] = ValidationMetric(
             status="WARNING",
@@ -186,9 +194,13 @@ def validate_paper_document(doc: PaperDocument) -> ExtractionQualityReport:
         )
 
     # 7. Abnormal Text Coverage Check
-    total_pages = len(doc.pages)
-    total_chars = sum(p.character_count for p in doc.pages)
-    avg_coverage = total_chars / total_pages if total_pages > 0 else 0
+    total_pages = len(doc_pages)
+    if total_pages > 0:
+        total_chars = sum(getattr(p, "character_count", 0) for p in doc_pages)
+        avg_coverage = total_chars / total_pages
+    else:
+        total_chars = sum(len(getattr(s, "content", "")) for s in getattr(doc, "sections", []))
+        avg_coverage = total_chars
     
     if avg_coverage < 500:
         scorecard["text_coverage"] = ValidationMetric(
@@ -205,10 +217,12 @@ def validate_paper_document(doc: PaperDocument) -> ExtractionQualityReport:
 
     # 8. Malformed Tables Check
     malformed_tables = []
-    for table in doc.tables:
-        lines = [l.strip() for l in table.content_markdown.split('\n') if l.strip()]
+    for table in doc_tables:
+        t_id = table.get("id", "tbl") if isinstance(table, dict) else getattr(table, "id", "tbl")
+        t_md = table.get("content_markdown", "") if isinstance(table, dict) else getattr(table, "content_markdown", "")
+        lines = [l.strip() for l in (t_md or "").split('\n') if l.strip()]
         if not lines:
-            malformed_tables.append(f"[{table.id}] Table is empty")
+            malformed_tables.append(f"[{t_id}] Table is empty")
             continue
             
         row_widths = []
@@ -219,7 +233,7 @@ def validate_paper_document(doc: PaperDocument) -> ExtractionQualityReport:
             row_widths.append(len(cells))
             
         if len(row_widths) > 1 and len(set(row_widths)) > 1:
-            malformed_tables.append(f"[{table.id}] inconsistent cell count: {list(set(row_widths))}")
+            malformed_tables.append(f"[{t_id}] inconsistent cell count: {list(set(row_widths))}")
 
     if malformed_tables:
         scorecard["malformed_tables"] = ValidationMetric(
@@ -236,12 +250,16 @@ def validate_paper_document(doc: PaperDocument) -> ExtractionQualityReport:
 
     # 9. Missing Captions Check
     missing_captions = []
-    for fig in doc.figures:
-        if not fig.caption or len(fig.caption.strip()) < 5:
-            missing_captions.append(f"Figure [{fig.id}]")
-    for table in doc.tables:
-        if not table.caption or len(table.caption.strip()) < 5:
-            missing_captions.append(f"Table [{table.id}]")
+    for fig in doc_figures:
+        fig_id = fig.get("id", "fig") if isinstance(fig, dict) else getattr(fig, "id", "fig")
+        caption = fig.get("caption", "") if isinstance(fig, dict) else getattr(fig, "caption", "")
+        if not caption or len(str(caption).strip()) < 5:
+            missing_captions.append(f"Figure [{fig_id}]")
+    for table in doc_tables:
+        t_id = table.get("id", "tbl") if isinstance(table, dict) else getattr(table, "id", "tbl")
+        caption = table.get("caption", "") if isinstance(table, dict) else getattr(table, "caption", "")
+        if not caption or len(str(caption).strip()) < 5:
+            missing_captions.append(f"Table [{t_id}]")
             
     if missing_captions:
         scorecard["missing_captions"] = ValidationMetric(
@@ -257,7 +275,8 @@ def validate_paper_document(doc: PaperDocument) -> ExtractionQualityReport:
         )
 
     # Conflict Logging Fallback
-    conflict_log = doc.extraction_metadata.get("conflicts", [])
+    ext_meta = getattr(doc, "extraction_metadata", {})
+    conflict_log = ext_meta.get("conflicts", []) if isinstance(ext_meta, dict) else []
     for conf in conflict_log:
         conflicts_logged.append({
             "check": "merger_discrepancy",
@@ -265,10 +284,14 @@ def validate_paper_document(doc: PaperDocument) -> ExtractionQualityReport:
         })
 
     valid = not any(metric.status == "ERROR" for metric in scorecard.values())
+    total_metrics = len(scorecard)
+    success_metrics = sum(1 for m in scorecard.values() if m.status == "SUCCESS")
+    score = round((success_metrics / max(total_metrics, 1)) * 100, 1)
 
     return ExtractionQualityReport(
-        paper_id=doc.paper_id,
+        paper_id=getattr(doc, "paper_id", "paper"),
         valid=valid,
         scorecard=scorecard,
+        completeness_score=score,
         conflicts_logged=conflicts_logged
     )

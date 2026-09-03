@@ -15,6 +15,7 @@ frontend/src/uploads
 
 # Internal planning docs
 docs/ignore_documents
+docs/new_backend_docs/e_2_e_reports
 /backend/ignore_folders_documents
 /ignored_folders
 

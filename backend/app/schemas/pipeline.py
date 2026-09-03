@@ -10,6 +10,21 @@ class ParameterDetails(BaseModel):
     source_section: str = ""
 
 
+class Component(BaseModel):
+    name: str = Field(description="The name of the component")
+    type: str = Field(description="The category of the component: 'encoder', 'fusion', 'decoder', 'loss', 'training'")
+    description: str = Field(default="", description="A brief description of what this component does")
+    inputs: List[str] = Field(default_factory=list, description="List of input tensors")
+    outputs: List[str] = Field(default_factory=list, description="List of output tensors")
+    parameters: Dict[str, ParameterDetails] = Field(default_factory=dict, description="Hyperparameters for this component")
+
+
+class ComponentGraph(BaseModel):
+    components: List[Component] = Field(default_factory=list, description="List of all structural architecture components")
+    edges: List[Dict[str, str]] = Field(default_factory=list, description="Directed data flow edges connecting components")
+
+
+
 class ExtractedParameters(BaseModel):
     learning_rate: ParameterDetails = Field(default_factory=lambda: ParameterDetails(value="0.0001", confidence=90))
     batch_size: ParameterDetails = Field(default_factory=lambda: ParameterDetails(value="4", confidence=95))
