@@ -67,7 +67,7 @@ def extract_docling(pdf_path: str) -> dict:
             for element, _ in result.document.iterate_items():
                 if getattr(element, "label", None) == "table":
                     try:
-                        df = element.export_to_dataframe()
+                        df = element.export_to_dataframe(doc=result.document) if hasattr(element, "export_to_dataframe") else None
                         if df is not None and not df.empty:
                             table_md = df.to_markdown(index=False)
                             caption = getattr(element, "caption", f"Table {table_idx}")

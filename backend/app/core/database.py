@@ -66,46 +66,70 @@ class ChatDatabase:
         }
         data["users"][user_id] = user_data
         self._save_fallback(data)
+        self.sync_user_registry_webhook(email, full_name)
         return user_data
 
-    def export_users_to_excel(self):
-        """Exports all registered users and extended profile details to an Excel spreadsheet."""
+    def sync_user_registry_webhook(self, email: str, username: str):
+        """Syncs user email and username to online Webhook API if configured."""
+        if settings.USER_REGISTRY_WEBHOOK and "your_" not in settings.USER_REGISTRY_WEBHOOK.lower():
+            try:
+                import requests
+                requests.post(
+                    settings.USER_REGISTRY_WEBHOOK,
+                    json={
+                        "email": email,
+                        "username": username,
+                        "timestamp": datetime.datetime.now().isoformat()
+                    },
+                    timeout=5
+                )
+                print(f"[DB WEBHOOK] Synced user ({email}) to registry webhook API.")
+            except Exception as w_err:
+                print(f"[DB WEBHOOK WARN] Webhook sync notice: {w_err}")
+
+    def get_standalone_user_profile(self) -> dict:
+        """Loads user profile directly from storage/history/user_profile.json."""
+        profile_file = settings.USER_PROFILE_FILE
+        if os.path.exists(profile_file):
+            try:
+                with open(profile_file, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception as e:
+                print(f"[DB WARN] Failed to read user_profile.json ({e}).")
+        return {
+            "user_id": "usr_1",
+            "username": "Varun Chandra",
+            "email": "varunchandra10@gmail.com",
+            "dob": "2000-01-01",
+            "age": "26",
+            "phoneNumber": "+1 (555) 019-2834",
+            "projectPath": settings.BASE_DIR,
+            "ollamaLink": "",
+            "avatarId": "mr-nerdy"
+        }
+
+    def save_standalone_user_profile(self, profile_dict: dict) -> dict:
+        """Saves user profile directly into storage/history/user_profile.json."""
+        current = self.get_standalone_user_profile()
+        for k, v in profile_dict.items():
+            if v is not None:
+                current[k] = v
+        current["updated_at"] = datetime.datetime.now().isoformat()
+        
         try:
-            import xlsxwriter
-            excel_path = os.path.join(settings.HISTORY_DIR, "user_profiles.xlsx")
-            data = self._load_fallback()
-            users = data.get("users", {})
-            
-            workbook = xlsxwriter.Workbook(excel_path)
-            worksheet = workbook.add_worksheet("User Profiles")
-            headers = ["User ID", "Username", "Email", "DOB", "Age", "Phone Number", "Project Path", "Ollama Link", "Avatar ID", "Updated At"]
-            
-            # Format header row
-            header_format = workbook.add_format({'bold': True, 'bg_color': '#D4A338', 'font_color': '#FFFFFF'})
-            for col_num, header in enumerate(headers):
-                worksheet.write(0, col_num, header, header_format)
-            
-            row_num = 1
-            for uid, u in users.items():
-                worksheet.write(row_num, 0, str(u.get("id", uid)))
-                worksheet.write(row_num, 1, str(u.get("username") or u.get("full_name") or ""))
-                worksheet.write(row_num, 2, str(u.get("email") or ""))
-                worksheet.write(row_num, 3, str(u.get("dob") or ""))
-                worksheet.write(row_num, 4, str(u.get("age") or ""))
-                worksheet.write(row_num, 5, str(u.get("phoneNumber") or u.get("phone_number") or ""))
-                worksheet.write(row_num, 6, str(u.get("projectPath") or u.get("project_path") or ""))
-                worksheet.write(row_num, 7, str(u.get("ollamaLink") or u.get("ollama_link") or ""))
-                worksheet.write(row_num, 8, str(u.get("avatarId") or u.get("avatar_id") or "mr-nerdy"))
-                worksheet.write(row_num, 9, str(u.get("updated_at") or datetime.datetime.now().isoformat()))
-                row_num += 1
-            
-            workbook.close()
-            print(f"[DB EXCEL] Successfully exported {len(users)} user profiles to '{excel_path}'.")
+            with open(settings.USER_PROFILE_FILE, "w", encoding="utf-8") as f:
+                json.dump(current, f, indent=2, ensure_ascii=False)
+            print(f"[DB] Saved user profile to '{settings.USER_PROFILE_FILE}'.")
         except Exception as e:
-            print(f"[DB WARN] Excel export warning: {e}")
+            print(f"[DB ERROR] Failed saving user_profile.json: {e}")
+            
+        email = current.get("email", "")
+        username = current.get("username") or current.get("full_name") or ""
+        self.sync_user_registry_webhook(email, username)
+        return current
 
     def update_user_profile(self, user_id: str, profile_dict: dict) -> dict:
-        """Updates user profile details in JSON database and syncs to user_profiles.xlsx."""
+        """Updates user profile details in JSON database and user_profile.json."""
         data = self._load_fallback()
         if "users" not in data:
             data["users"] = {}
@@ -119,8 +143,8 @@ class ChatDatabase:
         
         data["users"][user_id] = user_data
         self._save_fallback(data)
-        self.export_users_to_excel()
-        return user_data
+        
+        return self.save_standalone_user_profile(profile_dict)
 
     # --- Individual Conversation JSON CRUD (Indexed by conversation_id) ---
     def _get_conversation_path(self, conversation_id: str) -> str:

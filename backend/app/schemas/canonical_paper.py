@@ -119,6 +119,7 @@ class ExtractionQualityReport(BaseModel):
     """Summarizes validation quality metrics and records any conflicting extractions."""
     paper_id: str = Field(description="Normalized paper ID")
     valid: bool = Field(default=True, description="True if the document contains zero 'ERROR' flags")
+    completeness_score: Optional[float] = Field(default=None, description="Quality completeness score percentage from 0 to 100")
     scorecard: Dict[str, ValidationMetric] = Field(
         default_factory=dict,
         description="Key-value scorecard mapping validation checks to their status metrics"

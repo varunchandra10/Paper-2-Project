@@ -1,196 +1,112 @@
-# 💻 Synthexis — Frontend Desktop UI Documentation
+# ⚛️ Synthexis Renderer — React 19 + Vite Docked Sidebar UI Documentation
 
-Welcome to the frontend renderer documentation for **Synthexis**. 
-This is a modern, theme-adaptive desktop user interface built with **React 18**, **TypeScript**, **Vite**, **Tailwind CSS**, and **Zustand**.
+Welcome to the renderer documentation for **Synthexis AI Platform**. This application is a high-performance **React 19** single-page application built with **Vite 8**, **TypeScript**, **TailwindCSS 4**, and **Zustand 5**, serving as the docked sidebar control panel and interactive paper analysis dashboard.
 
 ---
 
-## 🏗️ System & State Architecture
-
-The frontend renderer is organized around modular layout components, state slices, and a dynamic CSS variable theme engine:
+## 🏗️ Architecture Overview
 
 ```mermaid
 flowchart TD
-    subgraph Layout ["Layout Framework (frontend/renderer/src/components/layout)"]
-        HEADER["Header.tsx (Theme Pill & Window Controls)"]
-        SIDEBAR["LeftSidebar.tsx (Icon Rail & Explorer Drawer)"]
-        MAIN["Panel.tsx (Main View Router & Chat Workspace)"]
+    subgraph Core ["React Root & Main Entry (src/)"]
+        MAIN["main.tsx"] --> APP["App.tsx"]
+        APP --> PANEL["Panel.tsx (Dashboard Hub)"]
     end
 
-    subgraph Views ["View Components (frontend/renderer/src/components/features)"]
-        FEED["MessageFeed.tsx & MessageBubble.tsx"]
-        INPUT["ChatInputArea.tsx"]
-        REACT_TRACE["ReActStepsAccordion.tsx & parseReAct.ts"]
-        PDF_VIEWER["PdfViewerPage.tsx (Embedded Reader)"]
-        REPORT["ReportView.tsx & StatsCharts.tsx"]
-        PROFILE["UserProfile.tsx & MascotSelector.tsx"]
+    subgraph Store ["Zustand Reactive State Engine (src/store/)"]
+        PANEL --> ANALYSIS["analysisSlice.ts (PDF, Milestones, Reports)"]
+        PANEL --> CHAT_STORE["chatSlice.ts (ReACT Feed, Messages)"]
+        PANEL --> PROFILE["profileSlice.ts (Avatar, Ollama Config)"]
+        PANEL --> UI_STORE["uiSlice.ts (Sidebars, Theme)"]
+        PANEL --> LOGS["logsStore.ts (SSE Stream Logs)"]
     end
 
-    subgraph Store ["Zustand State Store (frontend/renderer/src/store)"]
-        P_STORE["panelStore.ts (Combined Store)"]
-        T_STORE["themeStore.ts (Dynamic Theme Engine)"]
-        CHAT_SLICE["slices/chatSlice.ts"]
-        ANALYSIS_SLICE["slices/analysisSlice.ts"]
-        PROFILE_SLICE["slices/profileSlice.ts"]
+    subgraph Layout ["Layout Framework (src/components/layout/)"]
+        PANEL --> HEADER["Header.tsx"]
+        PANEL --> LEFT["LeftSidebar.tsx"]
+        PANEL --> RIGHT["RightSidebar.tsx"]
+        PANEL --> MASCOT["MascotBox.tsx"]
+        PANEL --> USER_CARD["UserProfileCard.tsx"]
     end
 
-    subgraph Backend ["Backend API Service (http://127.0.0.1:8000)"]
-        API["FastAPI REST & SSE Endpoints"]
+    subgraph Features ["Feature Modules (src/components/features/)"]
+        PANEL --> REPORT["analysis/ReportView.tsx"]
+        PANEL --> TRACKER["analysis/MilestoneTracker.tsx"]
+        PANEL --> CHAT_UI["chat/MessageFeed.tsx & ChatInputArea.tsx"]
+        PANEL --> LOGS_UI["logs/LogsDrawer.tsx"]
+        PANEL --> PROFILE_UI["profile/UserProfile.tsx & MascotSelector.tsx"]
     end
 
-    HEADER --> T_STORE
-    MAIN --> FEED & INPUT & PDF_VIEWER & REPORT & PROFILE
-    FEED --> REACT_TRACE
-    
-    FEED & INPUT --> P_STORE
-    PROFILE --> PROFILE_SLICE
-    P_STORE --> CHAT_SLICE & ANALYSIS_SLICE
-    
-    CHAT_SLICE & ANALYSIS_SLICE & PROFILE_SLICE --> API
+    subgraph UI_Primitives ["UI Primitives (src/components/ui/)"]
+        PANEL --> TIER["TierSelector.tsx (Brief, Spec, Full PyTorch)"]
+        PANEL --> DROP["DropZone.tsx & DragDropOverlay.tsx"]
+        PANEL --> SKIN["SkinLoader.tsx"]
+        PANEL --> THEME["ThemeToggle.tsx"]
+    end
 ```
 
 ---
 
-## 🎨 4-Way Dynamic Theme Engine Flow
+## 📁 File-by-File Breakdown of `frontend/renderer/src/`
 
-The user interface supports 3 Light themes + 1 Dark theme with zero hardcoded color glitches:
+### 1. Root & App Core (`src/`)
+* **`main.tsx`**: React 19 application entry point, mounting `App.tsx` into the DOM (`#root`).
+* **`App.tsx`**: Main component wrapper integrating global theme tokens, drag-and-drop overlays, modal dialogs, and the core dashboard panel.
+* **`index.css`**: TailwindCSS v4 design system tokens, font imports (`IBM Plex Mono`, `Public Sans`), glassmorphic CSS variables, and animation keyframes.
+* **`global.d.ts`**: TypeScript definitions for `window.electronAPI` IPC bridge methods.
+* **`services/connectivity.ts`**: Health check utility probing backend server (`http://localhost:8000/health`) and local Ollama (`http://localhost:11434`).
 
-```mermaid
-flowchart LR
-    subgraph UI_Controls ["Header Theme Control Pill"]
-        PILL["Pill Button: [ < | ☀️ / 🌙 ]"]
-        DRAWER["Slide-out Light Drawer (BsSnow ❄️ / BsStars ✦ / FiSun ☀️)"]
-    end
+### 2. Reactive State Management (`src/store/`)
+* **`slices/analysisSlice.ts`**: Manages PDF file ingestion, active paper metadata, milestone DAG tracking, 3-tier depth output selection, and generated PyTorch codebase views.
+* **`slices/chatSlice.ts`**: Manages multi-turn ReACT chat messages, input feed state, streaming responses, and thought step parsing via `parseReAct.ts`.
+* **`slices/profileSlice.ts`**: Manages user profile settings, Ollama host URL (`http://localhost:11434`), and selected mascot avatar skin.
+* **`slices/uiSlice.ts`**: Manages collapsible left/right sidebars, drawer states, theme modes, and modal dialogs.
+* **`logsStore.ts`**: Real-time SSE event log store capturing backend node transitions (`EXTRACTION_STARTED`, `SECTION_DETECTED`, `CODE_GENERATION_STARTED`).
+* **`themeStore.ts`**: Manages theme palette state (`dark`, `light`, `arctic`, `iris`).
+* **`utils/storeUtils.ts`**: Persistence helpers and local storage state serializers.
 
-    subgraph Theme_Store ["themeStore.ts"]
-        ACTION["setThemeMode(mode) & toggleDarkLight()"]
-        LOCAL["localStorage (synthexis_theme_mode)"]
-    end
+### 3. Layout Scaffolding (`src/components/layout/`)
+* **`Header.tsx`**: Top navigation bar displaying paper title, analysis status indicators, theme toggle, and profile access.
+* **`LeftSidebar.tsx` & `RightSidebar.tsx`**: Docked collapsible sidebars housing document history, milestone checklists, and logs.
+* **`MascotBox.tsx`**: Interactive mascot canvas container rendering character poses and animation keyframes.
+* **`UserProfileCard.tsx`**: Compact user avatar card displaying selected mascot skin and Ollama connection status.
+* **`DocumentHistoryList.tsx` & `ChatHistoryList.tsx`**: History drawers listing previously analyzed papers and saved chat threads.
+* **`CompactHistoryDropdown.tsx`**: Quick-access dropdown for switching between recently processed papers.
 
-    subgraph Document_Classes ["HTML Body Class List"]
-        C1["l1 -> body.theme-light"]
-        C2["l2 -> body.palette-arctic.theme-light"]
-        C3["l3 -> body.palette-iris.theme-light"]
-        C4["d  -> body (default dark graphite)"]
-    end
+### 4. Feature Modules (`src/components/features/`)
+* **`analysis/ReportView.tsx`**: Markdown report viewer rendering synthesized specifications, gap analysis reports, and interactive PyTorch code trees with syntax highlighting.
+* **`analysis/MilestoneTracker.tsx`**: Progress tracker displaying the 6-step DAG build sequence with expandable task checklists.
+* **`analysis/PdfViewerPage.tsx`**: Embedded PDF document viewer with page navigation and section highlights.
+* **`analysis/DocumentsDrawer.tsx`**: Slide-out drawer displaying processed papers, canonical JSON metadata, and cached PyTorch files.
+* **`analysis/StatsCharts.tsx`**: Visual performance charts displaying GPU VRAM memory footprints and processing benchmarks.
+* **`chat/MessageFeed.tsx` & `MessageBubble.tsx`**: Conversational chat interface displaying user prompts and assistant answers with grounded RAG citations.
+* **`chat/ChatInputArea.tsx`**: Text input box with PDF attachment cards and send trigger.
+* **`chat/ReActStepsAccordion.tsx` & `parseReAct.ts`**: Accordion component parsing and rendering ReACT agent thought steps (`thought`, `action`, `observation`).
+* **`logs/LogsDrawer.tsx`**: Live terminal-style drawer streaming real-time backend log events via SSE.
+* **`profile/UserProfile.tsx`, `MascotSelector.tsx`, `OllamaConfigSection.tsx`**: Configuration modal for avatar skin selection and local Ollama host URL setup.
 
-    subgraph CSS_Variables ["index.css Dynamic CSS Variables"]
-        VARS["--bg-base | --bg-card | --text-main | --accent | --bubble-user"]
-    end
-
-    PILL & DRAWER --> ACTION
-    ACTION --> LOCAL
-    ACTION --> C1 & C2 & C3 & C4
-    C1 & C2 & C3 & C4 --> VARS
-    VARS -->|"Applies Instantly"| COMPONENTS["All TSX Components"]
-```
-
----
-
-## 📁 Repository Directory Structure
-
-The frontend maintains a clean modular organization using folder-wide relative paths:
-
-```
-frontend/renderer/
-├── index.html                       # HTML Entry Point
-├── package.json                     # NPM Dependencies & Scripts
-├── vite.config.ts                   # Vite Build Configuration
-├── tsconfig.json                    # TypeScript Configuration
-└── src/
-    ├── App.tsx                      # Root Application Container
-    ├── main.tsx                     # React DOM Mount Entry Point
-    ├── index.css                    # Nordic Minimal Dynamic CSS Variable Tokens
-    ├── assets/                      # Mascot Avatars & Media Assets
-    ├── components/
-    │   ├── layout/
-    │   │   ├── Header.tsx           # Top Control Bar (Title, Theme Switcher, Window Controls)
-    │   │   ├── LeftSidebar.tsx      # VS Code-style Slim Icon Rail + Explorer Drawer
-    │   │   ├── RightSidebar.tsx     # Supplemental Information Drawer
-    │   │   ├── ChatHistoryList.tsx  # Saved Conversation Threads List
-    │   │   ├── DocumentHistoryList.tsx # Research Paper History List (with View & Delete buttons)
-    │   │   └── CompactHistoryDropdown.tsx # Top Popup Thread History Menu
-    │   ├── features/
-    │   │   ├── chat/
-    │   │   │   ├── MessageFeed.tsx  # Conversation Thread Container & Welcome Screen
-    │   │   │   ├── MessageBubble.tsx# Chat Message Bubble with Theme Accent Styling
-    │   │   │   ├── ChatInputArea.tsx# Text Input Dock, Staged File Pill, Send Action
-    │   │   │   ├── ReActStepsAccordion.tsx # ReACT Reasoning Trace Accordion (🟡 REACT REASONING TRACE ∨ 3 steps)
-    │   │   │   ├── parseReAct.ts    # ReACT Trace Regex & Fallback Synthesizer
-    │   │   │   └── messageFormatters.ts # Inline Markdown Parser
-    │   │   ├── analysis/
-    │   │   │   ├── PdfViewerPage.tsx# Embedded PDF Document Reader Viewport
-    │   │   │   ├── ReportView.tsx   # Markdown Proposal Report & Hyperparameter Forms
-    │   │   │   ├── StatsCharts.tsx  # Ingestion Progress Rings & Gauge Bars
-    │   │   │   └── DocumentsDrawer.tsx # Ingested Paper Library Drawer
-    │   │   └── profile/
-    │   │       ├── UserProfile.tsx  # Developer Profile & Backend Sync Form
-    │   │       ├── MascotSelector.tsx # Mascot Companion Selector Cards
-    │   │       └── OllamaConfigSection.tsx # Local Ollama Link & Instructions
-    │   ├── panel/
-    │   │   └── Panel.tsx            # Main View Router & Full-Height Window Frame
-    │   └── ui/
-    │       ├── ModelSelector.tsx    # Live Inference Model Engine Dropdown Selector
-    │       ├── LocalAuthModal.tsx   # Workspace Initialization Modal
-    │       ├── SkinLoader.tsx       # System Component Skeleton Loader
-    │       ├── PdfAttachmentCard.tsx# Chat Attachment Pill Component
-    │       └── DragDropOverlay.tsx  # Drag & Drop File Backdrop Overlay
-    └── store/
-        ├── panelStore.ts            # Centralized Zustand Store Hub
-        ├── themeStore.ts            # Dynamic 4-Way Theme Engine Store
-        ├── logsStore.ts             # Terminal Logs Console Store
-        └── slices/
-            ├── analysisSlice.ts     # Paper Upload & Live Pipeline SSE Store
-            ├── chatSlice.ts         # Conversational Threads & Messages Store
-            ├── profileSlice.ts      # Extended Profile & Backend Excel Sync Store
-            └── uiSlice.ts           # Active Views & Modal States Store
-```
+### 5. UI Primitives (`src/components/ui/`)
+* **`TierSelector.tsx`**: 3-Tier depth selector (Brief Summary, Detailed Spec, Full PyTorch Implementation).
+* **`DropZone.tsx` & `DragDropOverlay.tsx`**: Drag-and-drop PDF ingestion overlay with visual drop target animations.
+* **`SkinLoader.tsx`**: SVG/PNG avatar skin loader rendering mascot poses (`mr_nerdy_stand_sleep`, `mr_nerdy_stand_to_excite`, `mr_nerd_stand_to_angry`, `mr_nerd_stand_to_hunch`).
+* **`ThemeToggle.tsx`**: One-click theme switcher toggle.
+* **`LocalAuthModal.tsx`**: First-run setup modal asking for workspace directory and local Ollama setup.
+* **`ModelSelector.tsx`**: Dropdown selector for choosing local Ollama models (`qwen2.5-coder:1.5b`).
 
 ---
 
-## 🛠️ UI Features & Component Highlights
+## ⚡ Quick Start & Development
 
-### 1. ReACT Reasoning Trace Accordion (`src/components/features/chat/ReActStepsAccordion.tsx`)
-- Formats ReACT reasoning traces: `🟡 REACT REASONING TRACE ∨ 3 steps`.
-- Displays step pipeline badges: `Thought` ➔ `Action` ➔ `Observation`.
-- Automatically synthesizes traces for all assistant responses so the trace header is always visible.
+```bash
+# 1. Navigate to renderer directory
+cd frontend/renderer
 
-### 2. Dynamic Inference Model Selector (`src/components/ui/ModelSelector.tsx`)
-- Fetches active model engines on mount via `GET /api/v1/models`.
-- Displays status indicators for local Ollama instances (`llama3`, `deepseek-r1`, `qwen2.5`) and cloud providers (`Groq`, `OpenRouter`, `Gemini`).
+# 2. Install dependencies
+npm install
 
-### 3. Document History & Embedded PDF Reader (`src/components/layout/DocumentHistoryList.tsx`, `src/components/features/analysis/PdfViewerPage.tsx`)
-- Displays all ingested papers with file size and date formatting.
-- Features permanently sticked **View** (`BsBoxArrowUpRight`) and **Delete** (`FaTrash`) action buttons.
-- Clicking View opens the paper in the embedded PDF Viewer (`pdf-viewer` view).
+# 3. Start Vite development server
+npm run dev
 
-### 4. Seamless Header Controls & Window Toggle (`src/components/layout/Header.tsx`)
-- Single dynamic Maximize/Minimize button (`FiMaximize` when standard, `FiMinimize` when maximized).
-- Compact theme pill button with slide-out light mode options (`FiSun ☀️`, `BsSnow ❄️`, `BsStars ✦`).
-
----
-
-## 🚀 Local Setup & Development
-
-### Installation & Launch
-
-1. **Install NPM Dependencies:**
-   ```bash
-   npm install
-   ```
-
-2. **Run Vite Development Server:**
-   ```bash
-   npm run dev
-   ```
-   *The renderer dev server runs locally at `http://localhost:5173`.*
-
-3. **TypeScript Compilation Check:**
-   ```bash
-   npx tsc --noEmit
-   ```
-
-4. **Production Build:**
-   ```bash
-   npm run build
-   ```
+# 4. Build production bundle (tsc + vite build)
+npm run build
+```

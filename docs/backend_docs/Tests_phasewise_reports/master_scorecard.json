@@ -1,0 +1,73 @@
+{
+  "system": "Synthexis AI Platform",
+  "version": "2.0.0",
+  "llm_model": "qwen2.5-coder:1.5b",
+  "papers_source": "c:\\Users\\kvcsu_ht23nk8\\OneDrive\\Desktop\\all_Projects\\Projects\\agentic_projects\\Paper-2-Project\\ignored_folders\\backend\\papers\\research_papers",
+  "total_papers": 48,
+  "reports_dir": "c:\\Users\\kvcsu_ht23nk8\\OneDrive\\Desktop\\all_Projects\\Projects\\agentic_projects\\Paper-2-Project\\docs\\new_backend_documents\\e_2_e_reports",
+  "total_time_s": 21254.36,
+  "scorecard": [
+    {
+      "phase": "Phase 1  \u2014 Ingestion & 3-Tier IEEE Title",
+      "result": "PASS"
+    },
+    {
+      "phase": "Phase 2  \u2014 Canonical Paper Representation",
+      "result": "PASS"
+    },
+    {
+      "phase": "Phase 3  \u2014 Extraction Quality Validation",
+      "result": "PASS"
+    },
+    {
+      "phase": "Phase 4  \u2014 Local RAG Vector DB & Knowledge Graph",
+      "result": "PASS"
+    },
+    {
+      "phase": "Phase 5  \u2014 Paper Understanding (Agents 1 & 2)",
+      "result": "PASS"
+    },
+    {
+      "phase": "Phase 6  \u2014 Feasibility & Gap Search (Agents 3 & 4)",
+      "result": "PASS"
+    },
+    {
+      "phase": "Phase 7  \u2014 Sequencing & Spec (Agents 5, 6, 7)",
+      "result": "PASS"
+    },
+    {
+      "phase": "Phase 8  \u2014 PyTorch CodeGen (Agent 8 \u2014 Local LLM)",
+      "result": "PASS"
+    },
+    {
+      "phase": "Phase 9  \u2014 Code Verification & AST Parsing",
+      "result": "PASS"
+    },
+    {
+      "phase": "Phase 10 \u2014 Multi-Turn Chat & ReACT Memory",
+      "result": "PASS"
+    },
+    {
+      "phase": "Phase 11 \u2014 Model Router Throughput",
+      "result": "PASS"
+    },
+    {
+      "phase": "Phase 12 \u2014 FastAPI Hardware Telemetry",
+      "result": "PASS"
+    }
+  ],
+  "timings": {
+    "Phase 1  \u2014 Paper Extraction": 1679.59,
+    "Phase 2  \u2014 Canonical Representation": 0.37,
+    "Phase 3  \u2014 Quality Validation": 6.33,
+    "Phase 4  \u2014 Local RAG & KG": 4.88,
+    "Phase 5  \u2014 Paper Understanding": 8284.86,
+    "Phase 6  \u2014 Feasibility & Gap": 465.54,
+    "Phase 7  \u2014 Sequencing & Spec": 1578.33,
+    "Phase 8  \u2014 Code Generation": 7588.83,
+    "Phase 9  \u2014 Code Verification": 0.29,
+    "Phase 10 \u2014 Multi-Turn Chat": 1631.38,
+    "Phase 11 \u2014 Model Router": 13.87,
+    "Phase 12 \u2014 Hardware Telemetry": 0.09
+  }
+}

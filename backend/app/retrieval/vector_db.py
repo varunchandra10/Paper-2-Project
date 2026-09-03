@@ -6,7 +6,7 @@ from app.core.config import settings
 from app.schemas.paper import PaperDocument
 from app.retrieval.chunker import PaperChunk
 
-EMBEDDINGS_DIR = os.path.join(settings.STORAGE_DIR, "rag_based")
+EMBEDDINGS_DIR = getattr(settings, "RAG_EMBEDDINGS_DIR", os.path.join(settings.STORAGE_DIR, "rag_based"))
 os.makedirs(EMBEDDINGS_DIR, exist_ok=True)
 
 
