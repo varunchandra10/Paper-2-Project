@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mr. Nerdy Mascot - Transition Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #070a12;
+      --card-bg: rgba(15, 23, 42, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-cyan: #38bdf8;
+      --accent-purple: #a855f7;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: radial-gradient(circle at 50% 0%, #1e293b 0%, var(--bg-dark) 65%);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 14px 18px;
+      overflow: hidden;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 12px;
+      flex-shrink: 0;
+    }
+
+    .title h1 {
+      font-size: 17px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .title p {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--accent-cyan);
+    }
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      box-shadow: 0 0 6px var(--accent-cyan);
+    }
+
+    /* --- 3-Column Layout: i) Sprite Sheets | Stage | ii) Frames + iii) Speed + iv) Transition --- */
+    .studio-container {
+      display: grid;
+      grid-template-columns: 290px 1fr 350px;
+      gap: 14px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      backdrop-filter: blur(16px);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .panel-header {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .panel-header-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--accent-cyan);
+    }
+
+    /* --- 1. Left: i) Sprite Sheets (Direct clickable list with names, no dropdowns) --- */
+    .sheet-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-right: 4px;
+    }
+
+    .sheet-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 11px;
+      border-radius: 8px;
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px solid var(--card-border);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .sheet-item:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: rgba(56, 189, 248, 0.35);
+      transform: translateX(3px);
+    }
+    .sheet-item.active {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(99, 102, 241, 0.25));
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+    }
+
+    .sheet-info {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .sheet-name {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .sheet-filename {
+      font-size: 9.5px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .sheet-frames-count {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--accent-cyan);
+      background: rgba(56, 189, 248, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    /* --- Center: Mascot Viewport Stage --- */
+    .stage-panel {
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .stage-wrapper {
+      position: relative;
+      width: 280px;
+      height: 280px;
+      background: radial-gradient(circle at 50% 50%, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.95) 100%);
+      border: 1.5px solid rgba(56, 189, 248, 0.25);
+      border-radius: 18px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), inset 0 0 30px rgba(56, 189, 248, 0.05);
+      overflow: hidden;
+    }
+
+    .stage-grid-bg {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 20px 20px;
+      pointer-events: none;
+    }
+
+    canvas#stageCanvas {
+      width: 280px;
+      height: 280px;
+      object-fit: contain;
+      z-index: 5;
+    }
+
+    /* Floating Overlays */
+    .zzz-container {
+      position: absolute;
+      bottom: 48%;
+      left: 48%;
+      width: 40px;
+      height: 40px;
+      pointer-events: none;
+      display: none;
+      z-index: 10;
+    }
+    .zzz-container.active { display: block; }
+    .zzz {
+      position: absolute;
+      font-weight: 900;
+      opacity: 0;
+      line-height: 1;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+    .zzz.z1 {
+      font-size: 9px;
+      color: #38bdf8;
+      left: 0px;
+      bottom: 0px;
+      animation: float-z 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite 0s;
+    }
+    .zzz.z2 {
+      font-size: 12px;
+      color: #a855f7;
+      left: 10px;
+      bottom: 8px;
+      animation: float-z 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite 0.8s;
+    }
+    .zzz.z3 {
+      font-size: 15px;
+      color: #f43f5e;
+      left: 20px;
+      bottom: 18px;
+      animation: float-z 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite 1.6s;
+    }
+    @keyframes float-z {
+      0% { transform: translate(0, 4px) scale(0.7) rotate(-10deg); opacity: 0; }
+      25% { opacity: 0.95; }
+      65% { opacity: 0.85; }
+      100% { transform: translate(8px, -18px) scale(1.05) rotate(10deg); opacity: 0; }
+    }
+
+    .stage-status-bar {
+      margin-top: 12px;
+      display: flex;
+      gap: 12px;
+      font-size: 11px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 6px 14px;
+    }
+    .status-badge {
+      color: var(--text-muted);
+    }
+    .status-badge b {
+      color: var(--accent-cyan);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* --- Right Controls: ii) Frame Wise Buttons | iii) Speed | iv) Transition Button --- */
+    .controls-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+    }
+
+    .control-box {
+      background: rgba(30, 41, 59, 0.35);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .control-box-header {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* ii) Frame Wise Buttons */
+    .frame-buttons-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      gap: 8px;
+    }
+
+    .frame-btn {
+      padding: 9px 6px;
+      border-radius: 8px;
+      background: #0f172a;
+      border: 1.5px solid var(--card-border);
+      color: var(--text-main);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .frame-btn:hover {
+      border-color: var(--accent-cyan);
+      background: rgba(56, 189, 248, 0.12);
+      transform: translateY(-1px);
+    }
+    .frame-btn.active {
+      border-color: var(--accent-cyan);
+      background: rgba(56, 189, 248, 0.22);
+      color: var(--accent-cyan);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
+    }
+    .frame-btn span.sub {
+      font-size: 9px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Preset & sequence tags */
+    .sequence-strip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+      background: #090d16;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 6px 8px;
+      min-height: 36px;
+    }
+
+    .seq-tag {
+      background: rgba(56, 189, 248, 0.2);
+      border: 1px solid var(--accent-cyan);
+      color: var(--accent-cyan);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .seq-tag.highlight {
+      background: var(--accent-cyan);
+      color: #000;
+      box-shadow: 0 0 8px var(--accent-cyan);
+    }
+    .seq-tag-del {
+      cursor: pointer;
+      color: var(--accent-rose);
+      font-weight: bold;
+    }
+
+    .quick-chip {
+      width: 100%;
+      padding: 7px 8px;
+      border-radius: 6px;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: var(--accent-cyan);
+      font-size: 10.5px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .quick-chip:hover {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: var(--accent-cyan);
+      color: #fff;
+    }
+
+    /* iii) Speed Controls */
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .slider-val {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--accent-cyan);
+      font-weight: 700;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 4px;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      cursor: pointer;
+      box-shadow: 0 0 8px var(--accent-cyan);
+    }
+
+    .speed-presets-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 2px;
+    }
+    .speed-chip {
+      flex: 1;
+      padding: 5px;
+      border-radius: 5px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+    }
+    .speed-chip:hover, .speed-chip.active {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    /* iv) Big Transition Button */
+    .transition-action-box {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    button.transition-btn {
+      width: 100%;
+      padding: 13px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, #0284c7, #6366f1);
+      color: white;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 18px rgba(56, 189, 248, 0.35);
+      transition: all 0.2s;
+    }
+    button.transition-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 22px rgba(56, 189, 248, 0.55);
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+    }
+    button.transition-btn:active {
+      transform: translateY(0);
+    }
+
+    .aux-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .aux-btn {
+      padding: 7px;
+      border-radius: 7px;
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: background 0.15s;
+    }
+    .aux-btn:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="title">
+      <h1><span>🤖</span> Mr. Nerdy - Transition Studio</h1>
+      <p>Single Proper Transitions (Starts & Ends in Standing Position) &bull; Hold 90ms &bull; Fade 120ms</p>
+    </div>
+    <div class="badge">
+      <span class="badge-dot"></span>
+      <span id="loadBadge">Loading Sprites...</span>
+    </div>
+  </header>
+
+  <div class="studio-container">
+    
+    <!-- ========================================== -->
+    <!-- 1. LEFT: i) SPRITE SHEETS (ALL WITH NAMES) -->
+    <!-- ========================================== -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-header-title">
+          <span>📁</span>
+          <span>i) Sprite Sheets</span>
+        </div>
+        <span id="sheetsCount" style="color:var(--accent-cyan); font-family:'JetBrains Mono'; font-size:10px;">13 Sheets</span>
+      </div>
+      
+      <!-- Direct list of all 13 sprite sheets with names -->
+      <div id="sheetList" class="sheet-list">
+        <!-- Injected by JavaScript -->
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- CENTER: MASCOT VIEWPORT STAGE              -->
+    <!-- ========================================== -->
+    <div class="panel stage-panel">
+      <div class="panel-header" style="width:100%;">
+        <div class="panel-header-title">
+          <span>🎯</span>
+          <span>Mascot Viewport (280x280)</span>
+        </div>
+        <div style="display:flex; gap:10px; font-size:11px; color:var(--text-muted);">
+          <label style="cursor:pointer; display:flex; align-items:center; gap:4px;">
+            <input type="checkbox" id="toggleZzzChk" onchange="toggleZzz(this.checked)"> ZZZ 💤
+          </label>
+        </div>
+      </div>
+
+      <div class="stage-wrapper">
+        <div class="stage-grid-bg"></div>
+        
+        <!-- Floating ZZZ container -->
+        <div id="zzz-container" class="zzz-container">
+          <span class="zzz z1">Z</span>
+          <span class="zzz z2">Z</span>
+          <span class="zzz z3">Z</span>
+        </div>
+
+        <!-- Mascot Stage Canvas -->
+        <canvas id="stageCanvas" width="280" height="280"></canvas>
+      </div>
+
+      <div class="stage-status-bar">
+        <span class="status-badge">Sheet: <b id="statSheet">wave</b></span>
+        <span class="status-badge">Frame: <b id="statFrame">0</b></span>
+        <span class="status-badge">Status: <b id="statStatus">Ready (Standing)</b></span>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- RIGHT: ii) FRAME WISE BUTTONS | iii) SPEED | iv) BUTTON  -->
+    <!-- ======================================================== -->
+    <div class="panel controls-panel">
+      
+      <!-- --------------------------------- -->
+      <!-- ii) FRAME WISE BUTTONS           -->
+      <!-- --------------------------------- -->
+      <div class="control-box">
+        <div class="control-box-header">
+          <span>ii) Frame Wise Buttons</span>
+          <span style="font-size:9px; color:var(--text-muted);">Click to preview / add</span>
+        </div>
+
+        <!-- Dynamically rendered Frame 0, Frame 1, Frame 2 buttons -->
+        <div id="frameButtonsGrid" class="frame-buttons-grid">
+          <!-- Rendered dynamically for active sheet -->
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+          <span style="font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Transition Chain:</span>
+          <span style="color:var(--accent-rose); cursor:pointer; font-size:10px; font-weight:600;" onclick="clearSequence()">Clear Chain</span>
+        </div>
+
+        <div id="sequenceStrip" class="sequence-strip">
+          <!-- Tags injected by JavaScript -->
+        </div>
+
+        <!-- Proper Transition Preset Buttons -->
+        <div style="display:flex; gap:6px; margin-top:2px;">
+          <div class="quick-chip" style="flex:1;" onclick="applyPresetChain('bounce')">
+            ✨ Single (0➔1➔2➔1➔0)
+          </div>
+          <div class="quick-chip" style="flex:1;" onclick="applyPresetChain('double')">
+            ✨ Double Blink (2 Blinks)
+          </div>
+        </div>
+      </div>
+
+      <!-- --------------------------------- -->
+      <!-- iii) SPEED CONTROLS              -->
+      <!-- --------------------------------- -->
+      <div class="control-box">
+        <div class="control-box-header">
+          <span>iii) Speed</span>
+          <span id="speedVal" class="slider-val">120 ms</span>
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-header">
+            <span>Frame Hold Duration:</span>
+          </div>
+          <input type="range" id="speedSlider" min="40" max="700" step="10" value="120" oninput="onSpeedChanged(this.value)">
+        </div>
+
+        <div class="slider-group" style="margin-top:2px;">
+          <div class="slider-header">
+            <span>Cross-Fade Blend:</span>
+            <span id="fadeVal" class="slider-val">0 ms (Snappy)</span>
+          </div>
+          <input type="range" id="fadeSlider" min="0" max="260" step="10" value="0" oninput="onFadeChanged(this.value)">
+        </div>
+
+        <div class="speed-presets-row">
+          <div class="speed-chip active" onclick="setSpeedPreset(120, 0)">✨ Standard (120/0ms)</div>
+          <div class="speed-chip" onclick="setSpeedPreset(75, 0)">⚡ Fast (75/0ms)</div>
+          <div class="speed-chip" onclick="setSpeedPreset(200, 0)">🐢 Relaxed (200/0ms)</div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px; font-size:11px; margin-top:2px;">
+          <input type="checkbox" id="loopChk">
+          <label for="loopChk" style="color:var(--text-muted); cursor:pointer;">Loop Transition (Unchecked = Single Action)</label>
+        </div>
+      </div>
+
+      <!-- --------------------------------- -->
+      <!-- iv) TRANSITION ACTION BUTTON     -->
+      <!-- --------------------------------- -->
+      <div class="transition-action-box">
+        <button id="mainTransitionBtn" class="transition-btn" onclick="toggleTransitionPlay()">
+          <span>▶</span> iv) SINGLE TRANSITION (0 ➔ 1 ➔ 2 ➔ 1 ➔ 0)
+        </button>
+
+        <div class="aux-actions">
+          <button class="aux-btn" onclick="stopTransition()">
+            <span>⏹</span> Stop
+          </button>
+          <button class="aux-btn" onclick="copyChainCode()">
+            <span>📋</span> Copy Chain Code
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    const canvas = document.getElementById("stageCanvas");
+    const ctx = canvas.getContext("2d");
+    const zzzContainer = document.getElementById("zzz-container");
+
+    const statSheet = document.getElementById("statSheet");
+    const statFrame = document.getElementById("statFrame");
+    const statStatus = document.getElementById("statStatus");
+    const loadBadge = document.getElementById("loadBadge");
+    const speedVal = document.getElementById("speedVal");
+    const fadeVal = document.getElementById("fadeVal");
+    const loopChk = document.getElementById("loopChk");
+    const sequenceStrip = document.getElementById("sequenceStrip");
+    const frameButtonsGrid = document.getElementById("frameButtonsGrid");
+    const mainTransitionBtn = document.getElementById("mainTransitionBtn");
+
+    // --- All 13 Available Mr. Nerdy Sprite Sheets ---
+    const SPRITE_SHEETS = [
+      { key: "wave", name: "Waving (Hi!)", file: "mr_nerdy_waving.png", count: 3, icon: "👋", desc: "First open greeting" },
+      { key: "sleep", name: "Sleeping (Bedtime)", file: "mr_nerdy_sleeping.png", count: 3, icon: "💤", desc: "Minimized state" },
+      { key: "blink", name: "Eye Blinking (Idle)", file: "mr_nerdy_eye_blinking.png", count: 3, icon: "👁️", desc: "Continuous idle blink" },
+      { key: "tired", name: "Tired Slump (Office Chair)", file: "mr_nerdy_tired.png", count: 3, icon: "🪑", desc: "Extended idle slump" },
+      { key: "catching", name: "Document Catching", file: "mr_nerdy_document_catching.png", count: 3, icon: "📄", desc: "PDF file selected" },
+      { key: "hunch", name: "Laptop Typing (Hunch)", file: "mr_nerdy_huncing.png", count: 3, icon: "💻", desc: "Ingestion / backend processing" },
+      { key: "thinking", name: "Thinking (Reasoning)", file: "mr_nerdy_thinking.png", count: 3, icon: "🤔", desc: "Accordion / query reasoning" },
+      { key: "excite", name: "Excited (Success)", file: "mr_nerdy_excited.png", count: 3, icon: "🎉", desc: "Process complete celebratory" },
+      { key: "angry", name: "Angry (Timeout)", file: "mr_nerdy_angry.png", count: 3, icon: "😡", desc: "90s inactivity reaction" },
+      { key: "having_sipping", name: "Coffee Sipping", file: "mr_nerdy_having_sipping.png", count: 3, icon: "☕", desc: "Break / refreshment idle" },
+      { key: "confused", name: "Confused", file: "mr_nerdy_confused.png", count: 3, icon: "❓", desc: "Error or unknown state" },
+      { key: "peeking", name: "Peeking Behind Wall", file: "mr_nerdy_peeking.png", count: 3, icon: "👀", desc: "Corner peek interaction" },
+      { key: "standing", name: "Base Standing", file: "mr_nerdy_standing.png", count: 1, icon: "🧍", desc: "Neutral standing pose" }
+    ];
+
+    const images = {};
+    let loadedCount = 0;
+
+    let currentSheetKey = "wave";
+    let currentFrameIndex = 0;
+    // Standard User Specifications
+    let frameHoldMs = 120;
+    let fadeMs = 0;
+    let isPlaying = false;
+    let transitionToken = 0;
+
+    // Transition Chain: Proper single transition starts at 0 and ends at 0
+    let transitionChain = [
+      { sheet: "wave", frame: 0 },
+      { sheet: "wave", frame: 1 },
+      { sheet: "wave", frame: 2 },
+      { sheet: "wave", frame: 1 },
+      { sheet: "wave", frame: 0 }
+    ];
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+
+    function toggleZzz(show) {
+      if (zzzContainer) {
+        if (show) zzzContainer.classList.add('active');
+        else zzzContainer.classList.remove('active');
+      }
+      document.getElementById("toggleZzzChk").checked = show;
+    }
+
+    function onSpeedChanged(val) {
+      frameHoldMs = parseInt(val);
+      speedVal.innerText = `${frameHoldMs} ms`;
+      document.querySelectorAll(".speed-chip").forEach(c => c.classList.remove("active"));
+    }
+
+    function onFadeChanged(val) {
+      fadeMs = parseInt(val);
+      fadeVal.innerText = fadeMs === 0 ? "0 ms (Snappy)" : `${fadeMs} ms (Smooth Blend)`;
+    }
+
+    function setSpeedPreset(hold, fade) {
+      frameHoldMs = hold;
+      fadeMs = fade;
+      document.getElementById("speedSlider").value = hold;
+      document.getElementById("fadeSlider").value = fade;
+      speedVal.innerText = `${hold} ms`;
+      fadeVal.innerText = fade === 0 ? "0 ms (Snappy)" : `${fade} ms (Smooth Blend)`;
+      document.querySelectorAll(".speed-chip").forEach(c => {
+        c.classList.toggle("active", c.innerText.includes(`${hold}/${fade}ms`));
+      });
+    }
+
+    // --- i) Render Sprite Sheets List on Left ---
+    function renderSheetList() {
+      const container = document.getElementById("sheetList");
+      container.innerHTML = "";
+
+      SPRITE_SHEETS.forEach(sheet => {
+        const item = document.createElement("div");
+        item.className = `sheet-item ${sheet.key === currentSheetKey ? 'active' : ''}`;
+        item.onclick = () => selectSheet(sheet.key);
+
+        item.innerHTML = `
+          <div class="sheet-info">
+            <span class="sheet-name"><span>${sheet.icon}</span> ${sheet.name}</span>
+            <span class="sheet-filename">${sheet.file}</span>
+          </div>
+          <span class="sheet-frames-count">${sheet.count} fr</span>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function selectSheet(key) {
+      currentSheetKey = key;
+      renderSheetList();
+      renderFrameButtons();
+
+      loopChk.checked = false;
+
+      // Reset transition chain to proper start-to-end standing sequence (0 -> 1 -> 2 -> 1 -> 0)
+      const sheet = SPRITE_SHEETS.find(s => s.key === key);
+      const count = sheet ? sheet.count : 3;
+      if (count === 3) {
+        transitionChain = [
+          { sheet: key, frame: 0 },
+          { sheet: key, frame: 1 },
+          { sheet: key, frame: 2 },
+          { sheet: key, frame: 1 },
+          { sheet: key, frame: 0 }
+        ];
+      } else {
+        transitionChain = [{ sheet: key, frame: 0 }];
+      }
+
+      renderSequenceStrip();
+      drawFrame(currentSheetKey, 0);
+      updateActiveFrameButton(0);
+    }
+
+    // --- ii) Render Frame Wise Buttons ---
+    function renderFrameButtons() {
+      frameButtonsGrid.innerHTML = "";
+      const sheet = SPRITE_SHEETS.find(s => s.key === currentSheetKey) || { count: 3 };
+      const count = sheet.count || 1;
+
+      const subLabels = ["Base (Standing)", "Mid Motion", "Peak Action"];
+
+      for (let i = 0; i < count; i++) {
+        const btn = document.createElement("button");
+        btn.id = `frameBtn${i}`;
+        btn.className = `frame-btn ${i === currentFrameIndex ? 'active' : ''}`;
+        btn.onclick = () => onFrameClicked(i);
+
+        btn.innerHTML = `
+          <span>Frame ${i}</span>
+          <span class="sub">${subLabels[i] || 'Frame ' + i}</span>
+        `;
+        frameButtonsGrid.appendChild(btn);
+      }
+    }
+
+    function onFrameClicked(frameIdx) {
+      drawFrame(currentSheetKey, frameIdx);
+      updateActiveFrameButton(frameIdx);
+
+      // Append this frame to transition chain
+      transitionChain.push({ sheet: currentSheetKey, frame: frameIdx });
+      renderSequenceStrip();
+    }
+
+    function updateActiveFrameButton(frameIdx) {
+      const sheet = SPRITE_SHEETS.find(s => s.key === currentSheetKey) || { count: 3 };
+      for (let i = 0; i < (sheet.count || 3); i++) {
+        const btn = document.getElementById(`frameBtn${i}`);
+        if (btn) btn.classList.toggle("active", i === frameIdx);
+      }
+    }
+
+    function renderSequenceStrip(highlightIdx = -1) {
+      if (!transitionChain.length) {
+        sequenceStrip.innerHTML = `<span style="font-size:10px; color:var(--text-muted);">Click frame buttons to build transition</span>`;
+        return;
+      }
+
+      sequenceStrip.innerHTML = transitionChain.map((step, idx) => `
+        <span class="seq-tag ${idx === highlightIdx ? 'highlight' : ''}">
+          ${step.sheet}:${step.frame}
+          <span class="seq-tag-del" onclick="removeStep(${idx})">&times;</span>
+        </span>
+      `).join("");
+    }
+
+    function removeStep(idx) {
+      transitionChain.splice(idx, 1);
+      renderSequenceStrip();
+    }
+
+    function clearSequence() {
+      transitionChain = [];
+      renderSequenceStrip();
+    }
+
+    function applyPresetChain(type) {
+      const sheet = SPRITE_SHEETS.find(s => s.key === currentSheetKey) || { count: 3 };
+      const count = sheet.count || 1;
+
+      if (type === 'bounce') {
+        if (count === 3) {
+          transitionChain = [
+            { sheet: currentSheetKey, frame: 0 },
+            { sheet: currentSheetKey, frame: 1 },
+            { sheet: currentSheetKey, frame: 2 },
+            { sheet: currentSheetKey, frame: 1 },
+            { sheet: currentSheetKey, frame: 0 }
+          ];
+        } else {
+          transitionChain = [{ sheet: currentSheetKey, frame: 0 }];
+        }
+      } else if (type === 'double') {
+        if (count === 3) {
+          transitionChain = [
+            { sheet: currentSheetKey, frame: 0 },
+            { sheet: currentSheetKey, frame: 1 },
+            { sheet: currentSheetKey, frame: 2 },
+            { sheet: currentSheetKey, frame: 1 },
+            { sheet: currentSheetKey, frame: 0 },
+            { sheet: currentSheetKey, frame: 1 },
+            { sheet: currentSheetKey, frame: 2 },
+            { sheet: currentSheetKey, frame: 1 },
+            { sheet: currentSheetKey, frame: 0 }
+          ];
+        } else {
+          transitionChain = [{ sheet: currentSheetKey, frame: 0 }];
+        }
+      }
+      renderSequenceStrip();
+    }
+
+    // --- Canvas Drawing & Cross-Fade ---
+    function drawFrame(sheetKey, frameIndex) {
+      if (!ctx || !images[sheetKey]) return;
+      const sheet = SPRITE_SHEETS.find(s => s.key === sheetKey) || { count: 3 };
+      const img = images[sheetKey];
+      const frameCount = sheet.count || 1;
+      const frameW = img.naturalWidth / frameCount;
+      const frameH = img.naturalHeight;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const scale = Math.min(canvas.width / frameW, canvas.height / frameH);
+      const drawW = frameW * scale;
+      const drawH = frameH * scale;
+      const dx = (canvas.width - drawW) / 2;
+      const dy = canvas.height - drawH;
+
+      ctx.drawImage(
+        img,
+        frameIndex * frameW, 0, frameW, frameH,
+        dx, dy, drawW, drawH
+      );
+
+      currentSheetKey = sheetKey;
+      currentFrameIndex = frameIndex;
+      statSheet.innerText = sheetKey;
+      statFrame.innerText = frameIndex;
+    }
+
+    async function drawFrameCrossFade(sheetKey, fromIndex, toIndex, duration = 120) {
+      if (!ctx || !images[sheetKey]) return;
+      const sheet = SPRITE_SHEETS.find(s => s.key === sheetKey) || { count: 3 };
+      const img = images[sheetKey];
+      const frameCount = sheet.count || 1;
+      const frameW = img.naturalWidth / frameCount;
+      const frameH = img.naturalHeight;
+
+      const scale = Math.min(canvas.width / frameW, canvas.height / frameH);
+      const drawW = frameW * scale;
+      const drawH = frameH * scale;
+      const dx = (canvas.width - drawW) / 2;
+      const dy = canvas.height - drawH;
+
+      const steps = 5;
+      const stepMs = Math.max(12, Math.round(duration / steps));
+
+      for (let i = 1; i <= steps; i++) {
+        const alpha = i / steps;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.globalAlpha = 1 - alpha;
+        ctx.drawImage(img, fromIndex * frameW, 0, frameW, frameH, dx, dy, drawW, drawH);
+
+        ctx.globalAlpha = alpha;
+        ctx.drawImage(img, toIndex * frameW, 0, frameW, frameH, dx, dy, drawW, drawH);
+
+        ctx.globalAlpha = 1.0;
+        await sleep(stepMs);
+      }
+
+      drawFrame(sheetKey, toIndex);
+    }
+
+    // --- iv) TRANSITION BUTTON ACTION ---
+    function toggleTransitionPlay() {
+      if (isPlaying) {
+        stopTransition();
+      } else {
+        playTransitionChain();
+      }
+    }
+
+    async function playTransitionChain() {
+      if (!transitionChain.length) {
+        alert("Please add at least one frame to the transition chain!");
+        return;
+      }
+
+      stopTransition();
+      isPlaying = true;
+      const myToken = ++transitionToken;
+      const loop = loopChk.checked;
+
+      mainTransitionBtn.innerHTML = `<span>⏹</span> iv) STOPPING`;
+      mainTransitionBtn.style.background = "linear-gradient(135deg, #f43f5e, #e11d48)";
+      statStatus.innerText = "Playing Transition...";
+      statStatus.style.color = "var(--accent-amber)";
+
+      do {
+        let prevStep = null;
+        for (let i = 0; i < transitionChain.length; i++) {
+          if (!isPlaying || myToken !== transitionToken) break;
+          const step = transitionChain[i];
+
+          renderSequenceStrip(i);
+
+          // Auto overlays for sleep
+          if (step.sheet === "sleep" && step.frame === 2) toggleZzz(true);
+          else if (step.sheet === "sleep" && step.frame < 2) toggleZzz(false);
+
+          updateActiveFrameButton(step.frame);
+
+          if (fadeMs > 0 && prevStep && prevStep.sheet === step.sheet && prevStep.frame !== step.frame) {
+            await drawFrameCrossFade(step.sheet, prevStep.frame, step.frame, fadeMs);
+          } else {
+            drawFrame(step.sheet, step.frame);
+          }
+
+          if (frameHoldMs > 0) {
+            await sleep(frameHoldMs);
+          }
+          prevStep = step;
+        }
+      } while (loop && isPlaying && myToken === transitionToken);
+
+      if (myToken === transitionToken) {
+        isPlaying = false;
+        renderSequenceStrip(-1);
+        mainTransitionBtn.innerHTML = `<span>▶</span> iv) SINGLE TRANSITION (0 ➔ 1 ➔ 2 ➔ 1 ➔ 0)`;
+        mainTransitionBtn.style.background = "linear-gradient(135deg, #0284c7, #6366f1)";
+        statStatus.innerText = "Ready (Standing: Frame 0)";
+        statStatus.style.color = "var(--accent-emerald)";
+
+        // Ensure mascot returns to standing position at frame 0
+        drawFrame(currentSheetKey, 0);
+        updateActiveFrameButton(0);
+      }
+    }
+
+    function stopTransition() {
+      isPlaying = false;
+      transitionToken++;
+      renderSequenceStrip(-1);
+      mainTransitionBtn.innerHTML = `<span>▶</span> iv) SINGLE TRANSITION (0 ➔ 1 ➔ 2 ➔ 1 ➔ 0)`;
+      mainTransitionBtn.style.background = "linear-gradient(135deg, #0284c7, #6366f1)";
+      statStatus.innerText = "Ready (Standing: Frame 0)";
+      statStatus.style.color = "var(--accent-emerald)";
+      drawFrame(currentSheetKey, 0);
+      updateActiveFrameButton(0);
+    }
+
+    function copyChainCode() {
+      const code = JSON.stringify({
+        sheet: currentSheetKey,
+        frameHoldMs,
+        fadeMs,
+        loop: loopChk.checked,
+        chain: transitionChain
+      }, null, 2);
+
+      navigator.clipboard.writeText(code);
+      alert("✅ Transition chain code copied to clipboard!\n" + code);
+    }
+
+    // --- Image Preloading with robust multi-directory fallbacks ---
+    function loadImages(cb) {
+      SPRITE_SHEETS.forEach(sheet => {
+        const img = new Image();
+        const candidatePaths = [
+          "assets/mr_nerdy/" + sheet.file,
+          "src/assets/mr_nerdy/" + sheet.file,
+          "../assets/mr_nerdy/" + sheet.file,
+          "./assets/mr_nerdy/" + sheet.file
+        ];
+        let pathIdx = 0;
+
+        img.onload = () => {
+          images[sheet.key] = img;
+          loadedCount++;
+          if (loadedCount === SPRITE_SHEETS.length) {
+            loadBadge.innerText = `All ${SPRITE_SHEETS.length} Sprites Ready`;
+            loadBadge.style.color = "var(--accent-emerald)";
+            loadBadge.style.borderColor = "rgba(16, 185, 129, 0.4)";
+            loadBadge.querySelector('.badge-dot').style.background = "var(--accent-emerald)";
+            if (cb) cb();
+          }
+        };
+
+        img.onerror = () => {
+          pathIdx++;
+          if (pathIdx < candidatePaths.length) {
+            img.src = candidatePaths[pathIdx];
+          } else {
+            console.warn("Failed to load sprite sheet:", sheet.file);
+            loadedCount++;
+            if (loadedCount === SPRITE_SHEETS.length && cb) cb();
+          }
+        };
+
+        img.src = candidatePaths[0];
+      });
+    }
+
+    // Boot Studio
+    renderSheetList();
+    renderFrameButtons();
+    renderSequenceStrip();
+
+    loadImages(() => {
+      drawFrame("wave", 0);
+    });
+  </script>
+</body>
+</html>

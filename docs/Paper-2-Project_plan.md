@@ -1,169 +1,288 @@
-# Paper-to-Project Agent — Master Project Implementation Plan
+﻿# RUEXIS AI — Master Project Implementation Plan
 
-A local-first agentic system that converts a research paper into a feasibility-checked, staged PyTorch implementation blueprint, delivered through an interactive Windows desktop mascot and docked sidebar UI. Verified against Varun's own VLCD → E-SGCD thesis work across a 48 research paper test corpus.
+> **Project Name:** RUEXIS AI (Research Understanding & Execution Intelligence System)  
+> **Concept:** A local-first, fully agentic desktop application that converts any scientific research PDF into a feasibility-checked, staged PyTorch implementation — delivered through a multi-provider AI chat interface and an animated desktop mascot companion.  
+> **Status:** ✅ Backend 100% Complete & Verified · ✅ Frontend v2.0 Live
 
-31 days, 2 core modules (Backend & Frontend), zero overlapping work between phases.
+31 days · 2 core modules (Backend & Frontend) · 48-paper test corpus · 332 PyTorch files synthesized · 100% AST pass rate
 
 ---
 
-## 🏗️ Master System Architecture
+## 🏗️ Master System Architecture (v2.0)
 
 ```mermaid
 flowchart TD
-    subgraph Client_Layer["Frontend Layer: Desktop Shell & Mascot UI (Days 15–31)"]
-        Desktop[Electron Transparent Shell\nFrameless, Always-on-Top] --> WinAPI[Win32 Taskbar Engine\nkoffi FFI ABM_GETTASKBARPOS]
-        Desktop --> Mascot[SVG Mascot Rig\n4 Animation States]
-        Desktop --> Sidebar[Docked React Sidebar UI\nVite + React 19 + Tailwind 4]
-        Desktop --> ActiveWin[Active Window Polling\nactive-win PDF Matching]
+    subgraph Client_Layer["Frontend Layer: Electron Desktop Shell (Days 15–31)"]
+        Panel[Panel Window\nReact 19 + Vite 8 + Zustand 5]
+        Mascot[Mascot Overlay Window\n13 Animation States · 4 Characters]
+        Panel --> WinAPI[Win32 Taskbar Engine\nkoffi FFI ABM_GETTASKBARPOS]
+        Panel --> IPC[Preload Context Bridge\nwindow.mascotAPI — 15+ channels]
+        IPC --> Mascot
     end
 
-    subgraph Bridge_Layer["Bridge Layer: FastAPI REST & SSE Services"]
-        Sidebar --> REST[FastAPI REST API\n/analyze, /chat, /hardware]
-        Sidebar --> SSE[Server-Sent Events Stream\n/stream/run_id]
+    subgraph Bridge_Layer["Bridge Layer: FastAPI REST & SSE  (port 8000)"]
+        Panel --> REST[REST API\n/conversations · /upload · /models · /hardware]
+        Panel --> SSE[Server-Sent Events\n/chat/stream · /stream/run_id]
     end
 
-    subgraph Backend_Layer["Backend Multi-Agent Core — 8 Autonomous Agents (Days 1–14)"]
-        REST --> Ingestion["Tri-Parser Ingestion Engine (PyMuPDF + GROBID + Docling)"]
-        Ingestion --> Canonical["Canonical JSON Schema (paper_10.json)"]
-        Canonical --> Agents["8 Autonomous AI Agents (Decomp, Param, VRAM, Gap, Seq, Spec, Report, CodeGen)"]
-        Agents --> PyTorchCode["PyTorch Package Synthesizer (332 Python Source Files)"]
-        PyTorchCode --> ASTCheck["AST Syntax Validator (ast.parse - 100% Pass Rate)"]
+    subgraph Backend_Layer["Backend Core: Agents + LangGraph + ModelRouter (Days 1–14)"]
+        REST --> Extraction["Multi-Engine PDF Extraction\nDocling → PyMuPDF → GROBID → Gemini"]
+        Extraction --> Pipeline["LangGraph 5-Node Pipeline\ningestion → extraction → feasibility → sequencing → verification"]
+        Pipeline --> DualEngine["Dual Code Engine\nHF Qwen 2.5 Coder 32B + Gemini 2.5 Flash (parallel)"]
+        DualEngine --> ASTCheck["AST Validator + Security Gate\n100% Pass Rate"]
+        REST --> ChatAgent["ReACT Chat Agent\n7 Tools · Multi-Turn · SSE Streaming"]
+        ChatAgent --> ModelRouter["ModelRouter\nGroq → OpenRouter → Ollama · Auto-Failover"]
     end
 
-    subgraph Storage_Layer["Local Storage & Database Layer (Zero Cloud Dependencies)"]
-        Agents --> LocalOllama[Local Ollama Runtime\nqwen2.5-coder:1.5b at :11434]
-        Agents --> VectorDB[Local Flat-File Vector DB\nrag_embeddings/]
-        Agents --> KnowledgeGraph[NetworkX Knowledge Graph\nknowledge_graphs/]
+    subgraph Storage_Layer["Storage Layer (backend/storage/)"]
+        Pipeline --> VectorDB["FAISS Vector Index\nrag_embeddings/"]
+        Pipeline --> KnowledgeGraph["NetworkX Knowledge Graph\nknowledge_graphs/"]
+        Pipeline --> Codes["Synthesized PyTorch Code\ncodes/{paper_id}/"]
+        ChatAgent --> Conversations["Flat-File Conversations\nconversations/{id}.json"]
     end
 ```
 
 ---
 
-## 📌 Production Design Directives
+## 📌 v2.0 Design Principles
 
-1. **100% Local-First LLM Runtime & Cloud API Policy**: Primary LLM is local Ollama (`qwen2.5-coder:1.5b`) running on `http://localhost:11434`. Free cloud APIs (Groq, OpenRouter) are intentionally disabled due to the exhaustion/extinction of free tier API keys (`HTTP 429 Rate Limit Exceeded`). All pipeline processing and test suite runs execute 100% locally to guarantee zero API dependencies and zero rate-limit failures.
-2. **Zero External Database Overhead**: Vector embeddings store in a local flat-file JSON cache (`docs/new_backend_documents/e_2_e_reports/rag_embeddings/`), Knowledge Graphs store in NetworkX JSON (`knowledge_graphs/`), and synthesized PyTorch codebases store locally (`phase_8_codes/paper{id}/codes/`).
-3. **Tri-Parser Failover Engine**: Layout extraction via **PyMuPDF** (fast coordinate extraction), **GROBID** (XML TEI parsing at `localhost:8070`), and **Docling** (layout markdown / OCR).
+1. **Multi-Provider Inference with Auto-Failover** — Chat uses Groq (Qwen 3.8 27B, GPT-OSS 120B), OpenRouter (Gemini 2.5 Flash, DeepSeek R1), and Local Ollama. `ModelRouter` auto-retries next provider on HTTP 429. Frontend `ModelSelector` syncs to the actual model used via `failover_model` in the SSE `done` event.
 
----
+2. **Backend-Exclusive Dual Code Engine** — PyTorch synthesis runs Hugging Face `Qwen/Qwen2.5-Coder-32B-Instruct` and `gemini-2.5-flash` in parallel (async). Both outputs are AST-validated and security-checked; the best passes forward. Isolated from chat model quota.
 
-# 🛠️ PART 1: BACKEND IMPLEMENTATION PLAN (Days 1 – 14)
+3. **Zero External Database** — All persistence is flat-file JSON in `backend/storage/`: conversations, RAG embeddings, knowledge graphs, synthesized code, user profile, telemetry.
 
-> **Backend Status:** **100% COMPLETE & VERIFIED** (Tested across 48 Research Papers via `end_to_end_backend_testing.ipynb`, 332 PyTorch files synthesized with 100% AST pass rate).
+4. **LangGraph Autonomous Pipeline** — 5-node `StateGraph` (ingestion → extraction → feasibility → sequencing → verification) runs fully autonomously on paper upload. Live progress is streamed via SSE to the mascot and panel.
 
-### Phase 1 — Scientific Ingestion & Tri-Parser Pipeline (Days 1 – 2)
-* **Day 1 — Environment & Tri-Parser Ingestion Engine**:
-  * Local Ollama setup (`qwen2.5-coder:1.5b`) + GROBID Docker container (`localhost:8070`).
-  * PyMuPDF + GROBID + Docling tri-parser failover strategy extracting 3-tier IEEE titles, section trees, tables, and math formulas.
-* **Day 2 — Canonical Representation (`PaperDocument`)**:
-  * Output validation against Pydantic `PaperDocument` schema (`paper_10.json`).
-
-### Phase 2 — Extraction Quality Validation (Day 3)
-* **Day 3 — Quality Validator Engine (`validate_paper_document`)**:
-  * Deterministic validation checks calculating completeness scores (48/48 QA_PASS achieved).
-
-### Phase 3 — Local RAG Vector DB & Knowledge Graph (Day 4)
-* **Day 4 — Flat-File Vector DB & NetworkX Knowledge Graph**:
-  * Index semantic text chunks into local flat-file vector DB (`rag_embeddings/`) and construct NetworkX graph structures (`knowledge_graphs/`).
-
-### Phase 4 — Paper Understanding & Hyperparameter Agents (Day 5)
-* **Day 5 — Agent 1 (Decomposition) & Agent 2 (Parameter Agent)**:
-  * Agent 1 infers `ComponentGraph` isolating encoders, fusion layers, and decoders.
-  * Agent 2 extracts 11 hyperparameters (`learning_rate`, `batch_size`, `optimizer`, `backbone`) with provenance annotations (`EXPLICIT`, `INFERRED`, `ASSUMED`).
-
-### Phase 5 — CUDA VRAM Feasibility & Gap Resolution (Day 6)
-* **Day 6 — Agent 3 (CUDA VRAM Feasibility) & Agent 4 (Gap Resolver)**:
-  * Agent 3 profiles host hardware (`get_hardware_metrics`: Windows AMD64, 16 CPU cores, 23.6 GB RAM, RTX 5050 CUDA GPU VRAM) against model requirements.
-  * Agent 4 resolves parameter gaps and applies VRAM fallback adaptations (batch size scaling, gradient accumulation).
-
-### Phase 6 — Build Sequencing, Specification & Executive Report (Day 7)
-* **Day 7 — Agent 5 (Sequencer), Agent 6 (Tech Spec), Agent 7 (Adaptation Report)**:
-  * Agent 5 builds 6-milestone DAG sequence where cheap checks precede heavy training.
-  * Agent 6 generates technical specification blueprint (`ProjectSpecification`).
-  * Agent 7 synthesizes portfolio-grade executive markdown proposal reports.
-
-### Phase 7 — PyTorch Code Generation Agent (Day 8)
-* **Day 8 — Agent 8 (PyTorch Codebase Package Synthesizer)**:
-  * Synthesizes 8 modular PyTorch source files per paper (`config.py`, `dataset.py`, `models/encoder.py`, `models/fusion.py`, `models/decoder.py`, `losses.py`, `train.py`, `evaluate.py`).
-  * Saves synthesized codebases across 48 paper repositories (332 total Python files).
-
-### Phase 8 — Code Verification & Conversational ReACT Memory (Days 9 – 10)
-* **Day 9 — Phase 9 AST Syntax Verification**:
-  * Executes Python's native AST parser (`ast.parse`) across all 332 synthesized code files (100% pass rate in 0.29 s).
-* **Day 10 — Phase 10 Multi-Turn ReACT Chat & Memory**:
-  * Multi-turn conversational ReACT agent (`ChatAgent`) grounded in RAG chunks with local database history (`ChatDatabase`).
-
-### Phase 9 — Model Router & Hardware Telemetry (Days 11 – 14)
-* **Day 11 — Phase 11 Model Router Throughput**:
-  * Benchmarks dynamic prompt routing latency (`ModelRouter`) on local Ollama (`qwen2.5-coder:1.5b`).
-* **Day 12 — Phase 12 FastAPI Hardware Telemetry**:
-  * Exposes real-time system hardware telemetry endpoint (`get_hardware_metrics`).
-* **Day 13 — End-to-End Test Suite Integration (`end_to_end_backend_testing.ipynb`)**:
-  * Automates all 12 notebook phases across the 48 research paper corpus (~5.9 hours total execution time).
-* **Day 14 — Golden Corpus Benchmark Verification**:
-  * Finalizes master scorecard metrics and compiles master test report (`master_e2e_backend_test_report.md`).
+5. **4-Character Mascot · 13 Animation States** — Sprite Canvas engine drives `mr_nerdy`, `ms_nerdy`, `mr_nerd`, `ms_nerd` with 13 states synchronized to every backend event in real time.
 
 ---
 
-# 🎨 PART 2: FRONTEND IMPLEMENTATION PLAN (Days 15 – 31)
+# 🛠️ PART 1: BACKEND (Days 1 – 14)
 
-> **Frontend Status:** **READY FOR IMPLEMENTATION** (Desktop Shell, Mascot SVG Rig, Active Window Detection, Docked Sidebar UI & Packaging).
-
-### Phase 1 — SVG Mascot Character Rig & Win32 Taskbar Docking (Days 15 – 17)
-* **Day 15 — SVG Character Rig & Reskin System**:
-  * Modular SVG rig with 4 selectable reskins (`mr_nerdy_stand_sleep`, `mr_nerdy_stand_to_excite`, `mr_nerd_stand_to_angry`, `mr_nerd_stand_to_hunch`).
-* **Day 16 — Native Win32 Taskbar Positioning Engine**:
-  * Query Win32 Taskbar bounds (`ABM_GETTASKBARPOS` via `koffi`) to calculate mascot anchor positions.
-* **Day 17 — Mascot Animation State Machine**:
-  * Implement 4 CSS-transform animation states: Sleeping, Idle/Curious, Reading/Investigating, Working.
-
-### Phase 2 — Transparent Window Shell & Active Detection (Days 18 – 19)
-* **Day 18 — DPI-Aware Transparent Window Shell**:
-  * Frameless, transparent, always-on-top Electron overlay window with `setIgnoreMouseEvents` pass-through.
-  * Multi-DPI screen coordinate math via `screen.getDisplayNearestPoint()` handling 125%–150% Windows scaling.
-* **Day 19 — Active Window Detection & Global Hotkey Engine**:
-  * Polling service (`active-win`) matching PDF viewer process names and paper titles in window headers.
-  * Global hotkey fallback `Ctrl+Shift+P` via `globalShortcut`.
-
-### Phase 3 — Docked Sidebar Panel & Real-Time SSE Stream UI (Days 20 – 22)
-* **Day 20 — Docked Sidebar Panel Layout & 3-Tier Selector**:
-  * React + TailwindCSS sidebar (`LeftSidebar.tsx`, `RightSidebar.tsx`) with 3-tier depth selector (`TierSelector.tsx`: Brief Summary, Detailed Spec, Full PyTorch Implementation).
-* **Day 21 — Real-Time SSE Event Stream Connection**:
-  * Connect sidebar Zustand store (`analysisSlice.ts`) to `/stream/{run_id}` SSE stream, emitting live progress and updating mascot state.
-* **Day 22 — Markdown Renderer & Multi-Turn ReACT Chat Widget**:
-  * Markdown renderer (`ReportView.tsx`) with syntax-highlighted code tree and ReACT chat feed (`parseReAct.ts`).
-
-### Phase 4 — Local Workspace Storage & Cache History Drawer (Days 23 – 25)
-* **Day 23 — Onboarding & Workspace Selector**:
-  * First-run wizard: Character picker + native directory selector (`dialog.showOpenDialog`) saved via `electron-store`.
-* **Day 24 — History Drawer & Cache Scanner**:
-  * Scan local `.paper_data` cache folder on startup (< 100ms load time) to populate History Drawer (`DocumentsDrawer.tsx`).
-* **Day 25 — UI Reliability & Stress Testing 🔒**:
-  * Stress-test display resolution changes, sleep/wake cycles, full-screen apps, and display disconnects.
-
-### Phase 5 — Windows Packaging, Installer & VM Distribution (Days 26 – 31)
-* **Day 26 — Python Backend Binary Packaging**:
-  * Bundle Python FastAPI backend into a standalone executable using PyInstaller.
-* **Day 27 — Electron Installer Configuration**:
-  * Configure `electron-builder` for Windows NSIS `.exe` installer bundling native C++ bindings (`koffi`/`active-win`).
-* **Day 28 — Pre-Flight Configuration Setup**:
-  * First-boot setup window verifying local Ollama connectivity (`http://localhost:11434`) and GROBID Docker status (`http://localhost:8070`).
-* **Days 29–31 — Clean Windows VM Test & Portfolio Demo Checkpoint 🔒**:
-  * Full installer execution in fresh Windows 11 sandbox VM without development tools installed.
+> **Status: ✅ 100% COMPLETE & VERIFIED** — 48-paper corpus · 332 PyTorch files · 100% AST pass rate · All 12 test phases PASS
 
 ---
 
-## 🔒 Protected Checkpoints (Do Not Skip)
-- **Backend Checkpoints (Days 4, 6, 8, 12, 14)**: Agent reasoning validation against real VLCD → E-SGCD thesis ground truth and 48 paper corpus benchmarks.
-- **Frontend Checkpoints (Days 21, 25, 31)**: Mascot UI reliability under resolution changes, full system SSE stream integration, and clean Windows VM installer verification.
+### Phase 1 — Multi-Engine PDF Extraction (Days 1–2)
+
+**Day 1 — Package Foundation & Multi-Engine Parser**
+- Modular package layout: `app/core/`, `app/schemas/`, `app/extraction/`, `app/retrieval/`, `app/agents/`, `app/api/`, `app/providers/`, `app/graph/`, `app/tools/`
+- Multi-provider config: Groq, OpenRouter, Gemini, HuggingFace, Ollama — each with `has_*()` availability checks and hot-reload from `.env`
+- Multi-engine extraction: **Docling** (primary) → **PyMuPDF** (fallback) → **Gemini** (complex PDFs) · Optional **GROBID** at `localhost:8070`
+- `merger.py` — reconciles multi-parser outputs into canonical JSON
+
+**Day 2 — Canonical Paper Representation**
+- Pydantic `PaperDocument` schema validation (sections, tables, figures, equations)
+- MD5 hash deduplication on upload
+- `validator.py` — completeness scoring → `QA_PASS` / `QA_PARTIAL` / `QA_FAIL`
 
 ---
 
-## 📄 Reference Documentation
+### Phase 2 — RAG & Knowledge Graph (Days 3–4)
 
-- **Master E2E Backend Test Report**: [`docs/backend_docs/master_e2e_backend_test_report.md`](./master_e2e_backend_test_report.md)
-- **Backend Phase-Wise Detailed Explanation**: [`docs/backend_docs/phase_wise_explanation.md`](./phase_wise_explanation.md)
-- **Backend Day-Wise Development Breakdown**: [`docs/backend_docs/day_wise_explanation.md`](./day_wise_explanation.md)
-- **Frontend Phase-Wise Technical Explanation**: [`docs/frontend_docs/phase_wise_explanation.md`](../frontend_docs/phase_wise_explanation.md)
-- **Frontend Day-Wise Development Breakdown**: [`docs/frontend_docs/day_wise_explanation.md`](../frontend_docs/day_wise_explanation.md)
-- **Phase-Wise Consolidated Test Reports**: [`docs/backend_docs/Tests_phasewise_reports/`](./Tests_phasewise_reports/)
+**Day 3 — Quality Validation**
+- `validate_paper_document` — deterministic checks: 48/48 QA_PASS (6.33 s)
+
+**Day 4 — FAISS Vector Index & NetworkX Knowledge Graph**
+- `chunker.py` — overlapping paragraph-boundary chunks, equations/tables atomic
+- `embeddings.py` — sentence-transformer dense vectors → FAISS index per paper
+- `PaperKnowledgeGraph` — entity + relationship extraction → `storage/knowledge_graphs/{paper_id}_kg.json`
+
+---
+
+### Phase 3 — LangGraph 5-Node Autonomous Pipeline (Days 5–7)
+
+**Day 5 — Pipeline Architecture + IngestionAgent + ParameterAgent**
+- `app/graph/workflow.py` — `StateGraph` with shared `PipelineState`
+- `IngestionAgent` — loads canonical JSON into state
+- `ParameterAgent` — extracts 11 hyperparameters with provenance (`EXPLICIT` / `INFERRED` / `ASSUMED`)
+
+**Day 6 — FeasibilityAgent + GapAgent + SequencingAgent**
+- `FeasibilityAgent` — queries `GET /hardware/metrics` → VRAM score → `FEASIBLE` / `FEASIBLE_WITH_MODIFICATION` / `NOT_FEASIBLE`
+- `GapAgent` — resolves missing/ambiguous params with fallback heuristics (batch size scaling, gradient accumulation, mixed precision)
+- `SequencingAgent` — ordered 6-milestone `BuildSequence` DAG
+
+**Day 7 — SpecificationAgent + ReportAgent**
+- `SpecificationAgent` — `ProjectSpecification` (architecture, data loaders, loss functions, scaled hyperparams)
+- `ReportAgent` — portfolio-grade Markdown executive proposal
+
+---
+
+### Phase 4 — Dual Code Engine & AST Verification (Day 8–9)
+
+**Day 8 — CodeGenAgent + Dual Code Engine**
+- `dual_code_engine.py` — async parallel synthesis:
+  - **Engine A**: `Qwen/Qwen2.5-Coder-32B-Instruct` via HuggingFace (idiomatic PyTorch specialist)
+  - **Engine B**: `gemini-2.5-flash` via Gemini API (paper context + mathematical precision)
+- Merge logic: AST validate + security blocklist → best output wins
+- Output: 8 modular PyTorch files (`config.py`, `dataset.py`, `models/encoder.py`, `models/fusion.py`, `models/decoder.py`, `losses.py`, `train.py`, `evaluate.py`)
+- 332 total Python files across 48 repositories (7,588.83 s)
+
+**Day 9 — AST Verification Gate**
+- `ast.parse()` + security blocklist (`os.system`, `eval`, `exec`, `subprocess.run`, `__import__`)
+- 100% pass rate across 332 files (0.29 s)
+
+---
+
+### Phase 5 — ReACT Chat Agent & Tools (Day 10)
+
+**Day 10 — ChatAgent + 7-Tool ReACT Loop + SSE Streaming**
+- `ChatAgent.process_message_stream()` — async generator, up to 5 ReACT turns
+- 7 tools: `arxiv_search`, `scholar_search`, `vector_search`, `graph_search`, `canonical_document`, `hyperparameter_tool`, `episodic_memory`
+- `context_builder.py` — merges user facts + hyperparams + episodic memory + chat history
+- `smart_titler.py` — generates 3–5 word conversation title on first message
+- SSE events: `status`, `thought`, `action`, `observation`, `token`, `done`, `error`
+
+---
+
+### Phase 6 — ModelRouter, Quota Tracker & API Layer (Days 11–14)
+
+**Day 11 — ModelRouter + 4 Provider Adapters + Quota Tracker**
+- `model_router.py` — Groq → OpenRouter → Ollama priority dispatch
+- `groq_adapter.py`, `openrouter_adapter.py`, `hf_adapter.py`, `ollama_adapter.py`
+- `quota_tracker.py` — rolling 1-min / 60-min / 24-hr windows per provider
+- `limits_dashboard.py` — HTML UI at `/limits-dashboard` + JSON at `/models/limits`
+
+**Day 12 — FastAPI Hardware Telemetry**
+- `GET /hardware/metrics` — `psutil` (CPU/RAM) + `nvidia-smi` (VRAM) → platform, cores, usage, VRAM free
+
+**Day 13 — End-to-End Test Suite**
+- `end_to_end_backend_testing.ipynb` — 12 notebook phases across 48-paper corpus (~5.9 hours)
+- All phases PASS · Master scorecard: `Tests_phasewise_reports/master_scorecard.json`
+
+**Day 14 — Full API Layer**
+- Auth, Chat/Conversations, Papers/Upload, Pipeline/Stream, Models, Hardware, Telemetry routers
+- `POST /conversations/{id}/chat/stream` — primary streaming endpoint
+- `GET /stream/{run_id}` — pipeline SSE with mascot-state signals
+
+---
+
+# 🎨 PART 2: FRONTEND (Days 15 – 31)
+
+> **Status: ✅ COMPLETE** — Two-window Electron app · React 19 + Zustand 5 · 4-character mascot · 13 animation states · Multi-provider model selector · Live quota dashboard
+
+---
+
+### Phase 1 — Electron Shell & Mascot Engine (Days 15–17)
+
+**Day 15 — Two-Window Architecture & Backend Auto-Spawn**
+- `createPanelWindow()` (1100×900) + `createMascotWindow()` (125×150 transparent overlay)
+- `checkBackendReady()` — polls `:8000` every 500 ms → spawns `python main.py` if not running
+
+**Day 16 — Win32 Taskbar Detection & DPI Positioning**
+- `koffi` FFI → `SHAppBarMessage(ABM_GETTASKBARPOS)` → taskbar edge detection
+- `positionMascotDefault()` — `scaleFactor`-aware placement at bottom-right of `workArea`
+- Multi-monitor: `screen.on('display-metrics-changed')` re-anchors mascot
+
+**Day 17 — Sprite Animation Engine & State Machine (13 States)**
+- Canvas 2D sprite renderer — horizontal frame sheets per state per character
+- 4 characters × 13 states: `standing`, `blink`, `wave`, `thinking`, `hunch`, `catching`, `excite`, `tired`, `having_sipping`, `sleep`, `angry`, `confused`, `peeking`
+- Transitions driven by backend SSE → IPC → `mascot.js`
+- Skin persistence via `electron-store`
+
+---
+
+### Phase 2 — IPC Bridge & File Upload (Days 18–19)
+
+**Day 18 — Preload Context Bridge (`preload.js`)**
+- `contextBridge.exposeInMainWorld('mascotAPI', {...})` — 15+ secure IPC channels
+- Send methods, invoke methods, event listener registrations — fully typed
+
+**Day 19 — File Upload & Pipeline Orchestration**
+- Immediate path: mascot drop → `upload-pdf` IPC → `runPipelineOrchestrator()`
+- Staged path: `open-file-selector` → `file-staged` → user sends → `trigger-upload` → pipeline
+
+---
+
+### Phase 3 — React Renderer UI (Days 20–22)
+
+**Day 20 — Root Store & Panel Shell**
+- `panelStore.ts` — 6-slice Zustand composition: `UI + Profile + Chat + Hardware + DocumentHistory + Analysis`
+- `Panel.tsx` — root orchestrator: `initIpcListeners()`, drag state, staged file, chat input
+
+**Day 21 — Zustand Slices**
+- `chatSlice` — conversations, SSE stream parser, auto-failover model sync, `refresh-model-limits` dispatch
+- `analysisSlice` — 5-milestone pipeline status, upload, code generation, IPC wiring
+- `profileSlice` — API keys + Ollama link persisted to `localStorage` + backend
+- `hardwareSlice` — hardware metrics polling · `themeStore` — 4-mode theme system (l1/l2/l3/d)
+
+**Day 22 — All Components**
+- Layout: `Header`, `LeftSidebar`, `RightSidebar`, `MascotBox`, `ChatHistoryList`, `DocumentHistoryList`
+- Chat: `MessageFeed`, `MessageBubble`, `ChatInputArea`, `ReActStepsAccordion`, `parseReAct.ts`
+- Analysis: `MilestoneTracker`, `ReportView`, `ParameterConfigForm`, `PdfViewerPage`, `ImplementationTabs`
+- Profile: `UserProfile`, `ApiKeysConfigSection`, `OllamaConfigSection`, `ModelLimitsSection`, `ProviderQuotaCard`, `MascotSelector`
+- UI: `ModelSelector`, `DropZone`, `DragDropOverlay`, `TierSelector`, `Icons`, `Tooltip`
+
+---
+
+### Phase 4 — SSE Streaming, Failover & Quota (Days 23–24)
+
+**Day 23 — Chat SSE Stream Parser**
+- `createSseParser` — handles all 7 event types + JSON-wrapped legacy format + `AbortController` abort on conv switch
+
+**Day 24 — Model Failover Sync & Quota Dashboard**
+- `resolveFailoverModelId()` → `setSelectedModel()` → `ModelSelector` ticks correct model
+- `ProviderQuotaCard` — live rpm/rpd usage from `GET /models/limits`, refreshed after every chat completion
+
+---
+
+### Phase 5 — Design System & Production Build (Days 25–28)
+
+**Day 25 — Design System (`index.css`)**
+- CSS custom property system: bg, text, border, accent, status tokens
+- 4 theme modes via body class toggling · IBM Plex Mono / Public Sans / Source Serif 4
+
+**Day 26–28 — API/Schema Layer + Production Build**
+- `config/api.ts` — `getApiBase()` resolves to `http://localhost:8000/api/v1` in Electron & Vite
+- `schemas/api.ts` — Zod parse functions for all backend responses
+- `constants/models.ts` — `FALLBACK_GROQ`, `FALLBACK_OPENROUTER`, `resolveFailoverModelId()`
+- Production: `npm run build` in renderer → `dist/` loaded by Electron `main.js`
+
+---
+
+### Phase 6 — Testing & Verification (Days 29–31)
+
+**Days 29–31 — Frontend Integration Testing**
+- All IPC channels verified (mascot state, skin switch, file upload, panel toggle)
+- SSE stream parser tested against all 7 event types
+- Theme system tested across all 4 modes
+- Model failover sync verified end-to-end
+- Quota dashboard refresh verified after each chat completion
+
+---
+
+## 📊 Backend Verification Scorecard
+
+| Phase | Component | Corpus | Status | Time |
+|-------|-----------|--------|--------|------|
+| 1 | PDF Extraction (Docling + PyMuPDF + GROBID + Gemini) | 48 PDFs | **PASS** | 1,679.59 s |
+| 2 | Canonical Schema (`PaperDocument`) | 48 JSONs | **PASS** | 0.37 s |
+| 3 | Quality Validation | 48 Papers | **PASS** | 6.33 s |
+| 4 | FAISS RAG + NetworkX KG | 48 Papers | **PASS** | 4.88 s |
+| 5 | ParameterAgent + DecompositionAgent | 48 Papers | **PASS** | 8,284.86 s |
+| 6 | FeasibilityAgent + GapAgent | 48 Papers | **PASS** | 465.54 s |
+| 7 | SequencingAgent + SpecAgent + ReportAgent | 48 Papers | **PASS** | 1,578.33 s |
+| 8 | CodeGenAgent + Dual Code Engine | 48 Papers | **PASS** | 7,588.83 s |
+| 9 | AST Verification (332 files) | 332 Files | **PASS** | 0.29 s |
+| 10 | ReACT ChatAgent + 7 Tools | 48 Papers | **PASS** | 1,631.38 s |
+| 11 | ModelRouter + 4 Adapters | 3 Prompts | **PASS** | 13.87 s |
+| 12 | Hardware Telemetry | System | **PASS** | 0.09 s |
+
+---
+
+## 📁 Reference Documentation
+
+| Doc | Location |
+|-----|----------|
+| Backend API & Architecture | [`backend/README.md`](../backend/README.md) |
+| Renderer State & Components | [`frontend/renderer/README.md`](../frontend/renderer/README.md) |
+| Electron Shell & IPC | [`frontend/electron_app/README.md`](../frontend/electron_app/README.md) |
+| Backend Day-Wise Explanation | [`docs/backend_docs/backend_day_wise_explanation.md`](./backend_docs/backend_day_wise_explanation.md) |
+| Backend Commands & Setup | [`docs/backend_docs/backend_commands.md`](./backend_docs/backend_commands.md) |
+| Complete Backend File Guide | [`docs/backend_docs/complete_backend_guide.md`](./backend_docs/complete_backend_guide.md) |
+| Frontend Day-Wise Explanation | [`docs/frontend_docs/day_wise_explanation.md`](./frontend_docs/day_wise_explanation.md) |
+| Frontend Commands & Setup | [`docs/frontend_docs/frontend_commands.md`](./frontend_docs/frontend_commands.md) |
+| Complete Frontend File Guide | [`docs/frontend_docs/complete_frontend_guide.md`](./frontend_docs/complete_frontend_guide.md) |
+| Master E2E Test Report | [`docs/backend_docs/master_e2e_backend_test_report.md`](./backend_docs/master_e2e_backend_test_report.md) |
+| Phase Test Reports | [`docs/backend_docs/Tests_phasewise_reports/`](./backend_docs/Tests_phasewise_reports/) |

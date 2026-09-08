@@ -1,5 +1,6 @@
 import type { StateCreator } from 'zustand';
 import type { PanelState } from '../panelStore';
+import { DEFAULT_SELECTED_MODEL } from '../../constants/models';
 
 export interface UISlice {
   isPanelOpen: boolean;
@@ -19,14 +20,29 @@ export interface UISlice {
   setHistoryOpen: (isOpen: boolean) => void;
 }
 
+const getInitialSelectedModel = (): string => {
+  if (typeof localStorage !== 'undefined') {
+    const stored = localStorage.getItem('selected_model');
+    if (stored && stored.trim()) return stored.trim();
+  }
+  return DEFAULT_SELECTED_MODEL;
+};
+
 export const createUISlice: StateCreator<PanelState, [], [], UISlice> = (set) => ({
   isPanelOpen: true,
   selectedTier: 'detailed',
   isLogsOpen: false,
   isHistoryOpen: false,
   activeView: 'chat',
-  selectedModel: 'llama-3.3-70b',
-  setSelectedModel: (model) => set({ selectedModel: model }),
+  selectedModel: getInitialSelectedModel(),
+  setSelectedModel: (model) => {
+    try {
+      if (typeof localStorage !== 'undefined' && model) {
+        localStorage.setItem('selected_model', model);
+      }
+    } catch {}
+    set({ selectedModel: model });
+  },
   setActiveView: (view) => set({ activeView: view }),
   togglePanel: () => set((state) => ({ isPanelOpen: !state.isPanelOpen })),
   setPanelOpen: (isOpen) => set({ isPanelOpen: isOpen }),

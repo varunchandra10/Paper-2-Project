@@ -99,7 +99,7 @@ export const DropZone: React.FC = () => {
         tabIndex={isAnalyzing ? -1 : 0}
         className={`relative flex-1 border-2 border-dashed rounded-xl p-3.5 flex flex-col items-center justify-center text-center transition-all duration-200 select-none group outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
           isAnalyzing 
-            ? 'opacity-50 cursor-not-allowed border-border/30 bg-muted/20' 
+            ? 'opacity-50 cursor-not-allowed border-[var(--border-color)]/30 bg-[var(--bg-base)]/40' 
             : isPdfOver
               ? 'border-[var(--accent)] bg-[var(--accent-subtle)] shadow-[0_0_18px_rgba(0,0,0,0.1)] -translate-y-0.5'
               : 'border-[var(--border-color)] bg-[var(--bg-card)] hover:border-[var(--accent)] hover:bg-[var(--accent-subtle)] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)]'
@@ -134,7 +134,7 @@ export const DropZone: React.FC = () => {
         tabIndex={isAnalyzing ? -1 : 0}
         className={`relative flex-1 border-2 border-dashed rounded-xl p-3.5 flex flex-col items-center justify-center text-center transition-all duration-200 select-none group outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
           isAnalyzing 
-            ? 'opacity-50 cursor-not-allowed border-border/30 bg-muted/20' 
+            ? 'opacity-50 cursor-not-allowed border-[var(--border-color)]/30 bg-[var(--bg-base)]/40' 
             : isDocxOver
               ? 'border-[var(--accent)] bg-[var(--accent-subtle)] shadow-[0_0_18px_rgba(0,0,0,0.1)] -translate-y-0.5'
               : 'border-[var(--border-color)] bg-[var(--bg-card)] hover:border-[var(--accent)] hover:bg-[var(--accent-subtle)] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)]'

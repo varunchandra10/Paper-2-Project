@@ -1,686 +1,534 @@
-# 📖 Complete Backend Reference Guide: 3-Part Technical Breakdown
+﻿# 📖 Complete Backend Reference Guide — RUEXIS AI v2.0
 
-This document is divided into **3 explicit sections** as requested:
+This document provides a complete technical breakdown of every module in `backend/app/`, organized into three sections:
 
-1. **SECTION 1: Individual Explanations for Every Single `.py` File** (All 74 Python files in `backend/app/`).
-2. **SECTION 2: Flow-Based Grouping & Sequential Execution Breakdown** (Step-by-step pipeline flows).
-3. **SECTION 3: Exact Input & Output Specifications for Every Component**.
-
-> 💡 **YES! The Canonical Document (`PaperDocument`) IS sent directly to the LLM across agents**:
-> - **In Ingestion (`ingestion_agent.py`)**: The PDF is parsed into the canonical `PaperDocument` with title, authors, abstract, and section hierarchy (`I. INTRODUCTION`, `III. METHOD`, `IV. EXPERIMENTS`).
-> - **In Agent 1 (`decomposition_agent.py`)**: Passes canonical `PaperDocument.sections["III. METHOD"]` (first 3,000 chars) and `IV. EXPERIMENTS` (first 1,000 chars) directly into the LLM prompt.
-> - **In Agent 2 (`parameter_agent.py`)**: Passes canonical `PaperDocument.raw_full_text` (first 4,000 chars) and section text into the LLM prompt.
-> - **In Multi-Turn Chat (`chat_agent.py` & `canonical_document_tool.py`)**: The ReACT agent reads un-truncated sections directly from the stored canonical document JSON (`storage/extracted_json/{paper_id}.json`).
+1. **SECTION 1 — File-by-File Explanation** (every `.py` file in the backend)
+2. **SECTION 2 — Flow-Based Pipeline Breakdown** (sequential execution flows)
+3. **SECTION 3 — Input/Output Specifications per Component**
 
 ---
 
-
-# SECTION 1: Individual Explanations for Every `.py` File
-
-Below is the complete, file-by-file breakdown of all 74 Python files in `backend/app/`.
+# SECTION 1: File-by-File Explanation
 
 ---
 
-### 📁 Root Application Module (`app/`)
+## 📁 Root (`app/`)
 
-#### 1. `app/__init__.py`
-- **What it does:** Marks `app` as a Python package directory.
-- **Input:** N/A
-- **Output:** N/A
+### `app/__init__.py`
+Marks `app` as a Python package. Exports `__version__ = "2.0.0"`.
 
 ---
 
-### 📁 Core Infrastructure (`app/core/`)
+## 📁 Core Infrastructure (`app/core/`)
 
-#### 2. `app/core/__init__.py`
-- **What it does:** Package initializer for core utilities.
-- **Input:** N/A
-- **Output:** N/A
+### `app/core/config.py`
+**Central settings singleton.** Reads all environment variables from `.env` via `python-dotenv`. Defines:
+- **Directory paths** — `STORAGE_DIR`, `PAPERS_DIR`, `HISTORY_DIR`, `REPORTS_DIR`, `EXTRACTED_JSON_DIR`, `KNOWLEDGE_GRAPHS_DIR`, `RAG_EMBEDDINGS_DIR`, `TRACES_DIR`, `CONVERSATIONS_DIR`, `CODES_DIR`
+- **Provider availability checks** — `has_groq()`, `has_openrouter()`, `has_gemini()`, `has_huggingface()`, `has_tavily()`
+- **Hot-reload** — `_reload_env()` re-reads `.env` from disk; used by `GEMINI_API_KEY` and `HUGGINGFACE_API_KEY` properties on first access
+- **`ensure_directories()`** — Creates all storage subdirectories on startup
+- **`SECRET_KEY`** — Raises `RuntimeError` if unset, preventing silent auth failures
 
-#### 3. `app/core/config.py`
-- **What it does:** System settings module powered by Pydantic `BaseSettings`. Defines environment variables, system directory paths (`STORAGE_DIR`, `PAPERS_DIR`, `HISTORY_DIR`), default LLM model (`qwen2.5-coder:1.5b`), and host URLs.
-- **Input:** `.env` file or environment variables.
-- **Output:** Global `settings` object containing immutable system parameters.
+### `app/core/database.py`
+**Flat-file JSON database engine (`ChatDatabase`).** All persistence is plain JSON files — no external DB.
+- **Conversations** — Stored as `storage/conversations/{conv_id}.json`; each file contains `{title, project_id, messages: []}`
+- **Active conversation** — Tracked in `storage/conversations/_active.json`
+- **User profile** — Stored in `storage/user_profile.json` (username, email, API keys, Ollama link, mascot selection)
+- **Document metadata** — Paper ingestion records in `storage/history/`
+- **Deduplication** — `get_paper_by_hash(md5)` checks if a file was already ingested
+- **User facts/memory** — `save_memory_fact()`, `get_user_facts()` for episodic memory persistence
 
-#### 4. `app/core/database.py`
-- **What it does:** 100% flat-file local JSON database engine (`ChatDatabase`). Manages user accounts (`users`), project metadata (`projects`), facts, and episodic run history.
-- **Input:** JSON database file (`storage/history/chat_memory_db.json`).
-- **Output:** Serialized JSON records for users, projects, and chat sessions.
+### `app/core/model_router.py`
+**Dynamic LLM provider router.** Dispatches inference to one of four adapters based on model ID prefix and quota state.
+- **Groq** — IDs containing `qwen3`, `gpt-oss`, `groq`
+- **OpenRouter** — IDs containing `gemini`, `deepseek`, `openrouter`
+- **Ollama** — IDs containing `ollama`, or any locally installed model name
+- **HuggingFace** — Backend-exclusive; called directly by `dual_code_engine.py`
+- **`get_user_api_keys()`** — Reads private Groq/OR keys from `user_profile.json` (set in Profile page) as override
+- **`generate(prompt, model_id)`** — Returns `(response_text, model_name_used)` tuple; model_name_used reflects actual provider after failover
 
-#### 5. `app/core/history_logger.py`
-- **What it does:** Persists multi-turn chat conversation streams to disk.
-- **Input:** Paper ID, user prompt string, agent response text, timestamp.
-- **Output:** Saved JSON conversation file (`storage/conversations/{paper_id}_messages.json`).
+### `app/core/quota_tracker.py`
+**Rolling usage window tracker for all providers.** Maintains in-memory counters with timestamps.
+- **Windows** — 1-minute, 60-minute, and 24-hour rolling windows
+- **`record_usage(provider, model, tokens)`** — Called by every inference path including failover branches
+- **`get_limits_summary()`** — Returns current usage vs limit per provider for dashboard rendering
+- **Provider coverage** — Separate counters for Groq, OpenRouter, Gemini, HuggingFace
 
-#### 6. `app/core/model_router.py`
-- **What it does:** Multi-provider LLM abstraction layer (`ModelRouter`). Tries local Ollama (`qwen2.5-coder:1.5b`) first; automatically falls back to Groq or OpenRouter if local Ollama fails.
-- **Input:** Prompt string, optional model ID, temperature, JSON format flag.
-- **Output:** Tuple of `(generated_text_response, model_name_used)`.
+### `app/core/dual_code_engine.py`
+**Parallel async code synthesis engine.** Runs two specialized models concurrently.
+- **Engine A** — `Qwen/Qwen2.5-Coder-32B-Instruct` via HuggingFace (idiomatic PyTorch specialist)
+- **Engine B** — `gemini-2.5-flash` via Gemini REST API (paper context + mathematical precision)
+- **`extract_python_code(raw)`** — Strips markdown fences from raw LLM output
+- **`validate_code_syntax(code)`** — `ast.parse()` + security blocklist check (`os.system`, `eval`, `exec`, `subprocess.run`, `__import__`)
+- **Merge logic** — Both engines run via `asyncio.gather`; syntactically valid + higher-quality output wins; fallback to either engine if one fails
 
-#### 7. `app/core/security.py`
-- **What it does:** Authentication security helper. Performs bcrypt password hashing, password verification, and JWT Bearer token encoding/decoding.
-- **Input:** Plaintext password or JWT token string.
-- **Output:** Password hash or decoded user payload dictionary.
+### `app/core/code_verifier.py`
+**Post-generation code verification.** Additional semantic checks beyond AST syntax.
+- Verifies required PyTorch imports are present
+- Checks for class/function structure completeness
+- Returns `(is_valid: bool, issues: List[str])` for the pipeline report
 
-#### 8. `app/core/tracer.py`
-- **What it does:** Real-time telemetry logger (`AgentTracer`). Logs pipeline node execution times, success/failure status, and model metrics for live UI streams.
-- **Input:** Paper ID, step name, status, duration in ms, model name.
-- **Output:** Appended telemetry events in `storage/telemetry.json`.
+### `app/core/prompts.py`
+**Central prompt library.** All system and user prompts are defined here — no inline strings in agent files.
+- `CODE_SYNTHESIS_SYSTEM_PROMPT` — System role for Dual Code Engine
+- `build_code_synthesis_user_prompt(paper_json, hyperparams, milestones)` — User turn for code synthesis
+- Additional prompts for each pipeline agent (decomposition, feasibility, sequencing, specification, report)
 
----
+### `app/core/constants.py`
+**Shared string/URL constants** used across adapters, router, and dual engine.
+- `GROQ_DEFAULT_MODEL`, `GROQ_SECONDARY_MODEL`
+- `OPENROUTER_PDF_MODEL`, `OPENROUTER_REASONING_MODEL`
+- `GEMINI_BASE_URL`, `BACKEND_GEMINI_MODEL`, `BACKEND_HF_CODER_MODEL`
+- `OLLAMA_DEFAULT_HOST`
 
-### 📁 Data Schemas & Contracts (`app/schemas/`)
+### `app/core/limits_dashboard.py`
+**HTML/JSON rate limits dashboard generator.**
+- `generate_limits_html_dashboard()` — Returns styled HTML page with live quota usage; served at `GET /limits-dashboard`
+- `get_limits_json_payload()` — Returns machine-readable quota dict for `GET /models/limits`
 
-#### 9. `app/schemas/__init__.py`
-- **What it does:** Package initializer for schema models.
+### `app/core/history_logger.py`
+**Simple conversation append logger.** Appends `{role, content, timestamp}` entries to conversation JSON files.
 
-#### 10. `app/schemas/canonical_paper.py`
-- **What it does:** Defines standard Pydantic models for ingested research papers: `PaperDocument`, `Section`, `Table`, `Figure`, `BibEntry`.
-- **Input:** Dict data from PDF parser.
-- **Output:** Validated paper data structure.
+### `app/core/security.py`
+**JWT authentication helper.** `create_access_token()` + `decode_access_token()` using `python-jose` with HS256.
 
-#### 11. `app/schemas/chat.py`
-- **What it does:** Defines API contracts for multi-turn chat interaction: `ChatRequest`, `ChatMessage`, `ChatResponse`.
-- **Input:** HTTP POST request payload.
-- **Output:** Validated chat request/response models.
-
-#### 12. `app/schemas/paper.py`
-- **What it does:** Defines PDF ingestion metadata schemas (`PaperMetadata`).
-- **Input:** Paper title, author list, abstract string.
-- **Output:** Standard metadata object.
-
-#### 13. `app/schemas/pipeline.py`
-- **What it does:** Core data contracts for the multi-agent pipeline:
-  - `ParameterDetails` (`value`, `confidence`, `status`, `rationale`, `source_section`)
-  - `ExtractedParameters` (primary & open-ended `custom_parameters` dictionary)
-  - `Component` & `ComponentGraph` (`components`, `edges`)
-  - `FeasibilityReport` (`overall_status`, `estimated_vram_gb`, `available_vram_gb`, `bottlenecks`, `suggested_adaptations`)
-  - `BuildSequenceStep` & `BuildSequence` (`steps`, `total_steps`)
-- **Input:** Dict outputs from pipeline agents.
-- **Output:** Strongly-typed Pydantic pipeline objects.
-
-#### 14. `app/schemas/pipeline_schemas.py`
-- **What it does:** Legacy Pydantic models for milestone build sequences and project outputs.
-- **Input:** Pipeline milestone data.
-- **Output:** Validated milestone objects.
-
-#### 15. `app/schemas/rag_schemas.py`
-- **What it does:** Data contracts for vector RAG search queries and similarity results.
-- **Input:** Similarity search results.
-- **Output:** `VectorSearchResult` objects.
+### `app/core/tracer.py`
+**Agent execution tracer (`AgentTracer`).** Logs pipeline node execution times, model used, and success/failure to `storage/traces/`.
 
 ---
 
-### 📁 Ingestion & Document Parsing (`app/extraction/`)
+## 📁 Provider Adapters (`app/providers/`)
 
-#### 16. `app/extraction/__init__.py`
-- **What it does:** Package initializer for document extraction engines.
+### `app/providers/__init__.py`
+Exports all four adapter modules for clean import in `model_router.py`.
 
-#### 17. `app/extraction/block_extractor.py`
-- **What it does:** Segregates raw page content into categorized blocks (text paragraphs, math equations, tables, figure captions).
-- **Input:** Page layout objects from PDF parser.
-- **Output:** List of `Block` objects with coordinates.
+### `app/providers/groq_adapter.py`
+**Groq LPU inference adapter.**
+- POST to `https://api.groq.com/openai/v1/chat/completions` with OpenAI-compatible payload
+- Handles streaming and non-streaming modes
+- Returns `(response_text, "groq/<model_id>")` on success; raises on 429 for router failover
 
-#### 18. `app/extraction/docling_parser.py`
-- **What it does:** Primary PDF parser engine using Docling (`DoclingParser`). Includes `doc=result.document` export fix to prevent warning noise.
-- **Input:** PDF file path string (`.pdf`).
-- **Output:** Parsed `PaperDocument` with text, markdown tables, and section headings.
+### `app/providers/openrouter_adapter.py`
+**OpenRouter multi-model adapter.**
+- POST to `https://openrouter.ai/api/v1/chat/completions`
+- Adds required `HTTP-Referer` and `X-Title` headers
+- Supports both free and paid models via same interface
 
-#### 19. `app/extraction/grobid_client.py`
-- **What it does:** HTTP client interface for sending PDF files to local Grobid Docker container (`localhost:8070`).
-- **Input:** PDF binary file buffer.
-- **Output:** TEI XML response string.
+### `app/providers/hf_adapter.py`
+**Hugging Face Serverless Inference Router adapter.**
+- POST to `https://router.huggingface.co/hf-inference/models/{model}/v1/chat/completions`
+- Dedicated to `Qwen/Qwen2.5-Coder-32B-Instruct` for Dual Code Engine
+- Not exposed in frontend model selector — backend-exclusive
 
-#### 20. `app/extraction/grobid_parser.py`
-- **What it does:** Parses Grobid TEI XML into structured document sections and author metadata.
-- **Input:** TEI XML string.
-- **Output:** `PaperDocument` instance.
-
-#### 21. `app/extraction/merger.py`
-- **What it does:** Merges and deduplicates parsed outputs from multiple engines (Docling + PyMuPDF + Grobid).
-- **Input:** List of partial `PaperDocument` instances.
-- **Output:** Single merged `PaperDocument`.
-
-#### 22. `app/extraction/pdf_inspector.py`
-- **What it does:** Validates PDF magic bytes, page counts, font layers, and corruption status.
-- **Input:** PDF file path.
-- **Output:** Inspection report dictionary (`is_valid`, `page_count`, `has_text`).
-
-#### 23. `app/extraction/pdf_parser.py`
-- **What it does:** Base parser interface and abstract class for all PDF parsing backends.
-- **Input:** PDF file path.
-- **Output:** Unstructured page text list.
-
-#### 24. `app/extraction/pymupdf_parser.py`
-- **What it does:** High-speed fallback PDF parser using PyMuPDF (`fitz`).
-- **Input:** PDF file path.
-- **Output:** Page-by-page text dictionary and bounding box coordinates.
-
-#### 25. `app/extraction/router.py`
-- **What it does:** Parser selection router (`PDFParserRouter`). Checks PDF complexity and routes to Docling, Grobid, or PyMuPDF.
-- **Input:** PDF file path.
-- **Output:** Best parsed `PaperDocument`.
-
-#### 26. `app/extraction/section_detector.py`
-- **What it does:** Classifies paper section headings using regex numerals (`I.`, `II.`, `III.`) and heuristics (`Abstract`, `Method`, `Experiments`).
-- **Input:** Raw text lines or blocks.
-- **Output:** Normalized section dictionary mapping canonical keys to content strings.
-
-#### 27. `app/extraction/validator.py`
-- **What it does:** Quality assurance validator for parsed paper JSON files.
-- **Input:** `PaperDocument` instance.
-- **Output:** QA report dict with completeness score.
+### `app/providers/ollama_adapter.py`
+**Local Ollama REST adapter.**
+- `generate(prompt, model, host)` — POST to `{host}/api/generate`
+- `get_available_models(hosts)` — Probes `/api/tags` on each candidate host for installed model list
+- Supports multi-host probing (`OLLAMA_HOST` env + user profile `ollamaLink`)
 
 ---
 
-### 📁 Retrieval & Knowledge Layer (`app/retrieval/`)
+## 📁 Data Schemas (`app/schemas/`)
 
-#### 28. `app/retrieval/__init__.py`
-- **What it does:** Package initializer for retrieval modules.
+### `app/schemas/chat.py`
+- `ChatMessageRequest` — `{message, paper_id, model_name}`; `get_query_text()` normalizes the content field
+- `UserFactRequest` — `{fact_text}` for episodic memory writes
 
-#### 29. `app/retrieval/chunker.py`
-- **What it does:** Overlapping sliding-window chunker (`PaperChunker`). Splits paper text into sentence-aware token chunks.
-- **Input:** `PaperDocument` instance.
-- **Output:** List of `PaperChunk` objects with section metadata.
-
-#### 30. `app/retrieval/embeddings.py`
-- **What it does:** Generates local 384-dimensional vector embeddings using `sentence-transformers` (`all-MiniLM-L6-v2`).
-- **Input:** Text query or chunk content string.
-- **Output:** List of float vector embeddings (`List[float]`).
-
-#### 31. `app/retrieval/knowledge_graph.py`
-- **What it does:** In-memory Knowledge Graph manager (`PaperKnowledgeGraph`). Builds NetworkX directed graphs representing section hierarchies and tensor shape nodes.
-- **Input:** Parsed paper JSON file.
-- **Output:** Graph node topologies and tensor data flow paths.
-
-#### 32. `app/retrieval/vector_db.py`
-- **What it does:** Flat-file JSON vector database manager (`PaperVectorDB`). Stores embeddings in `storage/rag_based/{paper_id}.json` and performs local NumPy cosine similarity & BM25 hybrid search.
-- **Input:** Paper chunks and vector embeddings.
-- **Output:** Relevant text snippets with similarity scores.
+### `app/schemas/pipeline.py`
+- `ParameterApprovalRequest` — User approval/rejection payload for pipeline step review
+- `PipelineState` (in `app/graph/state.py`) — Shared mutable state dict across all LangGraph nodes
 
 ---
 
-### 📁 Multi-Agent Intelligence Suite (`app/agents/`)
+## 📁 PDF Extraction (`app/extraction/`)
 
-#### 33. `app/agents/__init__.py`
-- **What it does:** Package initializer for backend agents.
+### `app/extraction/pdf_parser.py`
+**Extraction entry point.** Calls `router.py` to pick the right parser and returns canonical JSON.
 
-#### 34. `app/agents/chat_agent.py`
-- **What it does:** Multi-turn ReACT conversational agent for paper Q&A. Evaluates user intent, executes search tools, and formats natural language responses.
-- **Input:** User prompt, paper ID, chat history.
-- **Output:** Agent response text with grounded citations.
+### `app/extraction/router.py`
+**Parser selection logic.** Chooses between Docling, PyMuPDF, GROBID, and Gemini based on `EXTRACTION_PROVIDER` setting and file characteristics.
 
-#### 35. `app/agents/code_gen_agent.py` (Agent #8)
-- **What it does:** Dynamic PyTorch package synthesizer. Determines required files (`config.py`, `dataset.py`, `models/encoder.py`, `models/fusion.py`, `models/decoder.py`, `losses.py`, `train.py`, `evaluate.py`), generates source code, and validates Python syntax via `ast.parse()`.
-- **Input:** Component name, `ExtractedParameters`, `ComponentGraph`.
-- **Output:** Codebase synthesis dict (`total_files`, `total_loc`, `codebase_files`, `ast_validations`).
+### `app/extraction/docling_parser.py`
+**Primary parser.** Uses Docling for structure-aware extraction of sections, tables, equations, and figures.
 
-#### 36. `app/agents/decomposition_agent.py` (Agent #1)
-- **What it does:** RAG-grounded architectural component graph decomposition. Queries RAG vector DB for method evidence and extracts `ComponentGraph` (`encoder`, `fusion`, `decoder`, `loss`) with resolved data flow edges.
-- **Input:** Parsed sections dict, `PaperDocument`.
-- **Output:** `ComponentGraph` object.
+### `app/extraction/pymupdf_parser.py`
+**Fallback parser.** Uses PyMuPDF (`fitz`) for coordinate-based layout extraction when Docling fails.
 
-#### 37. `app/agents/feasibility_agent.py` (Agent #3)
-- **What it does:** VRAM memory footprint & hardware constraint checker. Detects local CUDA GPU memory and computes peak VRAM footprint ($\text{VRAM} = \text{Weights} + \text{Activations} + \text{AdamW States}$) against GPU bounds.
-- **Input:** `ComponentGraph`, hardware constraints dict, `ExtractedParameters`.
-- **Output:** `FeasibilityReport` object.
+### `app/extraction/openrouter_parser.py`
+**Cloud parser.** Sends PDF pages to `gemini-2.5-flash` via OpenRouter/Gemini for extraction of complex scientific layouts.
 
-#### 38. `app/agents/gap_agent.py` (Agent #4)
-- **What it does:** Autonomous Tavily Web Search & GitHub REST API search gap resolver. Discovers missing code implementation parameters and classifies gaps (`EXPLICIT`, `DERIVABLE`, `MISSING`, `AMBIGUOUS`).
-- **Input:** `ComponentGraph`, `ExtractedParameters`, paper title.
-- **Output:** Gap report dictionary.
+### `app/extraction/grobid_parser.py`
+**GROBID TEI XML parser.** Parses scholarly metadata (authors, references, equations) from GROBID's TEI XML response when running at `localhost:8070`.
 
-#### 39. `app/agents/ingestion_agent.py`
-- **What it does:** Paper ingestion orchestrator featuring a 3-tier IEEE title metadata extractor. Runs PDF parser, extracts title/abstract, and creates local vector index.
-- **Input:** PDF file path.
-- **Output:** Canonical `PaperDocument`.
+### `app/extraction/grobid_client.py`
+**GROBID HTTP client.** POSTs PDF bytes to GROBID `/api/processFulltextDocument`.
 
-#### 40. `app/agents/parameter_agent.py` (Agent #2)
-- **What it does:** 100% dynamic open-ended hyperparameter extractor. Collects ALL experimental parameters (`LR`, `batch_size`, `optimizer`, `loss`, `weight_decay`, `warmup_epochs`, `spatial_resolution`, `hardware_gpu`) with status confidence ratings.
-- **Input:** `PaperDocument` or paper raw text.
-- **Output:** `ExtractedParameters` object.
+### `app/extraction/merger.py`
+**Multi-parser output reconciler.** Merges and deduplicates section content from multiple parsers into a canonical JSON with resolved sections, figures, tables, and equations. Largest/most-complete extraction wins per section.
 
-#### 41. `app/agents/report_agent.py` (Agent #7)
-- **What it does:** Executive Markdown & JSON proposal report compiler. Generates proposal reports with component registries, feasibility profiles, cloud scaling guides, and file roadmaps.
-- **Input:** Paper title, `ComponentGraph`, `FeasibilityReport`, `BuildSequence`, `ExtractedParameters`.
-- **Output:** Proposal report dictionary with Markdown string.
+### `app/extraction/block_extractor.py`
+**Block classifier.** Segregates raw text into paragraphs, equations, table cells, and figure captions using layout heuristics.
 
-#### 42. `app/agents/sequencing_agent.py` (Agent #5)
-- **What it does:** DAG component build sequence order planner. Enforces the rule that cheap data/config modules MUST precede compute-heavy model training steps.
-- **Input:** `ComponentGraph`, `FeasibilityReport`.
-- **Output:** `BuildSequence` object.
+### `app/extraction/section_detector.py`
+**Section header detector.** Pattern-matches common academic section headings (Abstract, Introduction, Method, Experiments, Conclusion, References) across varied formatting styles.
 
-#### 43. `app/agents/specification_agent.py` (Agent #6)
-- **What it does:** Formal technical specification blueprint compiler. Compiles target requirements, architecture flow, component lists, and file tree maps.
-- **Input:** `ComponentGraph`, `FeasibilityReport`, `BuildSequence`, `ExtractedParameters`.
-- **Output:** Technical specification dictionary.
+### `app/extraction/pdf_inspector.py`
+**PDF metadata inspector.** Quick pre-check for page count, file size, and layout complexity before choosing parser.
+
+### `app/extraction/validator.py`
+**Extraction quality validator.** Scores canonical JSON completeness and returns `QA_PASS` / `QA_PARTIAL` / `QA_FAIL`.
+
+### `app/extraction/constants.py`
+Shared regex patterns and section name normalizations.
 
 ---
 
-### 📁 ReACT Agent Tool Registry (`app/tools/`)
+## 📁 Retrieval Layer (`app/retrieval/`)
 
-#### 44. `app/tools/__init__.py`
-- **What it does:** Package initializer for agent tools.
+### `app/retrieval/chunker.py`
+**Semantic text chunker.** Splits paper text into overlapping chunks (~500 tokens) at paragraph boundaries. Equations and tables are preserved as atomic (non-split) units.
 
-#### 45. `app/tools/arxiv_search_tool.py`
-- **What it does:** Searches arXiv REST API for related papers, abstracts, and PDF links.
-- **Input:** Query string.
-- **Output:** List of matching paper dicts.
+### `app/retrieval/embeddings.py`
+**Embedding generator.** Produces dense float vectors for text chunks using `sentence-transformers`. Used for FAISS indexing and cosine similarity search.
 
-#### 46. `app/tools/base_tool.py`
-- **What it does:** Abstract base class defining tool interface, schemas, and execution handlers.
-- **Input:** Tool name & arguments.
-- **Output:** Tool result dict.
+### `app/retrieval/vector_db.py`
+**FAISS-based per-paper vector index (`PaperVectorDB`).**
+- `index_paper(paper_id, chunks)` — Embeds chunks and saves FAISS index + metadata to `storage/rag_embeddings/`
+- `search(paper_id, query, top_k)` — Returns top-k most similar chunks with similarity scores
+- Index is loaded lazily per paper_id and cached in memory
 
-#### 47. `app/tools/canonical_document_tool.py`
-- **What it does:** Fetches exact section content from parsed paper JSON files.
-- **Input:** Section key string (`III. METHOD`).
-- **Output:** Text content of target section.
-
-#### 48. `app/tools/episodic_memory_tool.py`
-- **What it does:** Recalls past paper execution runs and user preference history.
-- **Input:** Run ID or project name.
-- **Output:** Execution history summary.
-
-#### 49. `app/tools/graph_search_tool.py`
-- **What it does:** Queries paper Knowledge Graph for architectural concept nodes and shape dependencies.
-- **Input:** Concept name string.
-- **Output:** Connected graph nodes and tensor shapes.
-
-#### 50. `app/tools/hyperparameter_tool.py`
-- **What it does:** Queries extracted hyperparameter table for a paper.
-- **Input:** Parameter name string (`learning_rate`).
-- **Output:** Value, status, confidence rating, and rationale.
-
-#### 51. `app/tools/scholar_search_tool.py`
-- **What it does:** Searches Semantic Scholar REST API for citation counts and paper TL;DR summaries.
-- **Input:** Paper title or search query.
-- **Output:** Citation metrics and paper summary.
-
-#### 52. `app/tools/vector_search_tool.py`
-- **What it does:** Invokes local JSON RAG vector DB hybrid search.
-- **Input:** Natural language query string.
-- **Output:** Top-K relevant paper text snippets with section annotations.
+### `app/retrieval/knowledge_graph.py`
+**NetworkX knowledge graph per paper (`PaperKnowledgeGraph`).**
+- Nodes: methods, datasets, metrics, hyperparameters, model components, citations
+- Edges: `uses`, `evaluates_on`, `compared_with`, `optimizes`, `measures`
+- `build_graph(paper_json)` — Extracts entities and relationships from canonical JSON
+- `search_entities(query)` — Returns matching nodes and their neighbor context
+- Persisted to `storage/knowledge_graphs/{paper_id}_kg.json`
 
 ---
 
-### 📁 LangGraph StateGraph Workflow Engine (`app/graph/`)
+## 📁 Agents (`app/agents/`)
 
-#### 53. `app/graph/__init__.py`
-- **What it does:** Package initializer for graph workflow.
+### `app/agents/chat_agent.py`
+**Core ReACT conversational agent (`ChatAgent`).**
+- `process_message(conversation_id, query, paper_id, model_name)` — Non-streaming ReACT loop
+- `process_message_stream(...)` — Async generator yielding SSE-formatted chunks
+- Modularized into sub-components: `react_utils.py`, `smart_titler.py`, `context_builder.py`
+- Max 5 ReACT turns per request
+- On `Final Answer:` extraction, saves assistant message to `ChatDatabase`
 
-#### 54. `app/graph/nodes/__init__.py`
-- **What it does:** Package initializer for graph nodes.
+### `app/agents/chat/react_utils.py`
+- `is_code_request(query)` — Detects if user is asking for PyTorch code (routes to DualCodeEngine)
+- `clean_react_content(text)` — Strips ReACT scaffolding from final answer
+- `parse_react_traces(text)` — Extracts THOUGHT, ACTION, OBSERVATION from raw LLM output
 
-#### 55. `app/graph/nodes/extraction.py`
-- **What it does:** LangGraph node function executing `run_parameter_agent` and `run_decomposition_agent`.
-- **Input:** `PipelineState`.
-- **Output:** Dict update containing `extracted_parameters` and `component_graph`.
+### `app/agents/chat/context_builder.py`
+- `build_context_prompt(db, tools, conversation_id, query, paper_id)` — Assembles full LLM prompt from: system instructions, available tools list, user facts, extracted hyperparameters, episodic memory, last N messages
+- `resolve_active_paper_id(db, conversation_id, paper_id)` — Resolves which paper the conversation is about
 
-#### 56. `app/graph/nodes/feasibility.py`
-- **What it does:** LangGraph node function executing `run_feasibility_agent`.
-- **Input:** `PipelineState`.
-- **Output:** Dict update containing `feasibility_report`.
+### `app/agents/chat/smart_titler.py`
+- `generate_smart_title(query, paper_id, answer_snippet, current_title)` — Rule-based + LLM title generator producing 3–5 word conversation titles
 
-#### 57. `app/graph/nodes/ingestion.py`
-- **What it does:** LangGraph node function executing `run_ingestion_agent`.
-- **Input:** `PipelineState`.
-- **Output:** Dict update containing `paper_doc` and `raw_sections`.
+### `app/agents/ingestion_agent.py`
+**LangGraph node: ingestion_node.** Loads canonical paper JSON into `PipelineState` from disk.
 
-#### 58. `app/graph/nodes/sequencing.py`
-- **What it does:** LangGraph node function executing `run_sequencing_agent` and `run_report_agent`.
-- **Input:** `PipelineState`.
-- **Output:** Dict update containing `build_sequence` and `report`.
+### `app/agents/parameter_agent.py`
+**LangGraph node: extraction_node.** Extracts ML hyperparameters from paper sections using structured LLM prompting. Returns `ExtractedParameters` with provenance annotations.
 
-#### 59. `app/graph/nodes/verification.py`
-- **What it does:** LangGraph node function executing `run_code_gen_agent`.
-- **Input:** `PipelineState`.
-- **Output:** Dict update containing `sample_code` and approval status.
+### `app/agents/feasibility_agent.py`
+**LangGraph node: feasibility_node.** Queries hardware metrics and scores model memory footprint vs available VRAM. Produces `FeasibilityReport`.
 
-#### 60. `app/graph/state.py`
-- **What it does:** Defines `PipelineState` TypedDict passed between graph nodes.
-- **Input:** Graph initialization dict.
-- **Output:** Complete pipeline state dictionary.
+### `app/agents/gap_agent.py`
+**Gap resolver for missing/ambiguous parameters.** Called within the extraction node pipeline to apply fallback heuristics (reduce batch size, add gradient accumulation, use mixed precision).
 
-#### 61. `app/graph/workflow.py`
-- **What it does:** Constructs and compiles the `StateGraph` workflow instance (`build_pipeline_workflow`).
-- **Input:** Node functions and directed edge definitions.
-- **Output:** Compiled `app_workflow` runnable instance.
+### `app/agents/sequencing_agent.py`
+**LangGraph node: sequencing_node.** Generates `BuildSequence` — an ordered 6-milestone implementation DAG.
 
----
+### `app/agents/specification_agent.py`
+**Technical specification generator.** Synthesizes `ProjectSpecification` (architecture details, data loader plan, loss functions, scaled hyperparameters).
 
-### 📁 FastAPI Endpoints & Routing Layer (`app/api/v1/`)
+### `app/agents/report_agent.py`
+**Adaptation report generator.** Produces a Markdown portfolio-grade executive report combining feasibility, specification, and milestones.
 
-#### 62. `app/api/__init__.py` & `app/api/v1/__init__.py` & `app/api/v1/endpoints/__init__.py`
-- **What it does:** Package initializers for API routing modules.
+### `app/agents/code_gen_agent.py`
+**LangGraph node: verification_node.** Orchestrates DualCodeEngine call, collects synthesized code, saves to `storage/codes/{paper_id}/`, and records AST verification result.
 
-#### 63. `app/api/v1/api_router.py`
-- **What it does:** Central FastAPI router aggregating sub-routers (`/auth`, `/papers`, `/pipeline`, `/chat`, `/hardware`, `/models`, `/telemetry`).
-- **Input:** FastAPI application.
-- **Output:** Combined v1 endpoint routing table.
-
-#### 64. `app/api/v1/endpoints/auth.py`
-- **What it does:** Handles user registration (`/register`), login (`/login`), and JWT token issuing.
-- **Input:** Email, password credentials payload.
-- **Output:** JWT access token string (`access_token`).
-
-#### 65. `app/api/v1/endpoints/chat.py`
-- **What it does:** Multi-turn ReACT agent chat endpoint (`/message`) with SSE streaming response.
-- **Input:** User message prompt, paper ID, chat state.
-- **Output:** Server-Sent Events token stream & final agent response.
-
-#### 66. `app/api/v1/endpoints/hardware.py`
-- **What it does:** System hardware detection endpoint (`/detect`).
-- **Input:** N/A
-- **Output:** GPU device name, total VRAM GB, free VRAM GB, system RAM GB.
-
-#### 67. `app/api/v1/endpoints/models.py`
-- **What it does:** Local Ollama model enumeration endpoint (`/available`).
-- **Input:** N/A
-- **Output:** List of installed Ollama models (`qwen2.5-coder:1.5b`, `llama3`).
-
-#### 68. `app/api/v1/endpoints/papers.py`
-- **What it does:** Handles PDF upload (`/upload`), paper list (`/list`), and PDF file downloads.
-- **Input:** Multipart PDF file or paper ID.
-- **Output:** Saved PDF file path and paper metadata JSON.
-
-#### 69. `app/api/v1/endpoints/pipeline.py`
-- **What it does:** Pipeline trigger endpoint (`/analyze`), SSE event stream (`/stream/{run_id}`), and parameter approval handlers.
-- **Input:** `paper_id`, hardware constraints, model name.
-- **Output:** Async job ID and SSE telemetry stream.
-
-#### 70. `app/api/v1/endpoints/telemetry.py`
-- **What it does:** Telemetry history endpoint (`/events`).
-- **Input:** N/A
-- **Output:** List of logged execution events and step durations.
+### `app/agents/decomposition_agent.py`
+**Method decomposition agent.** Analyzes method sections to infer `ComponentGraph` (encoders, attention layers, fusion modules, decoders, loss functions).
 
 ---
 
-### 📁 Evaluation Suite (`app/evals/`)
+## 📁 ReACT Tools (`app/tools/`)
 
-#### 71. `app/evals/__init__.py`
-- **What it does:** Package initializer for benchmark evaluation.
+### `app/tools/__init__.py`
+**Tool registry.** `get_all_tools()` returns the full list of instantiated tool objects used by `ChatAgent`.
 
-#### 72. `app/evals/eval_suite.py`
-- **What it does:** Automated evaluation suite runner. Measures parameter extraction accuracy, section classification precision, and AST code validation rates across test paper datasets.
-- **Input:** Test paper directory path.
-- **Output:** Evaluation benchmark report dict.
+### `app/tools/base_tool.py`
+**Abstract base class.** Defines `name`, `description`, and `execute(query, **kwargs)` interface for all tools.
+
+### `app/tools/arxiv_search_tool.py`
+**arXiv academic paper search.** Queries `http://export.arxiv.org/api/query` and returns top results with title, abstract, authors, URL.
+
+### `app/tools/scholar_search_tool.py`
+**Google Scholar search via Tavily API.** Returns academic search results for research-grade queries.
+
+### `app/tools/vector_search_tool.py`
+**FAISS vector similarity search.** Searches the uploaded paper's FAISS index for semantically similar passages. Returns top-k chunks with scores.
+
+### `app/tools/graph_search_tool.py`
+**NetworkX knowledge graph search.** Finds entities and their neighbors matching a query term in the paper's knowledge graph.
+
+### `app/tools/canonical_document_tool.py`
+**Full paper JSON retrieval.** Returns the complete structured canonical JSON (sections, figures, tables, equations) for the active paper from `storage/extracted_json/`.
+
+### `app/tools/hyperparameter_tool.py`
+**Hyperparameter retrieval.** Loads and returns the extracted ML hyperparameters from `storage/history/{paper_id}_params.json`.
+
+### `app/tools/episodic_memory_tool.py`
+**Episodic memory search.** Searches past conversation memory facts stored in `ChatDatabase` for context relevant to the current query.
 
 ---
 
-# SECTION 2: Groups of Python Files According to Flow
+## 📁 LangGraph Pipeline (`app/graph/`)
 
-The backend system is structured into **5 distinct execution flows**. Each flow represents a specific sequence of Python files working together.
+### `app/graph/state.py`
+**Shared pipeline state.** `PipelineState` TypedDict carries all data between nodes: `paper_id`, `paper_json`, `hyperparameters`, `feasibility_report`, `build_sequence`, `generated_code`, `errors`.
 
----
-
-### 🔄 Flow 1: PDF Ingestion & Section Parsing Flow
-> **Sequence:** `pdf_inspector.py` $\rightarrow$ `router.py` $\rightarrow$ `docling_parser.py` $\rightarrow$ `section_detector.py` $\rightarrow$ `ingestion_agent.py`
-
-```mermaid
-sequenceDiagram
-    participant UI as Client / API
-    participant Router as extraction/router.py
-    participant Docling as extraction/docling_parser.py
-    participant Detector as extraction/section_detector.py
-    participant Agent as agents/ingestion_agent.py
-
-    UI->>Router: Submit PDF File
-    Router->>Docling: Parse PDF Layout & Tables
-    Docling-->>Router: Markdown Text & Tables
-    Router->>Detector: Send Raw Text Lines
-    Detector-->>Router: Normalized Section Dict (Method, Experiments)
-    Router->>Agent: Extract 3-Tier IEEE Title Metadata
-    Agent-->>UI: Output Canonical PaperDocument JSON
+### `app/graph/workflow.py`
+**StateGraph compiler.** Builds and compiles the 5-node pipeline:
+```
+START → ingestion_node → extraction_node → feasibility_node → sequencing_node → verification_node → END
 ```
 
-1. **Step 1:** `api/v1/endpoints/papers.py` receives PDF upload and saves it to `storage/papers/{paper_id}.pdf`.
-2. **Step 2:** `extraction/router.py` validates PDF headers via `extraction/pdf_inspector.py` and delegates parsing to `extraction/docling_parser.py`.
-3. **Step 3:** `extraction/docling_parser.py` converts layout blocks into structured markdown text and tables using the `doc=result.document` export fix.
-4. **Step 4:** `extraction/section_detector.py` splits the text into canonical section keys (`I. INTRODUCTION`, `III. METHOD`, `IV. EXPERIMENTS`).
-5. **Step 5:** `agents/ingestion_agent.py` applies 3-tier IEEE title metadata extraction and saves `storage/extracted_json/{paper_id}.json`.
+### `app/graph/nodes/`
+Individual node wrapper functions that call agent methods and update `PipelineState`.
 
 ---
 
-### 🔄 Flow 2: Local Vector RAG & Knowledge Graph Flow
-> **Sequence:** `chunker.py` $\rightarrow$ `embeddings.py` $\rightarrow$ `vector_db.py` $\rightarrow$ `knowledge_graph.py`
+## 📁 API Endpoints (`app/api/v1/endpoints/`)
 
-```mermaid
-sequenceDiagram
-    participant Doc as PaperDocument
-    participant Chunker as retrieval/chunker.py
-    participant Embed as retrieval/embeddings.py
-    participant VDB as retrieval/vector_db.py
-    participant KG as retrieval/knowledge_graph.py
+### `app/api/v1/api_router.py`
+**Router aggregator.** Includes all 7 endpoint routers under `/api/v1`.
 
-    Doc->>Chunker: Split Paper Text
-    Chunker-->>Embed: 500-Token Chunks with Overlap
-    Embed-->>VDB: 384-Dim Float Embedding Vectors
-    VDB->>VDB: Save Flat JSON (storage/rag_based/{paper_id}.json)
-    Doc->>KG: Parse Sections & Tensor Shapes
-    KG-->>KG: Build NetworkX Knowledge Graph Topology
+### `app/api/v1/endpoints/auth.py`
+- `POST /auth/local-login` — Register or authenticate local user profile; returns JWT
+
+### `app/api/v1/endpoints/chat.py`
+- Full conversation CRUD (GET, POST, PATCH, DELETE)
+- `POST /conversations/{id}/chat` — Non-streaming ReACT completion
+- `POST /conversations/{id}/chat/stream` — SSE streaming (primary path)
+- `GET|POST /memory` — Episodic memory read/write
+
+### `app/api/v1/endpoints/papers.py`
+- `POST /upload` — PDF/DOCX upload with MD5 deduplication → extraction → FAISS indexing
+- `GET /history` — List all ingested papers
+- `GET /history/{paper_id}/hyperparameters` — Extracted hyperparameters
+- `GET /papers/{paper_id}/pdf` — Serve raw PDF for viewer
+- `DELETE /history/{paper_id}` — Full paper data deletion
+- `GET|PATCH /profile` — User profile CRUD
+
+### `app/api/v1/endpoints/pipeline.py`
+- `POST /pipeline/ingest` — Trigger LangGraph pipeline (background `threading.Thread`)
+- `POST /pipeline/approve` — Submit parameter approval
+- `GET /stream/{run_id}` — SSE stream for live logs + mascot state signals
+- `GET /pipeline/status/{run_id}` — Job status check
+- `GET /pipeline/report/{paper_id}` — Final report retrieval
+
+### `app/api/v1/endpoints/models.py`
+- `GET /models` — Provider groups: Groq (2 models) + OpenRouter (2 models) + Local Ollama (if available)
+- `GET /models/limits` — Live quota metrics
+- `GET /models/dual-engine` — Dual Code Engine availability status
+
+### `app/api/v1/endpoints/hardware.py`
+- `GET /hardware/metrics` — CPU (psutil), GPU (nvidia-smi → PyTorch fallback)
+
+### `app/api/v1/endpoints/telemetry.py`
+- `GET /telemetry/traces` — Agent execution trace retrieval
+
+---
+
+# SECTION 2: Flow-Based Pipeline Breakdown
+
+---
+
+## Flow A — PDF Upload & RAG Indexing
+
+```
+POST /upload (multipart PDF)
+    │
+    ├─ MD5 hash check → if duplicate: return existing paper_id
+    │
+    ├─ Save to storage/papers/{paper_id}.pdf
+    │
+    ├─ parse_pdf_document()
+    │    └─ router.py selects: Docling → PyMuPDF → Gemini
+    │    └─ merger.py reconciles multi-parser outputs
+    │    └─ validator.py scores completeness
+    │
+    ├─ chunk_paper_document() → embed → FAISS index
+    │    └─ saved: storage/rag_embeddings/{paper_id}/
+    │
+    ├─ PaperKnowledgeGraph.build_graph()
+    │    └─ saved: storage/knowledge_graphs/{paper_id}_kg.json
+    │
+    ├─ ChatDatabase.save_paper_metadata()
+    │
+    └─ Return: {paper_id, conversation_id, title, limits}
 ```
 
-1. **Step 1:** `retrieval/chunker.py` divides `PaperDocument` sections into sentence-aware overlapping chunks (`PaperChunk`).
-2. **Step 2:** `retrieval/embeddings.py` calculates 384-dimensional dense vectors using local `sentence-transformers`.
-3. **Step 3:** `retrieval/vector_db.py` saves raw float vectors and text chunks directly to flat JSON file `storage/rag_based/{paper_id}.json`.
-4. **Step 4:** `retrieval/knowledge_graph.py` constructs section node hierarchies and tensor shape topological edges.
-
 ---
 
-### 🔄 Flow 3: LangGraph Agentic Pipeline Execution Flow
-> **Sequence:** `graph/workflow.py` $\rightarrow$ `graph/nodes/*.py` $\rightarrow$ `agents/*.py` (Agents 1 through 8)
+## Flow B — LangGraph Autonomous Pipeline
 
-```mermaid
-flowchart LR
-    Start([Start]) --> N1[ingestion_node]
-    N1 --> N2[extraction_node]
-    N2 --> N3[feasibility_node]
-    N3 --> N4[sequencing_node]
-    N4 --> N5[verification_node]
-    N5 --> End([End])
+```
+POST /pipeline/ingest {paper_id, model_name}
+    │
+    ├─ Create job_id, set status → "queued"
+    │
+    └─ threading.Thread: run_pipeline_task()
+           │
+           ├─ app_workflow.invoke(PipelineState)
+           │    │
+           │    ├─ ingestion_node    → load paper JSON
+           │    ├─ extraction_node   → ParameterAgent → hyperparameters
+           │    ├─ feasibility_node  → FeasibilityAgent → VRAM score
+           │    ├─ sequencing_node   → SequencingAgent → BuildSequence
+           │    └─ verification_node → CodeGenAgent → DualCodeEngine
+           │         ├─ Engine A: HF Qwen 2.5 Coder 32B (async)
+           │         ├─ Engine B: Gemini 2.5 Flash (async)
+           │         ├─ validate_code_syntax() → AST + security check
+           │         └─ save: storage/codes/{paper_id}/
+           │
+           └─ set status → "completed" / "failed"
 
-    subgraph Agents Invoked
-        N2 -.-> A1[decomposition_agent.py]
-        N2 -.-> A2[parameter_agent.py]
-        N3 -.-> A3[feasibility_agent.py]
-        N3 -.-> A4[gap_agent.py]
-        N4 -.-> A5[sequencing_agent.py]
-        N4 -.-> A6[specification_agent.py]
-        N4 -.-> A7[report_agent.py]
-        N5 -.-> A8[code_gen_agent.py]
-    end
+GET /stream/{run_id}   ← SSE: log + mascot-state events
 ```
 
-1. **Step 1 (`ingestion_node`):** Runs `ingestion_agent.py` to parse paper PDF.
-2. **Step 2 (`extraction_node`):** Runs `parameter_agent.py` (open-ended hyperparameter extraction) and `decomposition_agent.py` (architectural `ComponentGraph` extraction).
-3. **Step 3 (`feasibility_node`):** Runs `feasibility_agent.py` (CUDA VRAM memory calculation) and `gap_agent.py` (Tavily/GitHub search gap resolution).
-4. **Step 4 (`sequencing_node`):** Runs `sequencing_agent.py` (DAG build milestones), `specification_agent.py` (technical blueprint), and `report_agent.py` (Markdown proposal).
-5. **Step 5 (`verification_node`):** Runs `code_gen_agent.py` (multi-file PyTorch package synthesis with AST validation).
-
 ---
 
-### 🔄 Flow 4: ReACT Agent Chat & Tool Execution Flow
-> **Sequence:** `api/v1/endpoints/chat.py` $\rightarrow$ `agents/chat_agent.py` $\rightarrow$ `tools/*.py` $\rightarrow$ `core/history_logger.py`
+## Flow C — Streaming Chat (Primary Path)
 
-```mermaid
-sequenceDiagram
-    participant User as Client UI
-    participant ChatAPI as api/v1/endpoints/chat.py
-    participant ChatAgent as agents/chat_agent.py
-    participant Tools as tools/*.py
-    participant Logger as core/history_logger.py
-
-    User->>ChatAPI: Send Question
-    ChatAPI->>ChatAgent: Process Prompt + History
-    ChatAgent->>Tools: Invoke Tool (VectorSearch / Hyperparameter / Graph)
-    Tools-->>ChatAgent: Return Search Context Snippets
-    ChatAgent-->>ChatAPI: Stream Token Response via SSE
-    ChatAPI->>Logger: Save Conversation to storage/conversations/*.json
+```
+POST /conversations/{id}/chat/stream {message, paper_id, model_name}
+    │
+    ├─ db.set_active_conversation_id(id)
+    │
+    └─ chat_agent.process_message_stream()
+           │
+           ├─ context_builder.build_context_prompt()
+           │    └─ user facts + hyperparams + episodic memory + chat history
+           │
+           ├─ model_router.generate(prompt, model_id)
+           │    └─ Groq → OpenRouter → Ollama (quota-aware failover)
+           │
+           ├─ ReACT Loop (max 5 turns):
+           │    ├─ yield SSE: event: thought   data: <THOUGHT>
+           │    ├─ yield SSE: event: action    data: <TOOL_NAME>
+           │    ├─ tool_executor.execute(tool_name, args)
+           │    └─ yield SSE: event: observation data: <RESULT>
+           │
+           ├─ yield SSE: event: token   data: <word>  (per token)
+           │
+           ├─ yield SSE: event: done    data: {title, model_used, failover_model, ...}
+           │
+           └─ db.save_message(conversation_id, role="assistant", content=answer)
 ```
 
-1. **Step 1:** User submits a chat query via POST `/api/v1/chat/message`.
-2. **Step 2:** `chat_agent.py` evaluates query intent and selects appropriate tool from `app/tools/` (`vector_search_tool`, `hyperparameter_tool`, `graph_search_tool`, `scholar_search_tool`).
-3. **Step 3:** The tool executes search and returns evidence snippets to `chat_agent.py`.
-4. **Step 4:** `chat_agent.py` synthesizes grounded answer and streams SSE tokens back to UI.
-5. **Step 5:** `core/history_logger.py` saves the turn to `storage/conversations/{paper_id}_messages.json`.
-
 ---
 
-### 🔄 Flow 5: API Endpoint & Database Storage Flow
-> **Sequence:** `core/config.py` $\rightarrow$ `core/database.py` $\rightarrow$ `api/v1/api_router.py` $\rightarrow$ `api/v1/endpoints/*.py`
+## Flow D — Model Failover Chain
 
-```mermaid
-flowchart TD
-    Client["Client Browser"] --> Router["api/v1/api_router.py"]
-    Router --> Auth["endpoints/auth.py"]
-    Router --> Pipeline["endpoints/pipeline.py"]
-    Router --> Chat["endpoints/chat.py"]
-    Router --> Hardware["endpoints/hardware.py"]
-
-    Auth <--> DB["core/database.py (storage/history/chat_memory_db.json)"]
-    Pipeline <--> Storage["storage/extracted_json/*.json"]
-    Hardware <--> CUDA["PyTorch CUDA Hardware Detection"]
+```
+model_router.generate(prompt, model_id="qwen/qwen3.8-27b")
+    │
+    ├─ Try Groq: POST api.groq.com
+    │    ├─ 200 → return (text, "groq/qwen3.8-27b")
+    │    └─ 429 → quota_tracker.record_failure("groq")
+    │
+    ├─ Try OpenRouter: POST openrouter.ai
+    │    ├─ 200 → return (text, "openrouter/google/gemini-2.5-flash") ← failover_model
+    │    └─ 429 → try next
+    │
+    └─ Try Ollama: POST localhost:11434
+         └─ 200 → return (text, "ollama/<model>")
 ```
 
-1. **Step 1:** `api_router.py` registers all sub-routers under `/api/v1/`.
-2. **Step 2:** `endpoints/auth.py` reads/writes user accounts in `storage/history/chat_memory_db.json` via `core/database.py`.
-3. **Step 3:** `endpoints/hardware.py` queries local GPU VRAM via PyTorch CUDA.
-4. **Step 4:** `endpoints/pipeline.py` launches background LangGraph runs and streams live SSE progress logs via `/stream/{run_id}`.
+---
+
+# SECTION 3: Input/Output Specifications
 
 ---
 
-# SECTION 3: Detailed Input and Output Specifications
+## `parse_pdf_document(file_path)`
+- **Input:** Absolute path to a PDF or DOCX file
+- **Output:** `dict` — canonical paper JSON `{title, authors, abstract, sections: [{title, content, subsections}], figures, tables, equations, raw_full_text}`
 
-Below are the exact data payload structures for every major component step:
+## `ChatAgent.process_message_stream(conversation_id, query, paper_id, model_name)`
+- **Input:** `str` conv ID, `str` query, optional `str` paper ID, optional `str` model name
+- **Output:** `AsyncGenerator[str, None]` — SSE-formatted strings (`event: X\ndata: Y\n\n`)
 
----
+## `ModelRouter.generate(prompt, model_id)`
+- **Input:** `str` prompt, optional `str` model_id
+- **Output:** `Tuple[str, str]` — `(response_text, model_name_used)`
 
-### 📥 Output 1: Ingestion (`PaperDocument`)
+## `dual_code_engine.synthesize(paper_json, hyperparams, milestones)`
+- **Input:** paper JSON dict, hyperparameters dict, BuildSequence milestones list
+- **Output:** `Dict[str, Any]` — `{code: str, engine_used: str, is_valid: bool, issues: List[str]}`
+
+## `PaperVectorDB.search(paper_id, query, top_k=3)`
+- **Input:** `str` paper_id, `str` query, `int` top_k
+- **Output:** `List[Dict]` — `[{text: str, chunk_index: int, score: float}]`
+
+## `PaperKnowledgeGraph.search_entities(query)`
+- **Input:** `str` query term
+- **Output:** `List[Dict]` — matching nodes with `{id, type, label, neighbors: [...]}`
+
+## `GET /hardware/metrics`
+- **Output:**
 ```json
 {
-  "paper_id": "17",
-  "metadata": {
-    "title": "Dual-Temporal Remote Sensing Change Detection Transformer",
-    "authors": ["Author One", "Author Two"],
-    "abstract": "We propose a dual-attention transformer network..."
-  },
-  "sections": [
-    {
-      "title": "III. METHOD",
-      "character_count": 4200,
-      "text": "Our model consists of a Swin Transformer encoder..."
-    }
-  ]
+  "status": "online",
+  "cpu": {"platform": "Windows", "cores": 16, "usage_percent": 12.3, "ram_total_gb": 23.6, "ram_used_gb": 8.1, "ram_available_gb": 15.5},
+  "gpu": {"cuda_available": true, "name": "NVIDIA GeForce RTX 5050", "vram_total_gb": 8.0, "vram_used_gb": 0.5, "vram_free_gb": 7.5}
 }
 ```
 
----
-
-### 📥 Output 2: Component Graph (`ComponentGraph`)
+## `GET /models`
+- **Output:**
 ```json
 {
-  "components": [
-    {
-      "name": "SwinEncoder",
-      "type": "encoder",
-      "description": "Visual backbone feature extractor",
-      "inputs": ["InputImages"],
-      "outputs": ["SwinFeatureMaps"]
-    },
-    {
-      "name": "FeatureFusionModule",
-      "type": "fusion",
-      "description": "Cross-attention temporal feature fusion",
-      "inputs": ["SwinFeatureMaps"],
-      "outputs": ["FusedFeatures"]
-    }
-  ],
-  "edges": [
-    {"source": "SwinEncoder", "target": "FeatureFusionModule"}
-  ]
-}
-```
-
----
-
-### 📥 Output 3: Dynamic Parameters (`ExtractedParameters`)
-```json
-{
-  "learning_rate": {"value": "0.0002", "confidence": 95, "status": "EXPLICIT"},
-  "batch_size": {"value": "16", "confidence": 95, "status": "EXPLICIT"},
-  "optimizer": {"value": "AdamW", "confidence": 95, "status": "EXPLICIT"},
-  "custom_parameters": {
-    "weight_decay": {"value": "0.01", "confidence": 90, "status": "EXPLICIT"},
-    "warmup_epochs": {"value": "5", "confidence": 80, "status": "INFERRED"},
-    "spatial_resolution": {"value": "256x256", "confidence": 95, "status": "EXPLICIT"}
+  "default_model": "qwen/qwen3.8-27b",
+  "groups": {
+    "groq": {"models": [{"id": "qwen/qwen3.8-27b", ...}, {"id": "openai/gpt-oss-120b", ...}]},
+    "openrouter": {"models": [{"id": "google/gemini-2.5-flash", ...}, {"id": "deepseek/deepseek-r1:free", ...}]},
+    "local": {"models": [...installed ollama models...]}
   }
 }
 ```
 
----
-
-### 📥 Output 4: Feasibility Report (`FeasibilityReport`)
+## `POST /upload` (multipart)
+- **Input:** `file` (PDF/DOCX binary), optional `model_name`
+- **Output:**
 ```json
 {
-  "overall_status": "FEASIBLE",
-  "estimated_vram_gb": 1.89,
-  "available_vram_gb": 6.0,
-  "bottlenecks": [
-    "Estimated peak memory (1.89 GB) fits cleanly inside available GPU RAM (6.0 GB)."
-  ],
-  "suggested_adaptations": [
-    "Standard FP16 training with PyTorch Automatic Mixed Precision."
-  ]
+  "paper_id": "paper_attention_is_all_you",
+  "conversation_id": "conv_a1b2c3d4",
+  "title": "Attention Is All You Need",
+  "duplicate": false,
+  "limits": {...quota summary...}
 }
 ```
 
----
+## `POST /conversations/{id}/chat` (non-streaming)
+- **Input:** `{message: str, paper_id: str, model_name: str}`
+- **Output:** `{answer: str, model_used: str, failover_model: str|null, thought: str, action: str, observation: str, title: str}`
 
-### 📥 Output 5: Build Sequence (`BuildSequence`)
+## `GET /models/limits`
+- **Output:**
 ```json
 {
-  "total_steps": 6,
-  "steps": [
-    {
-      "step_num": 1,
-      "component_name": "config",
-      "description": "Hyperparameter configuration",
-      "dependencies": [],
-      "file_path": "config.py"
-    },
-    {
-      "step_num": 2,
-      "component_name": "dataset",
-      "description": "PyTorch dataset loader",
-      "dependencies": ["config"],
-      "file_path": "dataset.py"
-    }
-  ]
-}
-```
-
----
-
-### 📥 Output 6: PyTorch Package CodeGen (`codebase_files`)
-```json
-{
-  "total_files": 8,
-  "total_loc": 1624,
-  "is_valid": true,
-  "codebase_files": {
-    "config.py": "# Hyperparameters configuration\nclass Config:\n    lr = 0.0002...",
-    "dataset.py": "# PyTorch Dataset class\nimport torch...",
-    "models/encoder.py": "# Visual backbone encoder\nimport torch.nn as nn...",
-    "models/fusion.py": "# Feature fusion module...",
-    "models/decoder.py": "# Change classification head...",
-    "losses.py": "# Hybrid BCE + Dice loss...",
-    "train.py": "# PyTorch training loop...",
-    "evaluate.py": "# Evaluation metrics (F1, IoU)..."
-  },
-  "ast_validations": {
-    "config.py": {"is_valid": true, "ast_msg": "Syntax OK", "loc": 35},
-    "train.py": {"is_valid": true, "ast_msg": "Syntax OK", "loc": 240}
-  }
+  "groq": {"rpm_used": 12, "rpm_limit": 30, "rpd_used": 156, "rpd_limit": 14400},
+  "openrouter": {"rpm_used": 3, "rpm_limit": 20, "rpd_used": 47, "rpd_limit": 200},
+  "local": {"available": true, "host": "http://localhost:11434"}
 }
 ```

@@ -1,112 +1,282 @@
-# ⚛️ Synthexis Renderer — React 19 + Vite Docked Sidebar UI Documentation
+﻿# RUEXIS AI — Renderer (React Frontend)
 
-Welcome to the renderer documentation for **Synthexis AI Platform**. This application is a high-performance **React 19** single-page application built with **Vite 8**, **TypeScript**, **TailwindCSS 4**, and **Zustand 5**, serving as the docked sidebar control panel and interactive paper analysis dashboard.
-
----
-
-## 🏗️ Architecture Overview
-
-```mermaid
-flowchart TD
-    subgraph Core ["React Root & Main Entry (src/)"]
-        MAIN["main.tsx"] --> APP["App.tsx"]
-        APP --> PANEL["Panel.tsx (Dashboard Hub)"]
-    end
-
-    subgraph Store ["Zustand Reactive State Engine (src/store/)"]
-        PANEL --> ANALYSIS["analysisSlice.ts (PDF, Milestones, Reports)"]
-        PANEL --> CHAT_STORE["chatSlice.ts (ReACT Feed, Messages)"]
-        PANEL --> PROFILE["profileSlice.ts (Avatar, Ollama Config)"]
-        PANEL --> UI_STORE["uiSlice.ts (Sidebars, Theme)"]
-        PANEL --> LOGS["logsStore.ts (SSE Stream Logs)"]
-    end
-
-    subgraph Layout ["Layout Framework (src/components/layout/)"]
-        PANEL --> HEADER["Header.tsx"]
-        PANEL --> LEFT["LeftSidebar.tsx"]
-        PANEL --> RIGHT["RightSidebar.tsx"]
-        PANEL --> MASCOT["MascotBox.tsx"]
-        PANEL --> USER_CARD["UserProfileCard.tsx"]
-    end
-
-    subgraph Features ["Feature Modules (src/components/features/)"]
-        PANEL --> REPORT["analysis/ReportView.tsx"]
-        PANEL --> TRACKER["analysis/MilestoneTracker.tsx"]
-        PANEL --> CHAT_UI["chat/MessageFeed.tsx & ChatInputArea.tsx"]
-        PANEL --> LOGS_UI["logs/LogsDrawer.tsx"]
-        PANEL --> PROFILE_UI["profile/UserProfile.tsx & MascotSelector.tsx"]
-    end
-
-    subgraph UI_Primitives ["UI Primitives (src/components/ui/)"]
-        PANEL --> TIER["TierSelector.tsx (Brief, Spec, Full PyTorch)"]
-        PANEL --> DROP["DropZone.tsx & DragDropOverlay.tsx"]
-        PANEL --> SKIN["SkinLoader.tsx"]
-        PANEL --> THEME["ThemeToggle.tsx"]
-    end
-```
+The web UI layer of the RUEXIS AI desktop application. Built with React 19 + Vite + Zustand + TypeScript. Rendered inside the Electron BrowserWindow as a file:// page in production, and served by Vite dev server at `http://localhost:5173` during development.
 
 ---
 
-## 📁 File-by-File Breakdown of `frontend/renderer/src/`
-
-### 1. Root & App Core (`src/`)
-* **`main.tsx`**: React 19 application entry point, mounting `App.tsx` into the DOM (`#root`).
-* **`App.tsx`**: Main component wrapper integrating global theme tokens, drag-and-drop overlays, modal dialogs, and the core dashboard panel.
-* **`index.css`**: TailwindCSS v4 design system tokens, font imports (`IBM Plex Mono`, `Public Sans`), glassmorphic CSS variables, and animation keyframes.
-* **`global.d.ts`**: TypeScript definitions for `window.electronAPI` IPC bridge methods.
-* **`services/connectivity.ts`**: Health check utility probing backend server (`http://localhost:8000/health`) and local Ollama (`http://localhost:11434`).
-
-### 2. Reactive State Management (`src/store/`)
-* **`slices/analysisSlice.ts`**: Manages PDF file ingestion, active paper metadata, milestone DAG tracking, 3-tier depth output selection, and generated PyTorch codebase views.
-* **`slices/chatSlice.ts`**: Manages multi-turn ReACT chat messages, input feed state, streaming responses, and thought step parsing via `parseReAct.ts`.
-* **`slices/profileSlice.ts`**: Manages user profile settings, Ollama host URL (`http://localhost:11434`), and selected mascot avatar skin.
-* **`slices/uiSlice.ts`**: Manages collapsible left/right sidebars, drawer states, theme modes, and modal dialogs.
-* **`logsStore.ts`**: Real-time SSE event log store capturing backend node transitions (`EXTRACTION_STARTED`, `SECTION_DETECTED`, `CODE_GENERATION_STARTED`).
-* **`themeStore.ts`**: Manages theme palette state (`dark`, `light`, `arctic`, `iris`).
-* **`utils/storeUtils.ts`**: Persistence helpers and local storage state serializers.
-
-### 3. Layout Scaffolding (`src/components/layout/`)
-* **`Header.tsx`**: Top navigation bar displaying paper title, analysis status indicators, theme toggle, and profile access.
-* **`LeftSidebar.tsx` & `RightSidebar.tsx`**: Docked collapsible sidebars housing document history, milestone checklists, and logs.
-* **`MascotBox.tsx`**: Interactive mascot canvas container rendering character poses and animation keyframes.
-* **`UserProfileCard.tsx`**: Compact user avatar card displaying selected mascot skin and Ollama connection status.
-* **`DocumentHistoryList.tsx` & `ChatHistoryList.tsx`**: History drawers listing previously analyzed papers and saved chat threads.
-* **`CompactHistoryDropdown.tsx`**: Quick-access dropdown for switching between recently processed papers.
-
-### 4. Feature Modules (`src/components/features/`)
-* **`analysis/ReportView.tsx`**: Markdown report viewer rendering synthesized specifications, gap analysis reports, and interactive PyTorch code trees with syntax highlighting.
-* **`analysis/MilestoneTracker.tsx`**: Progress tracker displaying the 6-step DAG build sequence with expandable task checklists.
-* **`analysis/PdfViewerPage.tsx`**: Embedded PDF document viewer with page navigation and section highlights.
-* **`analysis/DocumentsDrawer.tsx`**: Slide-out drawer displaying processed papers, canonical JSON metadata, and cached PyTorch files.
-* **`analysis/StatsCharts.tsx`**: Visual performance charts displaying GPU VRAM memory footprints and processing benchmarks.
-* **`chat/MessageFeed.tsx` & `MessageBubble.tsx`**: Conversational chat interface displaying user prompts and assistant answers with grounded RAG citations.
-* **`chat/ChatInputArea.tsx`**: Text input box with PDF attachment cards and send trigger.
-* **`chat/ReActStepsAccordion.tsx` & `parseReAct.ts`**: Accordion component parsing and rendering ReACT agent thought steps (`thought`, `action`, `observation`).
-* **`logs/LogsDrawer.tsx`**: Live terminal-style drawer streaming real-time backend log events via SSE.
-* **`profile/UserProfile.tsx`, `MascotSelector.tsx`, `OllamaConfigSection.tsx`**: Configuration modal for avatar skin selection and local Ollama host URL setup.
-
-### 5. UI Primitives (`src/components/ui/`)
-* **`TierSelector.tsx`**: 3-Tier depth selector (Brief Summary, Detailed Spec, Full PyTorch Implementation).
-* **`DropZone.tsx` & `DragDropOverlay.tsx`**: Drag-and-drop PDF ingestion overlay with visual drop target animations.
-* **`SkinLoader.tsx`**: SVG/PNG avatar skin loader rendering mascot poses (`mr_nerdy_stand_sleep`, `mr_nerdy_stand_to_excite`, `mr_nerd_stand_to_angry`, `mr_nerd_stand_to_hunch`).
-* **`ThemeToggle.tsx`**: One-click theme switcher toggle.
-* **`LocalAuthModal.tsx`**: First-run setup modal asking for workspace directory and local Ollama setup.
-* **`ModelSelector.tsx`**: Dropdown selector for choosing local Ollama models (`qwen2.5-coder:1.5b`).
-
----
-
-## ⚡ Quick Start & Development
+## Quick Start
 
 ```bash
-# 1. Navigate to renderer directory
 cd frontend/renderer
 
-# 2. Install dependencies
+# Install dependencies
 npm install
 
-# 3. Start Vite development server
+# Start development server (talks to backend at localhost:8000)
 npm run dev
 
-# 4. Build production bundle (tsc + vite build)
+# Build production bundle (loaded by Electron in production)
 npm run build
 ```
+
+Dev server: **http://localhost:5173**
+
+---
+
+## Directory Structure
+
+```
+renderer/
+├── index.html              # Vite HTML entry point
+├── vite.config.ts          # Vite config
+├── package.json            # Dependencies
+└── src/
+    ├── main.tsx            # React root mount
+    ├── App.tsx             # Top-level router / panel layout
+    ├── index.css           # Global design system (CSS variables, typography, animations)
+    ├── config/
+    │   └── api.ts          # Centralized API base URL + endpoint constants
+    ├── constants/
+    │   └── models.ts       # Model catalog fallbacks, DEFAULT_SELECTED_MODEL, resolveFailoverModelId
+    ├── schemas/
+    │   └── api.ts          # Zod schemas for all backend response types
+    ├── services/
+    │   └── connectivity.ts # Fetch wrappers for all backend endpoints
+    ├── store/
+    │   ├── panelStore.ts   # Root Zustand store (panel state, chat messages)
+    │   ├── logsStore.ts    # Log entry store for the Logs panel
+    │   ├── themeStore.ts   # Theme (dark/light) persistence via localStorage
+    │   ├── utils/          # Shared store utilities (API_BASE, etc.)
+    │   └── slices/
+    │       ├── chatSlice.ts          # Chat state, SSE streaming, conversation CRUD
+    │       ├── analysisSlice.ts      # Pipeline/analysis state, paper upload, report
+    │       ├── profileSlice.ts       # User profile, API keys, Ollama config
+    │       ├── documentHistorySlice.ts # Document history list state
+    │       ├── hardwareSlice.ts      # Hardware metrics polling state
+    │       └── uiSlice.ts            # UI state: selectedModel, selectedMascot
+    ├── components/
+    │   ├── layout/
+    │   │   ├── Header.tsx            # Top bar with model selector, theme toggle, tabs
+    │   │   ├── LeftSidebar.tsx       # Conversation history + document history panel
+    │   │   ├── RightSidebar.tsx      # Analysis pipeline progress, report view
+    │   │   ├── ChatHistoryList.tsx   # Conversation thread list with CRUD
+    │   │   ├── DocumentHistoryList.tsx # Paper history list with upload/delete
+    │   │   ├── CompactHistoryDropdown.tsx # Compact conversation selector
+    │   │   ├── MascotBox.tsx         # In-panel mascot iframe embed
+    │   │   └── UserProfileCard.tsx   # Profile card in sidebar
+    │   ├── features/
+    │   │   ├── chat/
+    │   │   │   ├── ChatInputArea.tsx       # Message input, file attachment, send
+    │   │   │   ├── MessageBubble.tsx       # User/assistant message bubble renderer
+    │   │   │   ├── MessageFeed.tsx         # Scrollable message list
+    │   │   │   ├── ReActStepsAccordion.tsx # Collapsible ReACT thought/action/observation trace
+    │   │   │   ├── parseReAct.ts           # ReACT trace parser
+    │   │   │   └── messageFormatters.tsx   # Markdown/code formatting helpers
+    │   │   ├── analysis/
+    │   │   │   ├── DocumentsDrawer.tsx     # Uploaded paper list panel
+    │   │   │   ├── ParameterConfigForm.tsx # Hyperparameter approval/edit form
+    │   │   │   ├── MilestoneTracker.tsx    # Implementation milestone progress
+    │   │   │   ├── ReportView.tsx          # Final analysis report renderer
+    │   │   │   ├── ImplementationTabs.tsx  # Code + milestones tabs
+    │   │   │   ├── PdfViewerPage.tsx       # Inline PDF viewer
+    │   │   │   ├── StatsCharts.tsx         # Pipeline stats charts
+    │   │   │   └── ScholarBadge.tsx        # Citation badge
+    │   │   ├── profile/
+    │   │   │   ├── UserProfile.tsx         # Full user profile page (keys, Ollama, mascot)
+    │   │   │   ├── ApiKeysConfigSection.tsx  # API key input/save section
+    │   │   │   ├── OllamaConfigSection.tsx   # Ollama host link configuration
+    │   │   │   ├── ModelLimitsSection.tsx    # Quota dashboard with live rate limit metrics
+    │   │   │   ├── ProviderQuotaCard.tsx     # Per-provider quota usage card
+    │   │   │   ├── ServerMetricsBadge.tsx    # Backend server status badge
+    │   │   │   └── MascotSelector.tsx        # Mascot character selection
+    │   │   └── logs/
+    │   │       └── (log panel components)
+    │   ├── ui/
+    │   │   ├── ModelSelector.tsx       # Model dropdown with provider groups, failover tick
+    │   │   ├── DropZone.tsx            # Drag-and-drop PDF upload zone
+    │   │   ├── DragDropOverlay.tsx     # Full-screen drag overlay
+    │   │   ├── LocalAuthModal.tsx      # Local auth login modal
+    │   │   ├── ThemeToggle.tsx         # Dark/light theme toggle button
+    │   │   ├── Icons.tsx               # Centralized SVG icon library
+    │   │   ├── Loader.tsx              # Spinner/loading components
+    │   │   ├── MessageSkeleton.tsx     # Skeleton loader for messages
+    │   │   ├── SkinLoader.tsx          # Mascot skin preview loader
+    │   │   ├── PdfAttachmentCard.tsx   # Attached PDF preview card
+    │   │   ├── TierSelector.tsx        # Provider tier filter
+    │   │   └── Tooltip.tsx             # Accessible tooltip wrapper
+    │   └── mascot/
+    │       └── (mascot state components)
+    ├── assets/                         # Static images and mascot sprite sheets
+    └── utils/                          # Shared utility functions
+```
+
+---
+
+## State Management — Zustand Slices
+
+The root store is `panelStore.ts`. Each feature area is a separate slice composed into the root store.
+
+### `uiSlice.ts` — UI State
+
+| State | Type | Description |
+|-------|------|-------------|
+| `selectedModel` | `string` | Currently selected inference model ID. Persisted to `localStorage`. |
+| `selectedMascot` | `string` | Currently selected mascot character ID. Persisted to `localStorage`. |
+
+**Auto-Failover Sync:** When the backend returns a `failover_model` field in the SSE `done` event, `chatSlice` calls `resolveFailoverModelId()` and updates `selectedModel` automatically so the correct model is ticked in the selector.
+
+---
+
+### `chatSlice.ts` — Chat & Conversation State
+
+| State | Type | Description |
+|-------|------|-------------|
+| `messages` | `ChatMessage[]` | Current conversation messages |
+| `conversations` | `Conversation[]` | All conversation threads |
+| `activeConversationId` | `string \| null` | Currently active conversation |
+| `isChatGenerating` | `boolean` | True while SSE stream is active |
+| `streamingStatus` | `string \| null` | Live ReACT status text |
+| `streamingThought` | `string \| null` | Live ReACT thought trace |
+| `streamingAction` | `string \| null` | Live ReACT action trace |
+
+**Key Actions:**
+- `sendMessage()` — Opens SSE stream to `POST /conversations/{id}/chat/stream`, handles all events (`token`, `done`, `error`, `status`, `thought`, `action`). On `done`, dispatches `refresh-model-limits` window event to update quota cards.
+- `createConversation()` — `POST /conversations`
+- `fetchMessages()` — `GET /conversations/{id}/messages`
+- `fetchConversations()` — `GET /conversations`
+- `selectConversation()` — Switches active conversation + aborts any in-flight request
+- `deleteConversation()` — `DELETE /conversations/{id}`
+- `updateConversationTitle()` — `PATCH /conversations/{id}`
+- `regenerateMessage()` — Re-sends the last user message
+
+---
+
+### `analysisSlice.ts` — Pipeline & Paper State
+
+Manages the full paper upload → analysis → report lifecycle.
+
+| State | Type | Description |
+|-------|------|-------------|
+| `papers` | `Paper[]` | All uploaded paper records |
+| `activePaperId` | `string \| null` | Currently selected paper |
+| `analysisStatus` | `string` | Current pipeline job status |
+| `pipelineLogs` | `string[]` | Live SSE pipeline log lines |
+| `reportContent` | `string \| null` | Final generated analysis report |
+| `hyperparameters` | `object \| null` | Extracted ML hyperparameters |
+
+**Key Actions:**
+- `uploadPaper()` — `POST /upload` → triggers pipeline
+- `fetchPaperHistory()` — `GET /history`
+- `fetchReport()` — `GET /pipeline/report/{paper_id}`
+- `approvePipelineStep()` — `POST /pipeline/approve`
+- `fetchHyperparameters()` — `GET /history/{paper_id}/hyperparameters`
+
+---
+
+### `profileSlice.ts` — User Profile & Config
+
+| State | Type | Description |
+|-------|------|-------------|
+| `userProfile` | `Profile \| null` | User metadata and configured API keys |
+| `hardwareMetrics` | `HardwareMetrics \| null` | Live CPU/GPU telemetry |
+| `modelLimits` | `ModelLimits \| null` | Provider quota data |
+
+**Key Actions:**
+- `fetchProfile()` — `GET /profile`
+- `updateProfile()` — `PATCH /profile` (saves API keys, Ollama link)
+- `fetchHardwareMetrics()` — `GET /hardware/metrics`
+- `fetchModelLimits()` — `GET /models/limits`
+
+---
+
+## API Configuration
+
+`src/config/api.ts` provides a single source of truth for all backend endpoint URLs:
+
+```typescript
+export const API_BASE = 'http://localhost:8000/api/v1';  // auto-resolved
+
+export const API_ENDPOINTS = {
+  MODELS: `${API_BASE}/models`,
+  LIMITS: `${API_BASE}/models/limits`,
+  DUAL_ENGINE: `${API_BASE}/models/dual-engine`,
+  PAPERS: `${API_BASE}/papers`,
+  PIPELINE_INGEST: `${API_BASE}/pipeline/ingest`,
+  CONVERSATIONS: `${API_BASE}/conversations`,
+  HARDWARE: `${API_BASE}/hardware/metrics`,
+  USER_PROFILE: `${API_BASE}/user/profile`,
+  TELEMETRY: `${API_BASE}/telemetry/traces`,
+};
+```
+
+In Electron production (file:// protocol), `getApiBase()` always resolves to `http://localhost:8000/api/v1`. In browser development with Vite, it uses `VITE_BACKEND_URL` if set, otherwise defaults to the same.
+
+---
+
+## Model Selector & Auto-Failover
+
+`src/constants/models.ts` defines:
+
+| Export | Description |
+|--------|-------------|
+| `FALLBACK_GROQ` | Static fallback model list for Groq (Qwen 3.8 27B, GPT-OSS 120B) |
+| `FALLBACK_OPENROUTER` | Static fallback for OpenRouter (Gemini 2.5 Flash, DeepSeek R1) |
+| `DEFAULT_SELECTED_MODEL` | `'qwen/qwen3.8-27b'` — default on first launch |
+| `isExcludedModel()` | Filters out embedding models and backend-reserved models |
+| `resolveFailoverModelId()` | Maps a backend `model_used` string to a frontend model ID when automatic failover occurred |
+
+`ModelSelector.tsx` renders provider groups (Groq / OpenRouter / Local Ollama) fetched live from `GET /models`. The active option is driven by `selectedModel` from `uiSlice`.
+
+When the backend fails over to a different provider mid-request:
+1. The SSE `done` event includes `failover_model` in the JSON payload
+2. `chatSlice.sendMessage()` calls `resolveFailoverModelId(failover_model)`
+3. If a frontend model ID is resolved, `uiSlice.setSelectedModel()` is called
+4. `ModelSelector` immediately re-renders with the correct model ticked
+
+---
+
+## Quota Dashboard
+
+`ModelLimitsSection.tsx` + `ProviderQuotaCard.tsx` render a live rate-limit dashboard populated by `GET /models/limits`.
+
+- After every chat completion, `chatSlice` dispatches `window.dispatchEvent(new CustomEvent('refresh-model-limits'))` to trigger a fresh quota fetch.
+- `ProviderQuotaCard` calculates accurate usage percentages from raw `used` / `limit` fields — no hardcoded values.
+- Displays separate cards per provider: **Groq**, **OpenRouter**, and **Local Ollama** (when configured).
+
+---
+
+## SSE Stream Parsing
+
+`chatSlice.ts` includes a custom SSE parser (`createSseParser`) that:
+- Handles standard `event: / data:` multi-line SSE format
+- Detects and unwraps JSON-wrapped events (legacy backend compatibility)
+- Dispatches to typed handlers: `onToken`, `onDone`, `onError`, `onStatus`, `onThought`, `onAction`
+- Supports graceful abort via `AbortController` on conversation switch
+
+---
+
+## Design System
+
+`src/index.css` defines the full design system:
+
+- **Typography:** IBM Plex Mono (code), Public Sans (UI), Source Serif 4 (reading)
+- **Color Tokens:** CSS custom properties for all theme colors in dark and light modes
+- **Animations:** Fade-in, slide-up, shimmer skeleton, typing cursor
+- **Theme Toggle:** Persisted via `themeStore.ts` to `localStorage`
+
+---
+
+## Key Dependencies
+
+| Package | Purpose |
+|---------|---------|
+| `react` 19 | UI framework |
+| `vite` 8 | Build tool + dev server |
+| `zustand` 5 | State management (slice pattern) |
+| `zod` 4 | Runtime response schema validation |
+| `motion` 13 | Animation library |
+| `lucide-react` | SVG icon set |
+| `@rive-app/react-canvas` | Rive animation runtime (mascot) |
+| `@fontsource/*` | Self-hosted fonts (IBM Plex Mono, Public Sans, Source Serif 4) |
+| `typescript` 6 | Type safety |
+| `tailwindcss` 4 | Utility CSS (dev only, used sparingly) |

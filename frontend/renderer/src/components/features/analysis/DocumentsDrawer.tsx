@@ -43,7 +43,7 @@ export const DocumentsDrawer: React.FC = () => {
       </div>
 
       {/* List of files */}
-      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 scrollbar-thin scrollbar-thumb-[var(--border-color)] scrollbar-track-transparent">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 flex flex-col gap-3 scrollbar-thin scrollbar-thumb-[var(--border-color)] scrollbar-track-transparent w-full max-w-full">
         {uploadedHistory.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-3 text-[var(--text-muted)] py-8 border-2 border-dashed app-border rounded-xl mx-2 bg-[var(--bg-base)]">
             <IconFolderOpen className="text-3xl opacity-50 text-[var(--text-muted)]" />

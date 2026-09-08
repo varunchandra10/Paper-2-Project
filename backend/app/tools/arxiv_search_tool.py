@@ -8,7 +8,7 @@ class ArxivSearchTool(BaseTool):
     name = "search_arxiv_papers"
     description = "Queries the official ArXiv API for research papers, preprints, and academic baseline implementations."
 
-    def execute(self, query: str) -> str:
+    def execute(self, query: str = "", *args, **kwargs) -> str:
         if not query:
             return "No search query provided."
             
@@ -17,7 +17,7 @@ class ArxivSearchTool(BaseTool):
         url = f"http://export.arxiv.org/api/query?search_query=all:{encoded}&start=0&max_results=3"
         
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "Synthexis/2.0 Research Platform"})
+            req = urllib.request.Request(url, headers={"User-Agent": "RUEXIS/2.0 Research Platform"})
             with urllib.request.urlopen(req, timeout=12) as resp:
                 xml_data = resp.read().decode('utf-8')
                 

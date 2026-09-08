@@ -23,23 +23,58 @@ class PaperKnowledgeGraph:
 
     def load_or_create(self, paper_id: str):
         """Loads graph from JSON cache if available, or creates a new graph."""
-        self.paper_id = paper_id
-        file_path = os.path.join(self.storage_dir, f"{paper_id}_graph.json")
-        if os.path.exists(file_path):
-            try:
-                with open(file_path, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                self.graph = nx.node_link_graph(data)
-                return
-            except Exception as e:
-                print(f"[GRAPH WARN] Failed loading cached graph ({e}), initializing fresh graph.")
+        import re
+        clean_id = re.sub(r'^(paper_)+', '', paper_id)
+        canonical_pid = f"paper_{clean_id}"
+        self.paper_id = canonical_pid
+
+        # Check existing graph caches
+        for candidate_id in [canonical_pid, clean_id, paper_id]:
+            file_path = os.path.join(self.storage_dir, f"{candidate_id}_graph.json")
+            if os.path.exists(file_path):
+                try:
+                    with open(file_path, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    self.graph = nx.node_link_graph(data)
+                    return
+                except Exception as e:
+                    print(f"[GRAPH WARN] Failed loading cached graph ({e}), initializing fresh graph.")
+
         self.graph = nx.DiGraph()
+        
+        # Auto-build graph if canonical extracted JSON exists
+        candidates = [canonical_pid, clean_id, paper_id]
+        found_path = None
+        for c in candidates:
+            p = os.path.join(settings.EXTRACTED_JSON_DIR, f"{c}.json")
+            if os.path.exists(p):
+                found_path = p
+                break
+                
+        if not found_path and os.path.exists(settings.EXTRACTED_JSON_DIR):
+            files = [f for f in os.listdir(settings.EXTRACTED_JSON_DIR) if f.endswith(".json")]
+            if len(files) == 1:
+                found_path = os.path.join(settings.EXTRACTED_JSON_DIR, files[0])
+
+        if found_path:
+            try:
+                with open(found_path, "r", encoding="utf-8") as f:
+                    cdata = json.load(f)
+                doc = cdata.get("canonical_document") or cdata
+                self.build_from_canonical(doc, paper_id=canonical_pid)
+                self.save()
+                print(f"[GRAPH] Auto-built knowledge graph for '{canonical_pid}' ({len(self.graph.nodes)} nodes).")
+            except Exception as be:
+                print(f"[GRAPH WARN] Auto-build from '{found_path}' failed: {be}")
 
     def save(self):
         """Persists graph structure to paper-specific JSON file."""
         if not self.paper_id:
             return
-        file_path = os.path.join(self.storage_dir, f"{self.paper_id}_graph.json")
+        import re
+        clean_id = re.sub(r'^(paper_)+', '', self.paper_id)
+        canonical_pid = f"paper_{clean_id}"
+        file_path = os.path.join(self.storage_dir, f"{canonical_pid}_graph.json")
         try:
             data = nx.node_link_data(self.graph)
             with open(file_path, "w", encoding="utf-8") as f:
@@ -47,18 +82,28 @@ class PaperKnowledgeGraph:
         except Exception as e:
             print(f"[GRAPH WARN] Failed to save graph to {file_path}: {e}")
 
-    def build_from_canonical(self, canonical_data: Dict[str, Any]):
+    def build_from_canonical(self, canonical_data: Dict[str, Any], paper_id: Optional[str] = None):
         """Builds directed graph nodes and edges dynamically from canonical paper sections and extractions."""
+        import re
         self.graph.clear()
         
         # Root Paper Node
-        paper_id = canonical_data.get("paper_id", self.paper_id or "unknown_paper")
-        self.paper_id = paper_id
-        paper_title = canonical_data.get("title") or canonical_data.get("parsed_title") or paper_id
-        self.graph.add_node(paper_id, node_type="paper", title=paper_title)
+        clean_pid = paper_id or self.paper_id or canonical_data.get("paper_id", "unknown_paper")
+        clean_pid = f"paper_{re.sub(r'^(paper_)+', '', clean_pid)}"
+        self.paper_id = clean_pid
+
+        paper_title = (
+            canonical_data.get("title") or 
+            canonical_data.get("metadata", {}).get("title") if isinstance(canonical_data.get("metadata"), dict) else None or
+            canonical_data.get("parsed_title") or 
+            clean_pid
+        )
+        self.graph.add_node(clean_pid, node_type="paper", title=paper_title)
 
         # 1. Dynamic Section Hierarchy & Sequential Flow Nodes
         sections = canonical_data.get("sections", [])
+        if not sections and isinstance(canonical_data.get("metadata"), dict):
+            sections = canonical_data.get("metadata", {}).get("sections_found", [])
         sec_items = []
         if isinstance(sections, dict):
             sec_items = list(sections.items())

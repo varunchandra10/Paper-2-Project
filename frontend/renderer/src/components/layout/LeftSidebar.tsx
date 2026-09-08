@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePanelStore } from '../../store/panelStore';
 import { ChatHistoryList } from './ChatHistoryList';
 import { DocumentHistoryList } from './DocumentHistoryList';
+import { MascotBox } from './MascotBox';
 import { SkinLoader } from '../ui/SkinLoader';
 import { 
   IconMessageSquare, 
   IconBookOpen, 
   IconActivity,
-  IconPlus
+  IconPlus,
+  IconClose
 } from '../ui/Icons';
 
 interface LeftSidebarProps {
@@ -16,16 +18,66 @@ interface LeftSidebarProps {
   onToggleOpen?: () => void;
 }
 
-export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onToggleOpen }) => {
+export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isMaximized, isOpen, onToggleOpen }) => {
   const { 
     resetAnalysis, 
     setActiveView,
     fetchConversations,
+    conversations,
+    uploadedHistory,
     hardwareMetrics,
     fetchHardwareMetrics,
     isHardwareLoading
   } = usePanelStore();
   const [activeTab, setActiveTab] = useState<'chat' | 'library' | 'feasibility'>('chat');
+
+  // Draggable sidebar width state (persisted to localStorage)
+  const [sidebarWidth, setSidebarWidth] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('ruexis_sidebar_width') || localStorage.getItem('synthexis_sidebar_width');
+      return saved ? Math.max(200, Math.min(600, parseInt(saved, 10))) : 240;
+    } catch {
+      return 240;
+    }
+  });
+  const [isResizing, setIsResizing] = useState(false);
+
+  const startResizing = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+      // Rail width is 48px (w-12)
+      const newWidth = Math.max(200, Math.min(600, e.clientX - 48));
+      setSidebarWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      if (isResizing) {
+        setIsResizing(false);
+        try {
+          localStorage.setItem('ruexis_sidebar_width', sidebarWidth.toString());
+        } catch {}
+      }
+    };
+
+    if (isResizing) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizing, sidebarWidth]);
 
   const handleTabClick = (tab: 'chat' | 'library' | 'feasibility') => {
     if (isOpen) {
@@ -61,15 +113,24 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onToggleOpen }
     resetAnalysis();
     setActiveTab('chat');
     setActiveView('chat');
-    if (!isOpen && onToggleOpen) {
+    if (!isMaximized && isOpen && onToggleOpen) {
       onToggleOpen();
     }
   };
 
   return (
-    <div className="flex h-full shrink-0 z-30 select-none">
-      {/* ── 1. VS CODE ACTIVITY BAR (Slim Icon Rail) ── */}
-      <aside className="w-12 app-rail flex flex-col items-center justify-between py-2 shrink-0 transition-colors">
+    <>
+      {/* ── MINIMIZED MODE BACKDROP (Click outside to close) ── */}
+      {!isMaximized && isOpen && (
+        <div
+          onClick={onToggleOpen}
+          className="fixed inset-0 left-12 z-40 bg-black/35 backdrop-blur-[1.5px] transition-opacity duration-200 cursor-pointer animate-fade-in"
+        />
+      )}
+
+      <div className={`flex h-full select-none ${isMaximized ? 'shrink-0 z-30' : 'relative z-50'}`}>
+        {/* ── 1. VS CODE ACTIVITY BAR (Slim Icon Rail) ── */}
+      <aside className="w-12 app-rail flex flex-col items-center justify-between py-2 shrink-0 transition-colors relative z-40">
         <div className="flex flex-col items-center gap-4 w-full">
           {/* Navigation Icons with Rounded Pill Hover & Active Border Styling */}
           <nav className="flex flex-col gap-2 w-full items-center">
@@ -77,7 +138,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onToggleOpen }
             <button
               onClick={handleNewConversation}
               className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer text-[var(--accent)] bg-[var(--accent-subtle)] border border-[var(--accent-border)] hover:scale-105 active:scale-95 shadow-xs mb-1"
-              title="New Research Conversation"
+              data-tooltip="New Research Conversation"
+              data-tooltip-pos="right"
             >
               <IconPlus className="text-xs" />
             </button>
@@ -90,7 +152,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onToggleOpen }
                   ? 'bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--accent)]/50 shadow-xs'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-subtle)] border border-transparent'
               }`}
-              title="Conversational History"
+              data-tooltip="Conversational History"
+              data-tooltip-pos="right"
             >
                 <IconMessageSquare className="text-xs shrink-0" />
             </button>
@@ -103,7 +166,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onToggleOpen }
                   ? 'bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--accent)]/50 shadow-xs'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-subtle)] border border-transparent'
               }`}
-              title="Document History"
+              data-tooltip="Document History"
+              data-tooltip-pos="right"
             >
                 <IconBookOpen className="text-xs shrink-0" />
             </button>
@@ -116,7 +180,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onToggleOpen }
                   ? 'bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--accent)]/50 shadow-xs'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-subtle)] border border-transparent'
               }`}
-              title="Hardware Radar"
+              data-tooltip="Hardware Radar"
+              data-tooltip-pos="right"
             >
                 <IconActivity className="text-xs shrink-0" />
             </button>
@@ -133,7 +198,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onToggleOpen }
                 ? 'text-[var(--accent)] bg-[var(--accent-subtle)] border border-[var(--accent-border)]'
                 : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-subtle)] border border-transparent'
             }`}
-            title={isOpen ? 'Hide Primary Side Bar' : 'Show Primary Side Bar'}
+            data-tooltip={isOpen ? 'Collapse Sidebar' : 'Expand Sidebar'}
+            data-tooltip-pos="right"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="2" />
@@ -145,52 +211,99 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onToggleOpen }
           <button
             onClick={() => setActiveView('profile')}
             className="w-7 h-7 rounded-full border app-border flex items-center justify-center font-heading font-bold text-[10px] text-[var(--text-muted)] cursor-pointer hover:border-[var(--accent)] hover:text-[var(--text-main)] hover:scale-105 transition-all"
-            title="User Profile"
+            data-tooltip="User Profile"
+            data-tooltip-pos="right"
           >
             VC
           </button>
         </div>
       </aside>
 
-      {/* ── 2. VS CODE EXPLORER PANEL (Rounded Card Panel) ── */}
+      {/* ── 2. VS CODE EXPLORER PANEL (Rounded Card Panel with Dynamic Drag Resize) ── */}
       <aside
-        className={`bg-[var(--bg-sidebar)] border app-border rounded-xl shadow-xs flex flex-col justify-between shrink-0 transition-all duration-300 ease-in-out overflow-hidden mb-1.5 ${
-          isOpen ? 'w-60 opacity-100 mr-1.5' : 'w-0 opacity-0 border-none p-0 pointer-events-none'
+        style={{ 
+          width: isOpen 
+            ? (!isMaximized ? 'min(calc(100vw - 3.75rem), 320px)' : `${sidebarWidth}px`) 
+            : 0 
+        }}
+        className={`bg-[var(--bg-sidebar)] border app-border rounded-xl flex flex-col justify-between overflow-hidden ${
+          !isMaximized
+            ? 'absolute left-12 top-0 bottom-1.5 z-50 shadow-2xl backdrop-blur-md'
+            : 'shrink-0 mb-1.5 shadow-xs relative'
+        } ${
+          isResizing ? 'transition-none select-none' : 'transition-all duration-200 ease-in-out'
+        } ${
+          isOpen ? `opacity-100 ${isMaximized ? 'mr-1.5' : ''}` : 'opacity-0 border-none p-0 pointer-events-none'
         }`}
       >
-        <div className="w-[240px] flex flex-col h-full overflow-hidden shrink-0">
+        <div className="w-full flex flex-col h-full overflow-hidden shrink-0">
           
           {/* Top Panel Title Header Bar */}
           <div className="flex items-center justify-between px-4 py-2.5 shrink-0 border-b app-border select-none">
             <span className="text-[11px] font-sans font-bold tracking-wider text-[var(--text-muted)] uppercase">
               {activeTab === 'chat' ? 'CHAT HISTORY' : activeTab === 'library' ? 'DOCUMENT HISTORY' : 'HARDWARE RADAR'}
             </span>
+            <div className="flex items-center gap-1.5">
+              {activeTab === 'library' && (
+                <span className="px-2 py-0.5 text-[10px] font-mono font-bold rounded-full bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--accent-border)] shadow-xs">
+                  {uploadedHistory.length}
+                </span>
+              )}
+              {activeTab === 'chat' && (
+                <span className="px-2 py-0.5 text-[10px] font-mono font-bold rounded-full bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--accent-border)] shadow-xs">
+                  {conversations.length}
+                </span>
+              )}
+              {activeTab === 'feasibility' && (
+                <span className={`text-[9.5px] px-2 py-0.5 rounded-full font-mono font-bold uppercase tracking-wider ${
+                  isHardwareLoading 
+                    ? 'bg-[var(--accent-subtle)] text-[var(--accent)] animate-pulse' 
+                    : 'bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--accent-border)] shadow-xs'
+                }`}>
+                  {isHardwareLoading ? 'PROBING...' : (hardwareMetrics?.status?.toUpperCase() || 'ONLINE')}
+                </span>
+              )}
+              {/* Close Button for Minimized Overlay Mode */}
+              {!isMaximized && (
+                <button
+                  onClick={onToggleOpen}
+                  className="w-5 h-5 rounded-md flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-subtle)] cursor-pointer transition-colors ml-1"
+                  data-tooltip="Close"
+                  data-tooltip-pos="bottom"
+                >
+                  <IconClose className="text-xs" />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Render ChatHistoryList component when Chat tab is active */}
           {activeTab === 'chat' && (
-            <ChatHistoryList isOpen={isOpen} />
+            <ChatHistoryList 
+              isOpen={isOpen} 
+              onSelect={() => {
+                if (!isMaximized && onToggleOpen) {
+                  onToggleOpen();
+                }
+              }}
+            />
           )}
 
           {/* Render DocumentHistoryList component when Document History (Library) tab is active */}
           {activeTab === 'library' && (
-            <DocumentHistoryList isOpen={isOpen} />
+            <DocumentHistoryList 
+              isOpen={isOpen} 
+              onSelect={() => {
+                if (!isMaximized && onToggleOpen) {
+                  onToggleOpen();
+                }
+              }}
+            />
           )}
 
           {/* Render Live Hardware Radar when Feasibility tab is active */}
           {activeTab === 'feasibility' && (
             <div className="p-2.5 font-mono space-y-2 overflow-y-auto flex-1 text-[10px]">
-              <div className="flex items-center justify-between border-b app-border pb-1">
-                <span className="font-bold text-[var(--accent)] text-[10px] tracking-wider">HARDWARE RADAR</span>
-                <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold ${
-                  isHardwareLoading 
-                    ? 'bg-[var(--accent-subtle)] text-[var(--accent)] animate-pulse' 
-                    : 'bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--accent-border)]'
-                }`}>
-                  {isHardwareLoading ? 'PROBING METRICS...' : (hardwareMetrics?.status?.toUpperCase() || 'ONLINE')}
-                </span>
-              </div>
-
               {isHardwareLoading || !hardwareMetrics ? (
                 /* ── STANDALONE SKIN LOADER COMPONENT ── */
                 <SkinLoader type="hardware" />
@@ -258,8 +371,40 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onToggleOpen }
             </div>
           )}
 
+          {/* ── BOTTOM ANCHORED MASCOT COMPANION DOCK (Maximized Mode Only) ── */}
+          {isMaximized && (
+            <div className="p-2 border-t app-border shrink-0 bg-[var(--bg-base)]/40 flex justify-center">
+              <MascotBox isOpen={isOpen} isMaximized={isMaximized} />
+            </div>
+          )}
+
         </div>
+
+        {/* ── DRAGGABLE WIDTH RESIZER HANDLE (Ultra-Slim Minimalist Style - Maximized Only) ── */}
+        {isOpen && isMaximized && (
+          <div
+            onMouseDown={startResizing}
+            onDoubleClick={() => setSidebarWidth(240)}
+            className="absolute top-0 -right-[2px] w-[6px] h-full cursor-col-resize z-40 group flex items-center justify-center select-none"
+            title="Drag to resize sidebar width (double-click to reset to 240px)"
+          >
+            {/* Ultra-slim 1.5px vertical line indicator */}
+            <div className={`w-[1.5px] h-full transition-colors duration-150 ${
+              isResizing 
+                ? 'bg-[var(--accent)]' 
+                : 'bg-transparent group-hover:bg-[var(--accent)]/60'
+            }`} />
+
+            {/* Subtle center grip notch */}
+            <div className={`absolute top-1/2 -translate-y-1/2 w-[2.5px] h-5 rounded-full transition-all duration-150 pointer-events-none ${
+              isResizing 
+                ? 'bg-[var(--accent)] opacity-100 scale-110' 
+                : 'bg-[var(--border-color)] group-hover:bg-[var(--accent)] opacity-0 group-hover:opacity-80'
+            }`} />
+          </div>
+        )}
       </aside>
     </div>
+  </>
   );
 };

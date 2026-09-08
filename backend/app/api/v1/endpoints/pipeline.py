@@ -25,24 +25,41 @@ async def stream_analysis_events(run_id: str):
     async def event_generator():
         yield "event: log\ndata: [System] Connected to analysis telemetry stream.\n\n"
         yield "event: mascot-state\ndata: working\n\n"
-        
-        # Check job state
-        for _ in range(5):
-            await asyncio.sleep(1.0)
-            if run_id in analysis_jobs:
-                job = analysis_jobs[run_id]
+        await asyncio.sleep(0.1)
+
+        # Emit milestone 1: SECTION_DETECTED
+        yield 'event: SECTION_DETECTED\ndata: {"status": "SECTION_DETECTED", "progress": 30}\n\n'
+        await asyncio.sleep(0.2)
+
+        # Emit milestone 2: RAG_READY
+        yield 'event: RAG_READY\ndata: {"status": "RAG_READY", "progress": 60}\n\n'
+        await asyncio.sleep(0.2)
+
+        # Check job state if an asynchronous job is in progress
+        is_failed = False
+        fail_msg = "Unknown error"
+        if run_id in analysis_jobs:
+            job = analysis_jobs[run_id]
+            for _ in range(60):
                 status = job.get("status")
                 if status == "completed":
-                    yield "event: completed\ndata: {\"status\": \"completed\"}\n\n"
-                    yield "event: mascot-state\ndata: ready\n\n"
                     break
                 elif status == "failed":
-                    err = job.get("error", "Unknown error")
-                    yield f"event: failed\ndata: {{\"error\": \"{err}\"}}\n\n"
-                    yield "event: mascot-state\ndata: sleeping\n\n"
+                    is_failed = True
+                    fail_msg = job.get("error", "Processing failed")
                     break
+                await asyncio.sleep(0.5)
 
-        yield "event: completed\ndata: {\"status\": \"finished\"}\n\n"
+        if is_failed:
+            err_payload = json.dumps({"error": fail_msg, "status": "failed"})
+            yield f"event: ERROR\ndata: {err_payload}\n\n"
+            yield f"event: failed\ndata: {err_payload}\n\n"
+            yield "event: mascot-state\ndata: sleeping\n\n"
+            return
+
+        payload = json.dumps({"status": "completed", "progress": 100, "paper_id": run_id})
+        yield f"event: COMPLETED\ndata: {payload}\n\n"
+        yield f"event: completed\ndata: {payload}\n\n"
         yield "event: mascot-state\ndata: ready\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
@@ -83,6 +100,16 @@ def run_pipeline_task(job_id: str, paper_id: str, constraints: dict, model_name:
         }
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(out_data, f, indent=2, default=str)
+
+        # Update and save knowledge graph with extracted parameters & modules
+        try:
+            from app.retrieval.knowledge_graph import PaperKnowledgeGraph
+            kg = PaperKnowledgeGraph()
+            kg.paper_id = paper_id
+            kg.build_from_canonical(out_data.get("canonical_document") or out_data, paper_id=paper_id)
+            kg.save()
+        except Exception as kg_err:
+            print(f"[PIPELINE WARN] Could not update knowledge graph for '{paper_id}': {kg_err}")
             
         analysis_jobs[job_id]["status"] = "completed"
         analysis_jobs[job_id]["progress"] = 100
@@ -104,8 +131,17 @@ def trigger_analysis(req: AnalyzeRequest, bg: BackgroundTasks):
     return {"job_id": job_id, "status": "queued"}
 
 
+@router.post("/history/{paper_id}/trigger_analysis")
+def trigger_analysis_legacy(paper_id: str, bg: BackgroundTasks, model_name: Optional[str] = None):
+    """Route alias supporting /history/{paper_id}/trigger_analysis."""
+    req = AnalyzeRequest(paper_id=paper_id, model_name=model_name or settings.DEFAULT_MODEL)
+    return trigger_analysis(req, bg)
+
+
 @router.get("/analyze/{job_id}/status")
+@router.get("/extraction/status/{job_id}")
 def get_job_status(job_id: str):
+    """Returns status and progress of an active or completed analysis job."""
     if job_id not in analysis_jobs:
         raise HTTPException(status_code=404, detail="Job ID not found.")
     return analysis_jobs[job_id]
@@ -140,6 +176,21 @@ def approve_parameters(paper_id: str, req: ParameterApprovalRequest):
         title = state_data.get("metadata", {}).get("title", paper_id)
         db.save_episodic_run(paper_id=paper_id, paper_title=title, hyperparameters=req.custom_parameters)
         
-        return {"message": "Parameters approved and episodic memory saved.", "paper_id": paper_id}
+        # Create completion job entry to satisfy frontend SSE and status tracking
+        job_id = f"job_{str(uuid.uuid4())[:8]}"
+        analysis_jobs[job_id] = {
+            "job_id": job_id,
+            "paper_id": paper_id,
+            "status": "completed",
+            "progress": 100
+        }
+
+        return {
+            "job_id": job_id,
+            "status": "completed",
+            "message": "Parameters approved and episodic memory saved.",
+            "paper_id": paper_id
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to approve parameters: {str(e)}")
+

@@ -1,8 +1,8 @@
-# 🏆 Synthexis AI Platform — Master End-to-End Backend Testing & Proof-of-Concept Verification Report
+# 🏆 RUEXIS AI Platform — Master End-to-End Backend Testing & Proof-of-Concept Verification Report
 
 > **Document Status:** Official Production Proof-of-Concept (PoC) Verification Certificate  
 > **Test Execution Notebook:** All tests in this report were executed and verified using [`backend/tests/end_to_end_backend_testing.ipynb`](../../backend/tests/end_to_end_backend_testing.ipynb)  
-> **System Under Test:** Synthexis AI Autonomous Paper-to-Code Platform  
+> **System Under Test:** RUEXIS AI Autonomous Paper-to-Code Platform  
 > **LLM Execution Engine:** 100% Local Ollama (`qwen2.5-coder:1.5b`) — Zero Cloud Dependency / 0 API Calls  
 > **Cloud API Notice:** Free cloud APIs (Groq, OpenRouter) are intentionally disabled due to the exhaustion/extinction of free tier API keys (`HTTP 429 Rate Limit Exceeded`). All 12 phases executed 100% locally on system hardware.  
 > **Storage & Database Engine:** 100% Local Flat-File JSON & NetworkX Knowledge Graph  
@@ -14,7 +14,7 @@
 
 ## 📌 Executive Summary & System Certification
 
-This document represents the definitive **Master End-to-End (E2E) Backend Verification Report** for the **Synthexis AI Platform**. 
+This document represents the definitive **Master End-to-End (E2E) Backend Verification Report** for the **RUEXIS AI Platform**. 
 
 The entire multi-agent backend architecture was subjected to rigorous, automated testing against a full corpus of **48 peer-reviewed computer vision and deep learning research papers**. All tests were executed step-by-step through the test notebook [`backend/tests/end_to_end_backend_testing.ipynb`](../../backend/tests/end_to_end_backend_testing.ipynb). Every stage—from raw multi-modal PDF parsing and mathematical extraction to 8-agent reasoning trajectories, local RAG vector indexing, PyTorch codebase generation, AST syntax validation, conversational ReACT chat, and hardware telemetry profiling—executed **100% locally** on the local hardware stack without invoking external cloud APIs.
 
@@ -164,7 +164,7 @@ flowchart TD
 
 ## 🏁 Conclusion & Proof-of-Concept Certification
 
-The test suite executed via [`backend/tests/end_to_end_backend_testing.ipynb`](../../backend/tests/end_to_end_backend_testing.ipynb) has empirically demonstrated that the **Synthexis AI Platform** backend is:
+The test suite executed via [`backend/tests/end_to_end_backend_testing.ipynb`](../../backend/tests/end_to_end_backend_testing.ipynb) has empirically demonstrated that the **RUEXIS AI Platform** backend is:
 1. **Fully Operational & Modular**: All 8 autonomous reasoning agents, 3 paper ingestion parsers, local vector retrieval, and knowledge graph engines function with 100% synergy.
 2. **100% Self-Contained & Local**: Operates completely offline without relying on third-party cloud API keys or external databases. Free cloud APIs (Groq, OpenRouter) were intentionally bypassed to eliminate cloud rate-limiting dependencies (`HTTP 429`).
 3. **Enterprise Ready**: Verified across 48 research paper benchmarks with 0 crashing errors and 100% AST syntax conformance across synthesized PyTorch repositories.

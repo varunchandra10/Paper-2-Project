@@ -10,9 +10,8 @@ backend/.env
 backend/.env*
 
 frontend/node_modules
-website
 frontend/src/uploads
-
+landing_page
 # Internal planning docs
 docs/ignore_documents
 docs/new_backend_docs/e_2_e_reports

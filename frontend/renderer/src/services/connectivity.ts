@@ -1,19 +1,9 @@
 import { useLogsStore } from '../store/logsStore';
 
-// Expose checks for Electron environment
-const isElectron = typeof window !== 'undefined' && (!!window.mascotAPI || window.location.protocol === 'file:');
+import { getApiBase, isElectronEnvironment } from '../config/api';
+export { getApiBase, isElectronEnvironment };
 
-/**
- * Dynamically resolves the API Base URL.
- * In standard browser development (Vite), relative path '/api' is proxied to http://localhost:8000.
- * In Electron or production build where React runs under the file:// protocol, it points directly to http://localhost:8000.
- */
-export const getApiBase = (): string => {
-  if (isElectron) {
-    return 'http://localhost:8000';
-  }
-  return '/api';
-};
+export const isElectron = isElectronEnvironment();
 
 // Response Interfaces
 export interface ChatMessage {
@@ -96,7 +86,7 @@ export const connectivityService = {
     }
     const data = await response.json();
     return data.messages.map((m: any) => ({
-      id: m.message_id || Math.random().toString(36).substring(7),
+      id: m.message_id || crypto.randomUUID(),
       role: m.role,
       content: m.content,
       model_used: m.model_used
@@ -132,7 +122,7 @@ export const connectivityService = {
 
     const data = await response.json();
     return {
-      id: Math.random().toString(36).substring(7),
+      id: crypto.randomUUID(),
       role: 'assistant',
       content: data.response,
       model_used: data.model_used
@@ -163,7 +153,7 @@ export const connectivityService = {
    * Fetches the current run/job status for a pipeline run.
    */
   async getExtractionStatus(jobId: string): Promise<ExtractionStatus> {
-    const response = await fetch(`${getApiBase()}/extraction/status/${jobId}`);
+    const response = await fetch(`${getApiBase()}/analyze/${jobId}/status`);
     if (!response.ok) {
       throw new Error(`Failed to fetch job status: ${response.statusText}`);
     }
@@ -204,7 +194,7 @@ export const connectivityService = {
       eventSource.close();
       try {
         // Fetch status directly to retrieve the markdown report content
-        const statusResp = await fetch(`${getApiBase()}/extraction/status/${jobId}`);
+        const statusResp = await fetch(`${getApiBase()}/analyze/${jobId}/status`);
         const statusData = await statusResp.json();
         onComplete(statusData.report || '# Analysis Completed successfully.');
       } catch {

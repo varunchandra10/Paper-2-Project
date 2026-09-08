@@ -13,9 +13,9 @@ class BaseTool(ABC):
         """Executes tool action and returns formatted string output for the LLM."""
         pass
 
-    def run(self, **kwargs) -> str:
+    def run(self, *args, **kwargs) -> str:
         """Safely executes the tool with exception handling."""
         try:
-            return self.execute(**kwargs)
+            return self.execute(*args, **kwargs)
         except Exception as e:
             return f"Error executing tool '{self.name}': {str(e)}"

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <radialGradient id="favBg" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#182238"/>
+      <stop offset="100%" stop-color="#060911"/>
+    </radialGradient>
+    <linearGradient id="favR1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="favR2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="favR3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+    <linearGradient id="favR4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+    <linearGradient id="favR5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#ef4444"/>
+    </linearGradient>
+    <linearGradient id="favR6" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ef4444"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#favBg)" stroke="#38bdf8" stroke-width="1.5" stroke-opacity="0.5"/>
+  <g>
+    <path d="M 32 8 L 49 18 L 44 25 L 32 17 Z" fill="url(#favR1)"/>
+    <path d="M 49 18 L 53 37 L 44 35 L 44 25 Z" fill="url(#favR2)"/>
+    <path d="M 53 37 L 36 55 L 33 47 L 44 35 Z" fill="url(#favR3)"/>
+    <path d="M 36 55 L 15 48 L 20 41 L 33 47 Z" fill="url(#favR4)"/>
+    <path d="M 15 48 L 11 27 L 19 29 L 20 41 Z" fill="url(#favR5)"/>
+    <path d="M 11 27 L 32 8 L 32 17 L 19 29 Z" fill="url(#favR6)"/>
+    <circle cx="32" cy="32" r="11" fill="#38bdf8" opacity="0.15"/>
+    <rect x="22" y="27" width="6" height="10" rx="1" fill="#ffffff" stroke="#94a3b8" stroke-width="0.5"/>
+    <line x1="23.5" y1="29" x2="26.5" y2="29" stroke="#3b82f6" stroke-width="0.8"/>
+    <line x1="23.5" y1="31.5" x2="26.5" y2="31.5" stroke="#94a3b8" stroke-width="0.6"/>
+    <polygon points="30,24 34,23 34,40 30,41" fill="#38bdf8" opacity="0.3" stroke="#38bdf8" stroke-width="0.8"/>
+    <path d="M 32 26.5 L 34 31.5 L 33.1 31.5 L 32.6 30.3 L 31.4 30.3 L 30.9 31.5 L 30 31.5 Z M 32 27.8 L 32.4 29.3 L 31.6 29.3 Z" fill="#ffffff"/>
+    <rect x="31.2" y="33" width="1.6" height="4.5" rx="0.3" fill="#ffffff"/>
+    <rect x="36" y="27" width="7" height="10" rx="1.5" fill="#090d16" stroke="#38bdf8" stroke-width="0.6"/>
+    <path d="M 38 31 L 37 32 L 38 33" stroke="#38bdf8" stroke-width="0.7" fill="none"/>
+    <line x1="39" y1="33.5" x2="40" y2="30.5" stroke="#38bdf8" stroke-width="0.7"/>
+    <path d="M 41 31 L 42 32 L 41 33" stroke="#38bdf8" stroke-width="0.7" fill="none"/>
+  </g>
+</svg>

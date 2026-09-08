@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import { API_BASE } from '../../../config/api';
 import { useLogsStore } from '../../../store/logsStore';
 import { usePanelStore } from '../../../store/panelStore';
 import { MilestoneTracker } from '../analysis/MilestoneTracker';
@@ -27,10 +28,7 @@ export const LogsDrawer: React.FC = () => {
     if (isLogsOpen && activePaperId) {
       const fetchTraces = async () => {
         try {
-          const apiBase = (typeof window !== 'undefined' && (!!window.mascotAPI || window.location.protocol === 'file:'))
-            ? 'http://localhost:8000'
-            : '/api';
-          const res = await fetch(`${apiBase}/papers/${activePaperId}/execution-traces`);
+          const res = await fetch(`${API_BASE}/history/${activePaperId}/traces`);
           if (res.ok) {
             const data = await res.json();
             setTraces(data.traces || []);
@@ -209,7 +207,7 @@ export const LogsDrawer: React.FC = () => {
       {activeTab === 'logs' && (
         <div 
           ref={consoleRef}
-          className="flex-1 overflow-y-auto p-3.5 font-mono text-[11px] flex flex-col gap-1 bg-[var(--bg-card)] select-text scrollbar-thin scrollbar-thumb-[var(--border-color)] scrollbar-track-transparent"
+          className="flex-1 overflow-y-auto overflow-x-hidden p-3.5 font-mono text-[11px] flex flex-col gap-1 bg-[var(--bg-card)] select-text scrollbar-thin scrollbar-thumb-[var(--border-color)] scrollbar-track-transparent w-full max-w-full"
         >
           {filteredLogs.map((log) => (
             <div 

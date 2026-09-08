@@ -77,47 +77,27 @@ function getTaskbarPosition() {
 }
 
 // --- Window Creation & DPI/Multi-Monitor Management ---
+const MASCOT_BASE_WIDTH = 125;
+const MASCOT_BASE_HEIGHT = 150;
 let currentDisplayId = null;
 let currentScaleFactor = 1.0;
 
 function positionMascotDefault(nearestDisplay) {
-    if (!mascotWindow) return;
+    if (!mascotWindow || mascotWindow.isDestroyed()) return;
 
     const scaleFactor = nearestDisplay.scaleFactor || 1.0;
-    const { width: screenWidth, height: screenHeight, x: displayX, y: displayY } = nearestDisplay.bounds;
-
     currentDisplayId = nearestDisplay.id;
     currentScaleFactor = scaleFactor;
 
-    const mascotWidth = Math.round(120 * scaleFactor);
-    const mascotHeight = Math.round(144 * scaleFactor);
+    const mascotWidth = Math.round(MASCOT_BASE_WIDTH * scaleFactor);
+    const mascotHeight = Math.round(MASCOT_BASE_HEIGHT * scaleFactor);
 
-    // Initial position on monitor: Bottom-Right
-    let posX = displayX + screenWidth - mascotWidth - Math.round(20 * scaleFactor);
-    let posY = displayY + screenHeight - mascotHeight - Math.round(60 * scaleFactor);
+    // Electron's workArea natively and accurately excludes the Windows taskbar (bottom, top, left, right)
+    const workArea = nearestDisplay.workArea;
+    const posX = workArea.x + workArea.width - mascotWidth - Math.round(24 * scaleFactor);
+    const posY = workArea.y + workArea.height - mascotHeight;
 
-    const taskbar = getTaskbarPosition();
-    const primaryDisplay = screen.getPrimaryDisplay();
-
-    // Win32 API taskbar checks apply to primary display
-    if (taskbar && nearestDisplay.id === primaryDisplay.id) {
-        if (taskbar.edge === 2) {
-            posX = taskbar.left - mascotWidth - Math.round(10 * scaleFactor);
-            posY = displayY + screenHeight - mascotHeight - Math.round(20 * scaleFactor);
-        } else {
-            posX = displayX + screenWidth - mascotWidth - Math.round(20 * scaleFactor);
-            if (taskbar.edge === 3) {
-                posY = taskbar.top - mascotHeight;
-            } else {
-                posY = displayY + screenHeight - mascotHeight - Math.round(20 * scaleFactor);
-            }
-        }
-    } else {
-        // Fallback or secondary display using workArea (excludes native taskbars)
-        const workArea = nearestDisplay.workArea;
-        posX = workArea.x + workArea.width - mascotWidth - Math.round(10 * scaleFactor);
-        posY = workArea.y + workArea.height - mascotHeight;
-    }
+    console.log(`[Main Process] Mascot placed at (${posX}, ${posY}) [${mascotWidth}x${mascotHeight}] on display ${nearestDisplay.id}`);
 
     mascotWindow.setBounds({
         x: posX,
@@ -140,8 +120,8 @@ function handleMonitorChange(nearestDisplay) {
     currentDisplayId = nearestDisplay.id;
     currentScaleFactor = scaleFactor;
 
-    const mascotWidth = Math.round(120 * scaleFactor);
-    const mascotHeight = Math.round(144 * scaleFactor);
+    const mascotWidth = Math.round(MASCOT_BASE_WIDTH * scaleFactor);
+    const mascotHeight = Math.round(MASCOT_BASE_HEIGHT * scaleFactor);
     const bounds = mascotWindow.getBounds();
 
     // Resize window to match the new monitor DPI scale while keeping its custom drag coordinates
@@ -165,8 +145,8 @@ ipcMain.on('drag-window', (event, delta) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     if (win) {
         const bounds = win.getBounds();
-        const targetWidth = Math.round(120 * currentScaleFactor);
-        const targetHeight = Math.round(144 * currentScaleFactor);
+        const targetWidth = Math.round(MASCOT_BASE_WIDTH * currentScaleFactor);
+        const targetHeight = Math.round(MASCOT_BASE_HEIGHT * currentScaleFactor);
         
         // Move mascot window
         win.setBounds({
@@ -220,14 +200,42 @@ ipcMain.on('toggle-maximize', () => {
     toggleMaximize();
 });
 
+ipcMain.on('set-mascot-state', (event, state) => {
+    sendMascotState(state);
+});
+
+let currentMascotSkin = 'mr_nerdy';
+
+ipcMain.on('set-mascot-skin', (event, skinId) => {
+    const normalized = (skinId || 'mr_nerdy').replace('-', '_');
+    currentMascotSkin = normalized;
+    if (mascotWindow && !mascotWindow.isDestroyed()) {
+        mascotWindow.webContents.send('mascot-skin-change', normalized);
+    }
+});
+
+ipcMain.handle('get-mascot-skin', () => {
+    return currentMascotSkin;
+});
+
+ipcMain.on('user-activity', () => {
+    if (mascotWindow && !mascotWindow.isDestroyed()) {
+        mascotWindow.webContents.send('user-activity');
+    }
+});
+
+
+let hasWavedAtStartup = false;
+
 function sendMascotState(state) {
-    // Keep mascot sleeping while panel is closed/hidden or uninitialized
     const isPanelOpen = panelWindow && !panelWindow.isDestroyed() && panelWindow.isVisible();
-    if (!isPanelOpen && state !== 'sleeping') {
-        return;
+    // When the sidebar panel is closed, keep mascot in sleeping pose unless active research or work is occurring
+    let effectiveState = state;
+    if (!isPanelOpen && state === 'idle') {
+        effectiveState = 'sleeping';
     }
     if (mascotWindow && !mascotWindow.isDestroyed()) {
-        mascotWindow.webContents.send('state-change', state);
+        mascotWindow.webContents.send('state-change', effectiveState);
     }
 }
 
@@ -381,9 +389,9 @@ function runPipelineOrchestrator(filename, destPath, type, modelName) {
     if (!panelWindow) return;
 
     panelWindow.webContents.send('pipeline-log', { text: `[System] Dispatching analysis job to FastAPI server...` });
-    sendMascotState('working');
+    sendMascotState('hunch');
 
-    const targetModel = modelName || 'qwen2.5-coder:1.5b';
+    const targetModel = modelName || 'llama-3.3-70b-versatile';
 
     postAnalyzeWithRetry(destPath, targetModel, (err, runId) => {
         if (err) {
@@ -407,7 +415,10 @@ function runPipelineOrchestrator(filename, destPath, type, modelName) {
                 sendMascotState(mascotState);
             },
             (reportContent) => {
-                sendMascotState('idle');
+                sendMascotState('excited');
+                setTimeout(() => {
+                    sendMascotState('idle');
+                }, 3500);
                 panelWindow.webContents.send('pipeline-completed', {
                     success: true,
                     filename,
@@ -477,6 +488,7 @@ ipcMain.on('open-file-selector', (event, type, modelName) => {
                 fs.copyFileSync(filePath, destPath);
 
                 // Only stage — do NOT trigger pipeline yet
+                sendMascotState('catching');
                 event.reply('file-staged', { success: true, filename, type, filePath: destPath, modelName });
             } catch (err) {
                 event.reply('file-staged', { success: false, error: err.message, type });
@@ -491,7 +503,7 @@ ipcMain.on('open-file-selector', (event, type, modelName) => {
 // trigger-upload: called when the user actually sends (hits Send). Fires the pipeline.
 ipcMain.on('trigger-upload', (event, { filename, filePath, type, modelName }) => {
     try {
-        sendMascotState('reading');
+        sendMascotState('hunch');
         event.reply('upload-status', { success: true, filename, type, filePath });
         runPipelineOrchestrator(filename, filePath, type, modelName);
     } catch (err) {
@@ -516,8 +528,8 @@ function getPanelPosition(scaleFactor, workArea) {
             posX = Math.min(posX, workArea.x + workArea.width - panelWidth - Math.round(10 * scaleFactor));
             posX = Math.max(posX, workArea.x + Math.round(10 * scaleFactor));
 
-            // Position panel bottom to leave a clean 16px (2-3 lines) gap above mascot's head
-            let posY = mascotBounds.y - panelHeight + Math.round(16 * scaleFactor);
+            // Position panel bottom directly above the mascot's head with a snug ~8px gap (offsetting transparent canvas padding)
+            let posY = mascotBounds.y - panelHeight + Math.round(18 * scaleFactor);
             // If it goes off the top of the monitor, push it down but keep it within bounds
             if (posY < workArea.y) {
                 posY = workArea.y + Math.round(10 * scaleFactor);
@@ -568,10 +580,15 @@ function createPanelWindow() {
     if (!fs.existsSync(distHtmlPath)) {
         distHtmlPath = path.join(__dirname, '../../new_renderer/dist/index.html');
     }
-    if (app.isPackaged || fs.existsSync(distHtmlPath)) {
+    if (app.isPackaged) {
         panelWindow.loadFile(distHtmlPath);
     } else {
-        panelWindow.loadURL('http://localhost:5173');
+        // In development, prefer Vite dev server for hot reloading, falling back to dist bundle if dev server is down
+        panelWindow.loadURL('http://localhost:5173').catch(() => {
+            if (fs.existsSync(distHtmlPath)) {
+                panelWindow.loadFile(distHtmlPath);
+            }
+        });
     }
 
     panelWindow.on('hide', () => {
@@ -616,9 +633,14 @@ function togglePanel() {
             height: bounds.height
         });
 
+        if (mascotWindow && !mascotWindow.isDestroyed()) {
+            mascotWindow.show();
+        }
+
         panelWindow.show();
         panelWindow.focus();
-        sendMascotState('idle');
+        // Whenever panel is opened, mascot stands and says "hii"
+        sendMascotState('wave-intro');
     }
 }
 
@@ -666,8 +688,8 @@ function createMascotWindow() {
     const nearestDisplay = screen.getDisplayNearestPoint(cursorPoint);
     const scaleFactor = nearestDisplay.scaleFactor || 1.0;
 
-    const mascotWidth = Math.round(120 * scaleFactor);
-    const mascotHeight = Math.round(144 * scaleFactor);
+    const mascotWidth = Math.round(MASCOT_BASE_WIDTH * scaleFactor);
+    const mascotHeight = Math.round(MASCOT_BASE_HEIGHT * scaleFactor);
 
     mascotWindow = new BrowserWindow({
         width: mascotWidth,
@@ -678,7 +700,6 @@ function createMascotWindow() {
         resizable: false,
         skipTaskbar: true,
         hasShadow: false,
-        type: 'toolbar',
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
@@ -686,10 +707,25 @@ function createMascotWindow() {
         }
     });
 
+    mascotWindow.setAlwaysOnTop(true, 'screen-saver');
+    mascotWindow.setVisibleOnAllWorkspaces(true);
+
     // Initial default positioning
     positionMascotDefault(nearestDisplay);
 
     mascotWindow.loadFile(path.join(__dirname, 'mascot.html'));
+
+    mascotWindow.once('ready-to-show', () => {
+        mascotWindow.show();
+    });
+
+    mascotWindow.webContents.on('did-finish-load', () => {
+        mascotWindow.webContents.send('mascot-skin-change', currentMascotSkin);
+    });
+
+    mascotWindow.webContents.on('console-message', (event, level, message) => {
+        console.log(`[Mascot Window Console] ${message}`);
+    });
 
     // Monitor display settings (resolution / DPI changes)
     const metricsListener = () => {

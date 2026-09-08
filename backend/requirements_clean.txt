@@ -1,0 +1,29 @@
+# =============================================================================
+# Cleaned Minimal Requirements for RUEXIS Backend
+# Generated via pipreqs and merged with runtime-only dependencies
+# =============================================================================
+
+# Core Web API & Server
+fastapi==0.141.1
+uvicorn==0.52.3
+python-multipart==0.0.32
+sse-starlette==3.4.8
+httpx==0.28.1
+requests==2.34.2
+python-dotenv==1.2.3
+pydantic==2.13.4
+
+# Document Ingestion & Extraction
+docling==2.121.0
+pymupdf==1.28.2
+
+# AI Agents & Graph Architecture
+langgraph==1.2.11
+networkx==3.6.1
+ollama==0.6.2
+tavily-python==0.7.27
+
+# Math, Hardware Telemetry & Runtime
+numpy==2.5.2
+torch==2.13.0
+psutil==7.2.2

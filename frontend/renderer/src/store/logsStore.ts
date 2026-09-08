@@ -33,7 +33,7 @@ export const useLogsStore = create<LogsState>((set) => ({
       logs: [
         ...state.logs,
         {
-          id: Math.random().toString(36).substring(7),
+          id: crypto.randomUUID(),
           text,
           type,
           timestamp: new Date().toLocaleTimeString(),
