@@ -34,6 +34,8 @@ class UserProfileUpdate(BaseModel):
     projectPath: Optional[str] = None
     ollamaLink: Optional[str] = None
     avatarId: Optional[str] = None
+    groqApiKey: Optional[str] = None
+    openrouterApiKey: Optional[str] = None
 
 
 @router.post("/register")
@@ -76,8 +78,16 @@ def local_login(req: LocalLoginRequest):
 @router.get("/profile")
 @router.get("/user/profile")
 def get_user_profile(user_id: str = "usr_1"):
-    """Gets persistent user profile from storage/history/user_profile.json."""
-    return db.get_standalone_user_profile()
+    """Gets persistent user profile enriched with live console metrics from OpenRouter and Groq."""
+    from app.core.quota_tracker import quota_tracker
+    profile = db.get_standalone_user_profile()
+    try:
+        profile["server_metrics"] = quota_tracker.fetch_live_server_metrics()
+        profile["limits"] = quota_tracker.get_limits_summary()
+    except Exception:
+        profile["server_metrics"] = {}
+        profile["limits"] = {}
+    return profile
 
 
 @router.put("/profile")

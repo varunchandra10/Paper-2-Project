@@ -1,188 +1,273 @@
-# 🌌 Synthexis AI Platform — Autonomous Paper-to-Code Desktop Mascot
+# 🌌 RUEXIS AI Platform — Autonomous Paper-to-Code Desktop Mascot
+
+> **RUEXIS** — **R**esearch, **U**nderstand, **E**xtract, e**X**amine, **I**mplement, **S**ynthesize
 
 <p align="center">
   <strong>Local-First Agentic Desktop Companion that Converts Scientific Research Papers into Staged PyTorch Implementations.</strong>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge&logo=python" alt="Python 3.10+" />
-  <img src="https://img.shields.io/badge/Electron-43.4-47848F?style=for-the-badge&logo=electron" alt="Electron 43" />
-  <img src="https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react" alt="React 19" />
-  <img src="https://img.shields.io/badge/PyTorch-Synthesizer-EE4C2C?style=for-the-badge&logo=pytorch" alt="PyTorch Synthesizer" />
-  <img src="https://img.shields.io/badge/Ollama-100%25%20Local-black?style=for-the-badge&logo=ollama" alt="Local Ollama" />
-  <img src="https://img.shields.io/badge/Test%20Corpus-48%20Papers-success?style=for-the-badge" alt="48 Papers Verified" />
-</p>
-
----
-
-## 🌟 Interactive Mascot System & Visual States
-
-Synthexis features an interactive **Desktop Mascot Companion** that sits directly on your Win32 taskbar, detects research PDFs in your active window, and animates its visual states in sync with backend multi-agent progress:
-
-<p align="center">
-  <img src="frontend/renderer/src/assets/mr_nerdy_stand_sleep-removebg-preview.png" width="150" alt="Sleeping Mascot" />
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="frontend/renderer/src/assets/mr_nerdy_stand_to_excite-removebg-preview.png" width="150" alt="Reading Mascot" />
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="frontend/renderer/src/assets/mr_nerd_stand_to_angry-removebg-preview.png" width="150" alt="Working Mascot" />
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="frontend/renderer/src/assets/mr_nerd_stand_to_hunch-removebg-preview.png" width="150" alt="Synthesizing Mascot" />
+  <!-- Core Runtimes & Frameworks -->
+  <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11+" />
+  <img src="https://img.shields.io/badge/TypeScript-5.0%2B-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/React-19.0-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 19" />
+  <img src="https://img.shields.io/badge/Electron-30%2B-47848F?style=for-the-badge&logo=electron&logoColor=white" alt="Electron" />
+  <img src="https://img.shields.io/badge/FastAPI-0.110%2B-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
 </p>
 
 <p align="center">
-  <code>1. Sleeping (Taskbar Docked)</code> &nbsp;&bull;&nbsp;
-  <code>2. Curious (PDF Header Match)</code> &nbsp;&bull;&nbsp;
-  <code>3. Investigating (RAG Search)</code> &nbsp;&bull;&nbsp;
-  <code>4. Working (PyTorch CodeGen)</code>
+  <!-- AI, Agents & Storage -->
+  <img src="https://img.shields.io/badge/LangGraph-Agentic_Pipeline-FF6B6B?style=for-the-badge&logo=langchain&logoColor=white" alt="LangGraph" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-Modern_UI-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Ollama-100%25_Offline-000000?style=for-the-badge&logo=ollama&logoColor=white" alt="Local Ollama" />
+  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT License" />
 </p>
 
-> 🎭 **Multi-Mascot Character Support**: Includes 4 built-in avatar skins (Nerdy Man, Nerdy Woman, Nerdy Adult Male, Nerdy Adult Female). **More mascot characters and custom avatar skins to be added!**
 
 ---
 
-## 🏗️ Complete Architecture Overview (Frontend & Backend)
+## 🌟 What is RUEXIS AI?
 
-Synthexis is structured into two decoupled, high-performance layers:
+**RUEXIS AI** is a **local-first, fully agentic desktop platform** that converts academic scientific literature into verified, runnable code across 6 structured stages:
 
-### 1. 🎨 Frontend Architecture (Desktop Shell & Mascot UI)
-* **Electron Overlay Shell**: Frameless, transparent, always-on-top window overlay with `setIgnoreMouseEvents` pass-through for seamless desktop integration.
-* **Win32 Taskbar Query Engine**: Calls native Win32 `SHAppBarMessage` (`ABM_GETTASKBARPOS` via `koffi`) to anchor the mascot directly onto your Windows taskbar.
-* **Active Window Detection**: `active-win` polling service monitoring focused window titles for PDF viewers (Acrobat, Edge, Sumatra) and paper sites (arXiv, IEEE, CVPR).
-* **Docked 3-Tier React Sidebar**: React 19 + TailwindCSS 4 slide-out panel offering 3 output depths (**Brief Summary**, **Detailed Spec**, **Full PyTorch Code Viewer**).
-* **Real-Time SSE Event Progress**: Server-Sent Events (SSE) bridge emitting live agent status updates directly to mascot visual animation states.
+| Stage | Operation | Engine / Component |
+| :---: | :--- | :--- |
+| **R** | **Read / Research** | Multi-engine PDF Ingestion (`Docling` + `PyMuPDF` + `Gemini OCR`) |
+| **U** | **Understand** | ReACT conversational agent with 7 academic search & FAISS knowledge tools |
+| **E** | **Extract** | Structured extraction of hyperparameters, datasets, loss functions & equations |
+| **X** | **eXamine** | Autonomous hardware profiling & VRAM compute feasibility scoring |
+| **I** | **Implement** | Parallel PyTorch synthesis via Dual Code Engine (`Qwen 2.5 Coder` + `Gemini`) |
+| **S** | **Synthesize** | AST validation, milestone sequencing & animated desktop mascot status sync |
 
-### 2. ⚡ Backend Architecture (Multi-Agent Core & Storage)
-* **Tri-Parser Ingestion Pipeline**: Ingests scientific PDFs via **PyMuPDF** (layout coordinates), **GROBID** (TEI XML parsing at `localhost:8070`), and **Docling** (OCR & borderless tables) into a canonical `PaperDocument` schema.
-* **8 Autonomous AI Agents**:
-  1. **Method Decomposition Agent**: Maps encoders, fusion layers, and decoders into a `ComponentGraph`.
-  2. **Parameter Agent**: Extracts 11 training hyperparameters (`learning_rate`, `batch_size`, `optimizer`, `backbone`).
-  3. **CUDA VRAM Feasibility Agent**: Audits host GPU memory (`NVIDIA GeForce RTX 5050` CUDA VRAM) against neural model memory footprints.
-  4. **Parameter Gap Resolver Agent**: Resolves parameter gaps and applies VRAM fallback scaling adaptations.
-  5. **Build Sequencing Agent**: Constructs a 6-milestone build DAG sequence.
-  6. **Technical Specification Agent**: Generates an engineering specification blueprint (`ProjectSpecification`).
-  7. **Adaptation Report Agent**: Synthesizes portfolio-grade executive proposal reports.
-  8. **PyTorch Code Generator Agent**: Synthesizes an 8-file modular PyTorch codebase (`config.py`, `dataset.py`, `models/encoder.py`, `models/fusion.py`, `models/decoder.py`, `losses.py`, `train.py`, `evaluate.py`).
-* **AST Code Verification Gate**: Runs Python's native AST parser (`ast.parse`) across all synthesized codebases (**100% pass rate**).
-* **Local-First Storage & Local LLM**: Operates 100% locally on Ollama (`qwen2.5-coder:1.5b`) with zero cloud dependencies and flat-file vector RAG (`storage/rag_embeddings/`) and NetworkX Knowledge Graphs (`storage/knowledge_graphs/`).
+---
+
+## 🎭 Interactive Mascot System
+
+RUEXIS AI features a **transparent desktop mascot overlay** that sits above your taskbar, anchored to the bottom-right corner of your screen. It visually mirrors every backend agent state in real time.
+
+### Four Characters
+
+| ID | Character | Style |
+|----|-----------|-------|
+| `mr_nerdy` | Mr. Nerdy | Classic academic nerd |
+| `ms_nerdy` | Ms. Nerdy | Female academic variant |
+| `mr_nerd` | Mr. Nerd | Compact nerd |
+| `ms_nerd` | Ms. Nerd | Compact female variant |
+
+### 13 Animation States
+
+| State | Trigger |
+|-------|---------|
+| `standing` | Default idle |
+| `blink` | Random idle micro-animation |
+| `wave` | App startup greeting |
+| `thinking` | ReACT thought / tool execution |
+| `hunch` | Chat response generating |
+| `catching` | PDF file staged for upload |
+| `excite` | Pipeline completed successfully |
+| `tired` | Extended work session |
+| `having_sipping` | Long operation in progress |
+| `sleep` | Long inactivity (idle timeout) |
+| `angry` | Pipeline / upload error |
+| `confused` | Unexpected response |
+| `peeking` | Transition from edge back to idle |
+
+> Click the mascot to toggle the main app panel. Drag it to reposition anywhere on screen.
+
+---
+
+## 🏗️ Architecture Overview
+
+RUEXIS AI connects a native desktop overlay with a local FastAPI agentic backend and cloud/local LLM providers:
 
 ```mermaid
 flowchart TD
-    subgraph Frontend["Frontend Layer: Electron Overlay & Docked Sidebar UI"]
-        Electron["Transparent Electron Shell"] --> Taskbar["Win32 Taskbar Engine (koffi)"]
-        Electron --> Mascot["SVG Mascot Rig (4 Animation States)"]
-        Electron --> Sidebar["React 19 Docked Sidebar UI"]
-        Electron --> ActiveWin["Active Window Title Polling (active-win)"]
+    subgraph Desktop["Desktop Shell Layer (Electron & Win32)"]
+        Win32["Win32 Taskbar FFI (Koffi)"] <--> ElectronMain["Electron Main Process"]
+        ElectronMain --> MascotWin["Mascot Transparent Overlay (13-State FSM)"]
+        ElectronMain --> PanelWin["Panel React 19 UI (Zustand + Tailwind)"]
     end
 
-    subgraph FastAPI["FastAPI Streaming Bridge"]
-        Sidebar --> API["REST & SSE Stream Service (/stream/run_id)"]
+    subgraph Backend["FastAPI Orchestration Backend (Port 8000)"]
+        APIRouter["API Router & SSE Stream Manager"]
+        ChatAgent["ReACT Chat Agent (7 Tools)"]
+        LangGraphPipe["LangGraph 5-Node Pipeline"]
+        DualCode["Dual Code Engine (Gemini + HF Qwen)"]
+        PDFExtract["Multi-Engine PDF Extractor (Docling / PyMuPDF)"]
+        
+        APIRouter --> ChatAgent
+        APIRouter --> LangGraphPipe
+        LangGraphPipe --> DualCode
+        APIRouter --> PDFExtract
     end
 
-    subgraph Backend["Backend Layer: 8 Autonomous AI Agents"]
-        API --> Ingestion["Tri-Parser Ingestion Engine (PyMuPDF + GROBID + Docling)"]
-        Ingestion --> Agents["8 Autonomous AI Agents (Decomp, Param, VRAM, Gap, Seq, Spec, Report, CodeGen)"]
-        Agents --> CodeGen["PyTorch Package Synthesizer (332 Source Files)"]
-        CodeGen --> ASTCheck["AST Syntax Validator (100% Pass Rate)"]
+    subgraph AIProviders["Multi-Provider Model Pool"]
+        Cerebras["Cerebras (Llama 3.3 70B)"]
+        Groq["Groq (Llama 3.3 / DeepSeek R1)"]
+        Gemini["Google Gemini (2.5 Flash / Pro)"]
+        HF["HuggingFace (Qwen 2.5 Coder 32B)"]
+        OpenRouter["OpenRouter (Fallback)"]
     end
 
-    subgraph LocalStorage["Local Storage Layer (Zero Cloud Dependencies)"]
-        Agents --> Ollama["Local Ollama (qwen2.5-coder:1.5b)"]
-        Agents --> RAG["Local Flat-File Vector RAG (storage/rag_embeddings/)"]
-        Agents --> KG["NetworkX Knowledge Graph (storage/knowledge_graphs/)"]
+    subgraph Storage["Local Storage Layer"]
+        StorageData["papers/ • conversations/ • rag_embeddings/ • codes/"]
     end
-```
 
-> 💡 **Cloud API Notice:** Free cloud APIs (Groq, OpenRouter) are intentionally disabled due to free-tier key exhaustion (`HTTP 429 Rate Limit Exceeded`). All pipeline processing executes 100% locally via local Ollama (`qwen2.5-coder:1.5b`) to guarantee zero API dependencies and zero rate-limit failures.
-
----
-
-## 📚 Module READMEs & Detailed Documentation Portal
-
-### 📁 Component Module READMEs
-- ⚡ **Backend Engine**: [`backend/README.md`](./backend/README.md)  
-  *FastAPI service architecture, multi-agent pipelines, AST verification, and RAG retrieval.*
-- 🎨 **Frontend Master Guide**: [`frontend/README.md`](./frontend/README.md)  
-  *Dual-window Electron architecture, mascot canvas engine, and Zustand state store.*
-- 🖥️ **Electron Desktop Shell**: [`frontend/electron_app/README.md`](./frontend/electron_app/README.md)  
-  *Frameless overlay, Win32 taskbar FFI (`koffi`), DPI scaling, and `active-win` polling.*
-- ⚛️ **React 19 Sidebar Renderer**: [`frontend/renderer/README.md`](./frontend/renderer/README.md)  
-  *Vite 8 + React 19 UI components, 3-tier depth selector, and ReACT chat feed.*
-
-### 📄 Detailed Architecture & Implementation Docs (`docs/`)
-- 🌌 **Master System Architecture**: [`docs/overall_project_architecture.md`](./docs/overall_project_architecture.md)
-- 📄 **Master 31-Day Project Plan**: [`docs/backend_docs/Paper-2-Project_plan.md`](./docs/backend_docs/Paper-2-Project_plan.md)
-- 🏆 **Master E2E Backend Verification Report**: [`docs/backend_docs/master_e2e_backend_test_report.md`](./docs/backend_docs/master_e2e_backend_test_report.md)
-- 🛠️ **Backend Day-Wise Explanation**: [`docs/backend_docs/backend_day_wise_explanation.md`](./docs/backend_docs/backend_day_wise_explanation.md)
-- 📖 **74-File Backend Reference Guide**: [`docs/backend_docs/complete_backend_guide.md`](./docs/backend_docs/complete_backend_guide.md)
-- 🎨 **Frontend Master Day-Wise Explanation**: [`docs/frontend_docs/day_wise_explanation.md`](./docs/frontend_docs/day_wise_explanation.md)
-
----
-
-## 📊 Verification Scorecard (48 Research Paper Corpus)
-
-| Subsystem | Target Component / Agent | Test Corpus | Verification Result | Performance Metric |
-|---|---|---|---|---|
-| **Scientific Extraction** | Ingestion Engine (PyMuPDF + GROBID + Docling) | 48 Research PDFs | **100% PASS** | 48/48 3-Tier IEEE Titles & Section Trees |
-| **Canonical Representation** | Canonical Schema Validator (`PaperDocument`) | 48 JSON Files | **100% PASS** | 48/48 Schema Conformance |
-| **Quality Validation** | Validator Engine (`validate_paper_document`) | 48 Papers | **100% PASS** | 48/48 QA_PASS Achieved |
-| **Local RAG & Knowledge Graph** | Hybrid Vector Retriever & NetworkX Engine | 48 Papers | **100% PASS** | 3 RAG Chunks & 15+ KG Nodes / Paper |
-| **Multi-Agent Core** | Agents 1 – 7 (Decomp, Param, VRAM, Gap, Seq, Spec, Report) | 48 Papers | **100% PASS** | 100% Local Ollama Reasoning (`qwen2.5-coder:1.5b`) |
-| **PyTorch Code Generator** | Agent 8 (Codebase Package Synthesizer) | 48 Repositories | **100% PASS** | **332 PyTorch Files** Synthesized |
-| **AST Verification Gate** | AST Syntax Validator (`ast.parse`) | 332 Python Files | **100% PASS** | **100% AST Syntax Validity** (0 Syntax Errors) |
-| **Conversational Memory** | ReACT Chat Agent (`ChatAgent` + `ChatDatabase`) | 48 Conversations | **100% PASS** | Multi-Turn Context-Aware Responses |
-| **Hardware Telemetry** | FastAPI Endpoint (`get_hardware_metrics`) | System Hardware | **100% PASS** | Real-Time CPU, RAM, RTX 5050 GPU Profiling |
-
----
-
-## ⚙️ Quick Start Guide
-
-### 1. Prerequisites
-- **Python**: `>= 3.10`
-- **Node.js**: `>= 18.0`
-- **Docker**: Container running GROBID (`docker run -p 8070:8070 grobid/grobid:0.9.0-crf`)
-- **Local Ollama**: Running `qwen2.5-coder:1.5b` (`ollama serve`)
-
-### 2. Launching the Backend FastAPI Server
-```bash
-# Navigate to backend directory
-cd backend
-
-# Install Python dependencies
-pip install -r requirements.txt
-
-# Start FastAPI server (http://localhost:8000)
-uvicorn app.main:app --reload --port 8000
-```
-
-### 3. Launching the Desktop Mascot & React Sidebar UI
-```bash
-# Navigate to electron application directory
-cd frontend/electron_app
-
-# Install Node dependencies
-npm install
-
-# Start Desktop Mascot Overlay & Sidebar UI
-npm start
-```
-
-### 4. Running the End-to-End Test Suite
-```bash
-# Execute master test notebook across 48 research paper corpus
-cd backend
-python -m pytest tests/
+    PanelWin <-->|HTTP REST & SSE Stream| APIRouter
+    PanelWin <-->|IPC Channels| MascotWin
+    Backend <--> AIProviders
+    Backend <--> Storage
 ```
 
 ---
 
-## 📜 License & Citation
+## 🤖 Inference Providers
 
-Synthexis AI Platform is released under the **MIT License**.
+### Chat Interface (User-Selectable)
 
-```bibtex
-@article{synthexis2026,
-  title={Synthexis: Autonomous Paper-to-Code Platform with Staged PyTorch Synthesis and Taskbar Mascot Companion},
-  author={Synthexis DeepMind Team},
-  year={2026}
-}
+| Provider | Models | Type |
+|----------|--------|------|
+| **Groq** | Qwen 3.8 27B, GPT-OSS 120B | Free cloud LPU |
+| **OpenRouter** | Gemini 2.5 Flash, DeepSeek R1 | Free community tier |
+| **Local Ollama** | Any installed model | 100% offline |
+
+### Backend-Exclusive (Not in Chat UI)
+
+| Provider | Model | Reserved For |
+|----------|-------|-------------|
+| **Google Gemini** | `gemini-2.5-flash` | PDF extraction + Dual Code Engine B |
+| **Hugging Face** | `Qwen/Qwen2.5-Coder-32B-Instruct` | Dual Code Engine A |
+
+### Auto-Failover
+
+If a provider hits a rate limit (HTTP 429), the `ModelRouter` automatically retries the next configured provider. The frontend `ModelSelector` updates to tick the correct model immediately — no manual intervention needed.
+
+---
+
+## ⚡ Core Pipeline Architectures
+
+### 1. ReACT Conversational Pipeline
+Context-aware reasoning loop equipped with academic retrieval and knowledge graph tools:
+
+```mermaid
+flowchart LR
+    UQ["User Query"] --> CR["Context Retrieval<br/>(FAISS & Graph)"]
+    CR --> TH["ReACT Thought"]
+    TH --> TE["Tool Execution<br/>(arXiv / Scholar)"]
+    TE --> OB["Observation"]
+    OB --> TS["Token Stream (SSE)"]
 ```
+
+### 2. Autonomous Paper Analysis Pipeline (LangGraph)
+5-stage autonomous workflow transforming raw research papers into verified code:
+
+```mermaid
+flowchart LR
+    Ingest["PDF Ingestion"] --> Param["Parameter Extraction"]
+    Param --> Feas["Feasibility Scoring"]
+    Feas --> Seq["Milestone Sequencing"]
+    Seq --> Verify["PyTorch Verification"]
+```
+
+### 3. Dual Code Synthesis Engine
+Parallel code generation leveraging dual specialized models with automated AST validation:
+
+```mermaid
+flowchart LR
+    Specs["Paper Specifications"] --> EngineA["Engine A: Qwen 2.5 Coder 32B<br/>(Idiomatic PyTorch)"]
+    Specs --> EngineB["Engine B: Gemini 2.5 Flash<br/>(Context & Math)"]
+    EngineA --> AST["AST Validation & Check"]
+    EngineB --> AST
+    AST --> OutCode["Verified PyTorch Code"]
+```
+
+### 4. Multi-Engine PDF Extraction
+Resilient document ingestion with hierarchical parser fallback:
+
+```mermaid
+flowchart LR
+    RawPDF["Raw PDF File"] --> Docling["Docling (Primary)"]
+    Docling -->|Fallback| PyMuPDF["PyMuPDF Parser"]
+    PyMuPDF -->|Fallback| Gemini["Gemini (Complex/Scanned)"]
+    Docling --> Canonical["Canonical JSON & FAISS Index"]
+    PyMuPDF --> Canonical
+    Gemini --> Canonical
+```
+
+---
+
+## 📁 Project Structure
+
+```
+Paper-2-Project/
+├── backend/          # FastAPI server, LangGraph pipelines, agents & model router
+├── frontend/         # Desktop application layer
+│   ├── electron_app/ # Electron main process, Win32 FFI & mascot sprite engine
+│   └── renderer/     # React 19 glassmorphic UI, Zustand state & SSE listener
+├── docs/             # System architectures, master project plan & subsystem guides
+├── website/          # Product landing page & showcase
+└── README.md         # Master overview & quickstart guide
+```
+
+---
+
+## 📖 System Documentation & Architecture Guides
+
+| Document | Path | Description |
+|---|---|---|
+| **System Architecture** | [`docs/detailed_architectures.md`](./docs/detailed_architectures.md) | **7-Division modular system flow**, Mermaid sequence diagrams, FSM, and master integrated synthesis |
+| **Project Master Plan** | [`docs/Paper-2-Project_plan.md`](./docs/Paper-2-Project_plan.md) | High-level roadmap, core architecture decisions, and milestone execution checklist |
+| **Complete Backend Guide** | [`docs/backend_docs/complete_backend_guide.md`](./docs/backend_docs/complete_backend_guide.md) | Exhaustive backend manual (FastAPI routes, LangGraph pipeline, retrieval DB, agents) |
+| **Backend Day-Wise Guide** | [`docs/backend_docs/backend_day_wise_explanation.md`](./docs/backend_docs/backend_day_wise_explanation.md) | Chronological backend development log and phase-by-phase implementation breakdown |
+| **Backend Commands** | [`docs/backend_docs/backend_commands.md`](./docs/backend_docs/backend_commands.md) | Server startup, test suites, virtual environment, and verification commands |
+| **Backend Test Report** | [`docs/backend_docs/master_e2e_backend_test_report.md`](./docs/backend_docs/master_e2e_backend_test_report.md) | Full end-to-end backend test verification results and route status |
+| **Complete Frontend Guide** | [`docs/frontend_docs/complete_frontend_guide.md`](./docs/frontend_docs/complete_frontend_guide.md) | Exhaustive frontend manual (React 19, Zustand state stores, glassmorphic UI, Electron IPC) |
+| **Frontend Day-Wise Guide** | [`docs/frontend_docs/day_wise_explanation.md`](./docs/frontend_docs/day_wise_explanation.md) | Chronological frontend development log, 13-state sprite engine, and Win32 docking |
+| **Frontend Commands** | [`docs/frontend_docs/frontend_commands.md`](./docs/frontend_docs/frontend_commands.md) | Vite renderer, Electron launch, multi-terminal startup, and build commands |
+
+---
+
+## 📚 Component READMEs
+
+| Component | README | Description |
+|-----------|--------|-------------|
+| **Backend** | [`backend/README.md`](./backend/README.md) | Full API reference, agent flows, model routing, dual code engine |
+| **Renderer** | [`frontend/renderer/README.md`](./frontend/renderer/README.md) | React state slices, SSE parsing, model selector, quota dashboard |
+| **Electron App** | [`frontend/electron_app/README.md`](./frontend/electron_app/README.md) | Window management, IPC channels, mascot state machine, sprite engine |
+
+---
+
+## 🔑 Required Environment Variables
+
+| Variable | For |
+|----------|-----|
+| `SECRET_KEY` | JWT auth signing |
+| `GROQ_API_KEY` | Chat (Qwen 3.8 27B, GPT-OSS 120B) |
+| `OPENROUTER_API_KEY` | Chat (Gemini 2.5 Flash, DeepSeek R1) |
+| `GEMINI_API_KEY` | PDF extraction + Dual Code Engine B |
+| `HUGGINGFACE_API_KEY` | Dual Code Engine A (Qwen 2.5 Coder 32B) |
+| `TAVILY_API_KEY` | arXiv + Scholar search tools |
+
+All configured in `backend/.env`. See [`backend/.env.example`](./backend/.env.example) for the full template.
+
+---
+
+## 📜 License
+
+This project is released under the **MIT License**.
+
+---
+
+## 👤 Author
+
+**Kola Varun Chandra**
+
+[![GitHub](https://img.shields.io/badge/GitHub-varunchandra10-181717?style=for-the-badge&logo=github)](https://github.com/varunchandra10)
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Kola%20Varun%20Chandra-0A66C2?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/kola-varun-chandra-702137391)
+
+---
+
+## 🙏 Acknowledgements
+
+A few UI components in this project were inspired by **[Antigravity](https://antigravity.google/)**.

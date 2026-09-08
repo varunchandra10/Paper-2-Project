@@ -49,5 +49,24 @@ contextBridge.exposeInMainWorld('mascotAPI', {
     },
     onMaximizeChange: (callback) => {
         ipcRenderer.on('maximize-change', (event, isMaximized) => callback(isMaximized));
+    },
+    setMascotState: (state) => {
+        ipcRenderer.send('set-mascot-state', state);
+    },
+    reportUserActivity: () => {
+        ipcRenderer.send('user-activity');
+    },
+    onUserActivity: (callback) => {
+        ipcRenderer.on('user-activity', () => callback());
+    },
+    setMascotSkin: (skinId) => {
+        ipcRenderer.send('set-mascot-skin', skinId);
+    },
+    onMascotSkinChange: (callback) => {
+        ipcRenderer.on('mascot-skin-change', (event, skinId) => callback(skinId));
+    },
+    getMascotSkin: () => {
+        return ipcRenderer.invoke('get-mascot-skin');
     }
 });
+

@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { createUISlice, type UISlice } from './slices/uiSlice';
 import { createProfileSlice, type ProfileSlice } from './slices/profileSlice';
 import { createChatSlice, type ChatSlice } from './slices/chatSlice';
+import { createHardwareSlice, type HardwareSlice, type HardwareMetrics } from './slices/hardwareSlice';
+import { createDocumentHistorySlice, type DocumentHistorySlice } from './slices/documentHistorySlice';
 import { createAnalysisSlice, type AnalysisSlice } from './slices/analysisSlice';
 
 export interface HistoryItem {
@@ -14,6 +16,10 @@ export interface HistoryItem {
   reportContent: string;
   size?: number;
   uploadedAt?: string;
+  title?: string;
+  authors?: string[];
+  pageCount?: number;
+  rawDate?: string;
 }
 
 export interface ChatMessage {
@@ -27,11 +33,20 @@ export interface ChatMessage {
   };
 }
 
-export type PanelState = UISlice & ProfileSlice & ChatSlice & AnalysisSlice;
+export type { HardwareMetrics };
+
+export type PanelState = UISlice &
+  ProfileSlice &
+  ChatSlice &
+  HardwareSlice &
+  DocumentHistorySlice &
+  AnalysisSlice;
 
 export const usePanelStore = create<PanelState>()((...a) => ({
   ...createUISlice(...a),
   ...createProfileSlice(...a),
   ...createChatSlice(...a),
+  ...createHardwareSlice(...a),
+  ...createDocumentHistorySlice(...a),
   ...createAnalysisSlice(...a),
 }));

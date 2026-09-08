@@ -7,10 +7,12 @@ tracer = AgentTracer()
 
 
 @router.get("/history/{paper_id}/traces")
+@router.get("/papers/{paper_id}/execution-traces")
 def get_paper_traces(paper_id: str):
     """Serves agent execution telemetry trace log timeline."""
     traces = tracer.get_traces(paper_id)
     return {"paper_id": paper_id, "traces": traces}
+
 
 
 @router.get("/evals/benchmark/{paper_id}")

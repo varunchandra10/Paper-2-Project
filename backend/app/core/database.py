@@ -1,13 +1,26 @@
 import os
-import re
-import json
-import datetime
+import threading
 from typing import List, Dict, Any, Optional
 from app.core.config import settings
+from app.core.db.storage_engine import StorageEngine
+from app.core.db.chat_repo import ChatRepository
+from app.core.db.profile_repo import ProfileRepository
+from app.core.db.paper_repo import PaperRepository
+from app.core.db.episodic_repo import EpisodicRepository
 
 
 class ChatDatabase:
-    """JSON database engine managing users, projects, messages, facts, and episodic memory."""
+    """Unified facade for thread-safe JSON flat-file repositories.
+    
+    Delegates domain-specific tasks to dedicated repositories:
+      - chat_repo: conversation threads, messages, active thread tracking
+      - profile_repo: user accounts, standalone profile, webhooks
+      - paper_repo: paper titles, file hash indexing and deduplication
+      - episodic_repo: episodic ReACT reasoning steps, user facts, adaptation runs
+      - storage: atomic, thread-safe JSON file I/O
+    """
+
+    _lock: threading.RLock = StorageEngine._lock
 
     def __init__(self, db_file: Optional[str] = None):
         if db_file:
@@ -16,300 +29,146 @@ class ChatDatabase:
         else:
             self.db_file = os.path.join(settings.HISTORY_DIR, "chat_memory_db.json")
             self.conversations_dir = settings.CONVERSATIONS_DIR
-        os.makedirs(self.conversations_dir, exist_ok=True)
 
+        self.storage = StorageEngine(self.db_file)
+        self.paper_repo = PaperRepository(self.storage)
+        self.profile_repo = ProfileRepository(self.storage)
+        self.episodic_repo = EpisodicRepository(self.storage)
+        self.chat_repo = ChatRepository(
+            storage=self.storage,
+            conversations_dir=self.conversations_dir,
+            paper_repo=self.paper_repo
+        )
+
+    # --- Low-level storage backward compatibility ---
     def _load_fallback(self) -> dict:
-        if os.path.exists(self.db_file):
-            try:
-                with open(self.db_file, "r", encoding="utf-8") as f:
-                    return json.load(f)
-            except Exception as e:
-                print(f"[DB WARN] Failed to read database JSON file ({e}), initializing empty fallback.")
-        return {"users": {}, "projects": {}, "episodic_runs": {}}
+        return self.storage.load_index()
 
     def _save_fallback(self, data: dict):
-        try:
-            with open(self.db_file, "w", encoding="utf-8") as f:
-                json.dump(data, f, indent=2, ensure_ascii=False)
-        except Exception as e:
-            print(f"[DB ERROR] Failed to save database JSON file: {e}")
+        self.storage.save_index(data)
 
     def initialize_db(self):
-        """Initializes database schema if keys missing."""
-        data = self._load_fallback()
-        for key in ["users", "projects", "episodic_runs"]:
+        """Initializes database schema keys if missing."""
+        data = self.storage.load_index()
+        for key in ["users", "projects", "episodic_runs", "paper_hashes", "react_memories"]:
             if key not in data:
-                data[key] = {}
-        self._save_fallback(data)
+                data[key] = {} if key not in ("react_memories",) else []
+        if "active_conversation_id" not in data:
+            data["active_conversation_id"] = None
+        self.storage.save_index(data)
         print("[DB] Local JSON database initialized successfully.")
 
-    # --- User Accounts CRUD ---
+    # --- Active Conversation State ---
+    def get_active_conversation_id(self) -> Optional[str]:
+        return self.chat_repo.get_active_conversation_id()
+
+    def set_active_conversation_id(self, conversation_id: Optional[str]):
+        self.chat_repo.set_active_conversation_id(conversation_id)
+
+    # --- User Accounts & Profile CRUD ---
     def get_user_by_email(self, email: str) -> Optional[dict]:
-        data = self._load_fallback()
-        users = data.get("users", {})
-        for uid, u in users.items():
-            if u.get("email") == email:
-                return u
-        return None
+        return self.profile_repo.get_user_by_email(email)
 
     def create_user(self, email: str, password_hash: str, full_name: str = "") -> dict:
-        data = self._load_fallback()
-        if "users" not in data:
-            data["users"] = {}
-        user_id = f"usr_{len(data['users']) + 1}"
-        user_data = {
-            "id": user_id,
-            "email": email,
-            "password_hash": password_hash,
-            "full_name": full_name,
-            "created_at": datetime.datetime.now().isoformat()
-        }
-        data["users"][user_id] = user_data
-        self._save_fallback(data)
-        self.sync_user_registry_webhook(email, full_name)
-        return user_data
+        return self.profile_repo.create_user(email, password_hash, full_name)
 
     def sync_user_registry_webhook(self, email: str, username: str):
-        """Syncs user email and username to online Webhook API if configured."""
-        if settings.USER_REGISTRY_WEBHOOK and "your_" not in settings.USER_REGISTRY_WEBHOOK.lower():
-            try:
-                import requests
-                requests.post(
-                    settings.USER_REGISTRY_WEBHOOK,
-                    json={
-                        "email": email,
-                        "username": username,
-                        "timestamp": datetime.datetime.now().isoformat()
-                    },
-                    timeout=5
-                )
-                print(f"[DB WEBHOOK] Synced user ({email}) to registry webhook API.")
-            except Exception as w_err:
-                print(f"[DB WEBHOOK WARN] Webhook sync notice: {w_err}")
+        self.profile_repo.sync_user_registry_webhook(email, username)
 
     def get_standalone_user_profile(self) -> dict:
-        """Loads user profile directly from storage/history/user_profile.json."""
-        profile_file = settings.USER_PROFILE_FILE
-        if os.path.exists(profile_file):
-            try:
-                with open(profile_file, "r", encoding="utf-8") as f:
-                    return json.load(f)
-            except Exception as e:
-                print(f"[DB WARN] Failed to read user_profile.json ({e}).")
-        return {
-            "user_id": "usr_1",
-            "username": "Varun Chandra",
-            "email": "varunchandra10@gmail.com",
-            "dob": "2000-01-01",
-            "age": "26",
-            "phoneNumber": "+1 (555) 019-2834",
-            "projectPath": settings.BASE_DIR,
-            "ollamaLink": "",
-            "avatarId": "mr-nerdy"
-        }
+        return self.profile_repo.get_standalone_user_profile()
 
     def save_standalone_user_profile(self, profile_dict: dict) -> dict:
-        """Saves user profile directly into storage/history/user_profile.json."""
-        current = self.get_standalone_user_profile()
-        for k, v in profile_dict.items():
-            if v is not None:
-                current[k] = v
-        current["updated_at"] = datetime.datetime.now().isoformat()
-        
-        try:
-            with open(settings.USER_PROFILE_FILE, "w", encoding="utf-8") as f:
-                json.dump(current, f, indent=2, ensure_ascii=False)
-            print(f"[DB] Saved user profile to '{settings.USER_PROFILE_FILE}'.")
-        except Exception as e:
-            print(f"[DB ERROR] Failed saving user_profile.json: {e}")
-            
-        email = current.get("email", "")
-        username = current.get("username") or current.get("full_name") or ""
-        self.sync_user_registry_webhook(email, username)
-        return current
+        return self.profile_repo.save_standalone_user_profile(profile_dict)
 
     def update_user_profile(self, user_id: str, profile_dict: dict) -> dict:
-        """Updates user profile details in JSON database and user_profile.json."""
-        data = self._load_fallback()
-        if "users" not in data:
-            data["users"] = {}
-        
-        user_data = data["users"].get(user_id) or {}
-        user_data["id"] = user_id
-        for k, v in profile_dict.items():
-            if v is not None:
-                user_data[k] = v
-        user_data["updated_at"] = datetime.datetime.now().isoformat()
-        
-        data["users"][user_id] = user_data
-        self._save_fallback(data)
-        
-        return self.save_standalone_user_profile(profile_dict)
+        return self.profile_repo.update_user_profile(user_id, profile_dict)
 
-    # --- Individual Conversation JSON CRUD (Indexed by conversation_id) ---
+    # --- Conversation Files & Messages CRUD ---
     def _get_conversation_path(self, conversation_id: str) -> str:
-        clean_id = re.sub(r'[^a-zA-Z0-9_\-]', '', conversation_id)
-        return os.path.join(self.conversations_dir, f"{clean_id}.json")
+        return self.chat_repo._get_conversation_path(conversation_id)
 
     def _load_conversation_file(self, conversation_id: str) -> dict:
-        filepath = self._get_conversation_path(conversation_id)
-        if os.path.exists(filepath):
-            try:
-                with open(filepath, "r", encoding="utf-8") as f:
-                    return json.load(f)
-            except Exception as e:
-                print(f"[DB WARN] Failed to read conversation JSON file {filepath}: {e}")
-        return {
-            "id": conversation_id,
-            "title": conversation_id,
-            "created_at": datetime.datetime.now().isoformat(),
-            "updated_at": datetime.datetime.now().isoformat(),
-            "messages": [],
-            "user_facts": []
-        }
+        return self.chat_repo._load_conversation_file(conversation_id)
 
     def _save_conversation_file(self, conversation_id: str, data: dict):
-        filepath = self._get_conversation_path(conversation_id)
-        try:
-            os.makedirs(os.path.dirname(filepath), exist_ok=True)
-            with open(filepath, "w", encoding="utf-8") as f:
-                json.dump(data, f, indent=2, ensure_ascii=False)
-        except Exception as e:
-            print(f"[DB ERROR] Failed to save conversation JSON file {filepath}: {e}")
+        self.chat_repo._save_conversation_file(conversation_id, data)
 
     def get_messages(self, conversation_id: str) -> List[dict]:
-        """Loads messages O(1) directly from storage/history/conversations/{conversation_id}.json."""
-        conv_data = self._load_conversation_file(conversation_id)
-        return conv_data.get("messages", [])
+        return self.chat_repo.get_messages(conversation_id)
 
     def get_all_conversations(self) -> List[dict]:
-        """Scans storage/history/conversations/ directory for all conversation JSON files with human titles."""
-        convs = []
-        if os.path.exists(self.conversations_dir):
-            for f in os.listdir(self.conversations_dir):
-                if f.endswith(".json"):
-                    filepath = os.path.join(self.conversations_dir, f)
-                    try:
-                        with open(filepath, "r", encoding="utf-8") as file:
-                            d = json.load(file)
-                            msgs = d.get("messages", [])
-                            
-                            # Derive clean human-readable title if missing or raw UUID
-                            raw_title = d.get("title", "")
-                            title = raw_title
-                            if not title or title.startswith("conv_") or title.startswith("Chat -"):
-                                derived = None
-                                for m in msgs:
-                                    att = m.get("attachment")
-                                    if att and att.get("filename"):
-                                        derived = att["filename"]
-                                        break
-                                    if m.get("role") == "user" and m.get("content"):
-                                        clean_txt = m["content"].strip().replace("\n", " ")
-                                        if clean_txt:
-                                            derived = clean_txt[:30] + ("..." if len(clean_txt) > 30 else "")
-                                            break
-                                title = derived or "New Analysis Thread"
-                            
-                            last_msg = msgs[-1]["content"] if msgs else ""
-                            has_user_msg = any(m.get("role") == "user" for m in msgs)
-                            
-                            # Return active threads
-                            convs.append({
-                                "id": d.get("id", os.path.splitext(f)[0]),
-                                "conversation_id": d.get("id", os.path.splitext(f)[0]),
-                                "title": title,
-                                "last_message": last_msg,
-                                "created_at": d.get("created_at"),
-                                "has_user_msg": has_user_msg
-                            })
-                    except Exception:
-                        pass
-        # Sort by created_at descending if present
-        convs.sort(key=lambda c: c.get("created_at") or "", reverse=True)
-        return convs
+        return self.chat_repo.get_all_conversations()
 
     def delete_conversation(self, conversation_id: str) -> bool:
-        """Deletes specified conversation thread JSON file from storage/history/conversations/."""
-        filepath = os.path.join(self.conversations_dir, f"{conversation_id}.json")
-        if os.path.exists(filepath):
-            try:
-                os.remove(filepath)
-                return True
-            except Exception as e:
-                print(f"[DB ERROR] Failed to delete conversation file {filepath}: {e}")
-        return False
+        return self.chat_repo.delete_conversation(conversation_id)
 
-    def save_message(self, conversation_id: str, role: str, content: str, attachment: Optional[dict] = None) -> dict:
-        """Appends message and saves directly into storage/history/conversations/{conversation_id}.json."""
-        conv_data = self._load_conversation_file(conversation_id)
-        
-        # Set human-readable title if generic or starting with conv_
-        curr_title = conv_data.get("title", "")
-        if role == "user" and (not curr_title or curr_title.startswith("conv_") or curr_title.startswith("Chat -")):
-            if attachment and attachment.get("filename"):
-                conv_data["title"] = attachment["filename"]
-            elif content and content.strip():
-                clean_t = content.strip().replace("\n", " ")
-                conv_data["title"] = clean_t[:32] + ("..." if len(clean_t) > 32 else "")
+    def update_conversation_title(self, conversation_id: str, new_title: str) -> bool:
+        return self.chat_repo.update_conversation_title(conversation_id, new_title)
 
-        msg = {
-            "id": f"msg_{len(conv_data.get('messages', [])) + 1}",
-            "role": role,
-            "content": content,
-            "timestamp": datetime.datetime.now().isoformat()
-        }
-        if attachment:
-            msg["attachment"] = attachment
-        conv_data["messages"].append(msg)
-        conv_data["updated_at"] = datetime.datetime.now().isoformat()
-        self._save_conversation_file(conversation_id, conv_data)
-        return msg
+    def save_message(
+        self,
+        conversation_id: str,
+        role: str,
+        content: str,
+        attachment: Optional[dict] = None,
+        model_used: Optional[str] = None,
+        thought: Optional[str] = None,
+        action: Optional[str] = None,
+        observation: Optional[str] = None,
+        answer: Optional[str] = None
+    ) -> dict:
+        return self.chat_repo.save_message(
+            conversation_id=conversation_id,
+            role=role,
+            content=content,
+            attachment=attachment,
+            model_used=model_used,
+            thought=thought,
+            action=action,
+            observation=observation,
+            answer=answer
+        )
 
-    # --- User Memory Facts CRUD ---
+    def create_or_update_conversation_for_paper(self, paper_id: str, title: str, filename: Optional[str] = None) -> str:
+        return self.chat_repo.create_or_update_conversation_for_paper(paper_id, title, filename)
+
+    # --- Paper Titles & Deduplication ---
+    def get_paper_title_by_id_or_name(self, paper_id: Optional[str] = None, filename: Optional[str] = None) -> Optional[str]:
+        return self.paper_repo.get_paper_title_by_id_or_name(paper_id, filename)
+
+    def get_paper_by_hash(self, file_hash: str) -> Optional[dict]:
+        return self.paper_repo.get_paper_by_hash(file_hash)
+
+    def save_paper_hash(self, file_hash: str, paper_id: str, filename: str, title: str, conversation_id: Optional[str] = None):
+        self.paper_repo.save_paper_hash(file_hash, paper_id, filename, title, conversation_id)
+
+    def delete_paper_hash(self, paper_id: str):
+        self.paper_repo.delete_paper_hash(paper_id)
+
+    # --- Episodic Memory & User Facts ---
+    def save_episodic_react_step(
+        self,
+        paper_id: Optional[str],
+        query: str,
+        thought: Optional[str] = None,
+        action: Optional[str] = None,
+        observation: Optional[str] = None,
+        answer: Optional[str] = None
+    ):
+        self.episodic_repo.save_episodic_react_step(paper_id, query, thought, action, observation, answer)
+
+    def get_episodic_react_memories(self, paper_id: Optional[str] = None) -> List[dict]:
+        return self.episodic_repo.get_episodic_react_memories(paper_id)
+
     def get_user_facts(self, conversation_id: str = "global") -> List[str]:
-        data = self._load_fallback()
-        projects = data.get("projects", {})
-        if conversation_id in projects:
-            return projects[conversation_id].get("user_facts", [])
-        return []
+        return self.episodic_repo.get_user_facts(conversation_id)
 
     def save_memory_fact(self, fact_text: str, conversation_id: str = "global"):
-        data = self._load_fallback()
-        if "projects" not in data:
-            data["projects"] = {}
-        if conversation_id not in data["projects"]:
-            data["projects"][conversation_id] = {
-                "id": conversation_id,
-                "created_at": datetime.datetime.now().isoformat(),
-                "messages": [],
-                "user_facts": []
-            }
-        if fact_text not in data["projects"][conversation_id]["user_facts"]:
-            data["projects"][conversation_id]["user_facts"].append(fact_text)
-            self._save_fallback(data)
+        self.episodic_repo.save_memory_fact(fact_text, conversation_id)
 
-    # --- Episodic Cross-Project Memory CRUD ---
     def save_episodic_run(self, paper_id: str, paper_title: str, hyperparameters: dict) -> str:
-        """Saves a past paper adaptation run memory into local DB."""
-        data = self._load_fallback()
-        if "episodic_runs" not in data:
-            data["episodic_runs"] = {}
-            
-        run_id = f"run_{paper_id}"
-        data["episodic_runs"][run_id] = {
-            "run_id": run_id,
-            "paper_id": paper_id,
-            "paper_title": paper_title,
-            "hyperparameters": hyperparameters,
-            "updated_at": datetime.datetime.now().isoformat()
-        }
-        self._save_fallback(data)
-        print(f"[DB] Episodic run memory saved for paper '{paper_id}' ({paper_title})")
-        return run_id
+        return self.episodic_repo.save_episodic_run(paper_id, paper_title, hyperparameters)
 
     def get_episodic_runs(self) -> List[dict]:
-        """Returns all recorded episodic run memories."""
-        data = self._load_fallback()
-        runs_dict = data.get("episodic_runs", {})
-        return list(runs_dict.values())
+        return self.episodic_repo.get_episodic_runs()

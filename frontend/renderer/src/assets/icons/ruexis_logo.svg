@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="liveSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%" style="">
+            <defs>
+              <!-- Background Gradient -->
+              <radialGradient id="bgGlow" cx="50%" cy="50%" r="65%">
+                <stop offset="0%" stop-color="#141c2e"/>
+                <stop offset="60%" stop-color="#090d16"/>
+                <stop offset="100%" stop-color="#04060a"/>
+              </radialGradient>
+
+              <!-- Outer Border Gradient -->
+              <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.45"/>
+                <stop offset="50%" stop-color="#6366f1" stop-opacity="0.2"/>
+                <stop offset="100%" stop-color="#f97316" stop-opacity="0.35"/>
+              </linearGradient>
+
+              <!-- 6 Stage Ribbon Segment Gradients -->
+              <linearGradient id="stage1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#6366f1"/>
+                <stop offset="100%" stop-color="#3b82f6"/>
+              </linearGradient>
+              <linearGradient id="stage2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#3b82f6"/>
+                <stop offset="100%" stop-color="#06b6d4"/>
+              </linearGradient>
+              <linearGradient id="stage3" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#06b6d4"/>
+                <stop offset="100%" stop-color="#10b981"/>
+              </linearGradient>
+              <linearGradient id="stage4" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#10b981"/>
+                <stop offset="100%" stop-color="#f59e0b"/>
+              </linearGradient>
+              <linearGradient id="stage5" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#f59e0b"/>
+                <stop offset="100%" stop-color="#ef4444"/>
+              </linearGradient>
+              <linearGradient id="stage6" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ef4444"/>
+                <stop offset="100%" stop-color="#a855f7"/>
+              </linearGradient>
+
+              <!-- Core Center Gradients & Filters -->
+              <linearGradient id="paperGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff"/>
+                <stop offset="100%" stop-color="#e2e8f0"/>
+              </linearGradient>
+
+              <linearGradient id="streamGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.8"/>
+                <stop offset="50%" stop-color="#38bdf8" stop-opacity="0.95"/>
+                <stop offset="100%" stop-color="#60a5fa" stop-opacity="0.8"/>
+              </linearGradient>
+
+              <linearGradient id="aiGlassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.35"/>
+                <stop offset="50%" stop-color="#0284c7" stop-opacity="0.18"/>
+                <stop offset="100%" stop-color="#1e3a8a" stop-opacity="0.45"/>
+              </linearGradient>
+
+              <linearGradient id="ideBg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#0c1222"/>
+                <stop offset="100%" stop-color="#050811"/>
+              </linearGradient>
+
+              <!-- Glow & Shadow Filters -->
+              <filter id="coreGlow" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur stdDeviation="16" result="blur"/>
+                <feMerge>
+                  <feMergeNode in="blur"/>
+                  <feMergeNode in="blur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+
+              <filter id="laserGlow" x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation="6" result="blur"/>
+                <feMerge>
+                  <feMergeNode in="blur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+
+              <filter id="dropShadow" x="-10%" y="-10%" width="130%" height="130%">
+                <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000000" flood-opacity="0.6"/>
+              </filter>
+            <style data-custom-style="true">
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800;900&amp;family=JetBrains+Mono:wght@700;800&amp;display=swap');
+
+        .etched-shadow {
+          font-family: 'Plus Jakarta Sans', 'JetBrains Mono', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif;
+          font-size: 8.5px;
+          font-weight: 800;
+          letter-spacing: 1.8px;
+          text-anchor: middle;
+          dominant-baseline: central;
+          fill: #000000;
+          fill-opacity: 0.35;
+          user-select: none;
+        }
+        .etched-word {
+          font-family: 'Plus Jakarta Sans', 'JetBrains Mono', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif;
+          font-size: 8.5px;
+          font-weight: 800;
+          letter-spacing: 1.8px;
+          text-anchor: middle;
+          dominant-baseline: central;
+          fill: #ffffff;
+          fill-opacity: 0.10;
+          user-select: none;
+        }
+        .etched-long {
+          font-size: 7.5px;
+          letter-spacing: 1.4px;
+        }
+      </style></defs>
+
+            <!-- Outer Squircle Tile -->
+            <rect x="14" y="14" width="484" height="484" rx="108" ry="108" fill="url(#bgGlow)"/>
+            <rect x="14" y="14" width="484" height="484" rx="108" ry="108" fill="none" stroke="url(#borderGrad)" stroke-width="2.5"/>
+
+            <!-- Scalable Emblem Core (Dynamically scaled to maximize canvas space) -->
+            <g id="logoScalableContent" transform="translate(256, 256) scale(1.250) translate(-256, -256)">
+
+              <!-- Ambient Backdrop Glow Behind Ribbon -->
+              <circle id="ambGlow1" cx="256" cy="256" r="160" fill="#6366f1" opacity="0.16" filter="url(#coreGlow)"/>
+              <circle id="ambGlow2" cx="256" cy="256" r="105" fill="#38bdf8" opacity="0.14" filter="url(#coreGlow)"/>
+
+              <!-- ==================== DYNAMIC ASYMMETRIC MÖBIUS RIBBON ==================== -->
+              <g id="ribbonGroup" filter="url(#dropShadow)">
+                <!-- Segment 1: RESEARCH (Top-Right) -->
+                <path id="seg1" d="M 256 72 L 403 150 L 375 187 L 256 122 Z" fill="url(#stage1)"/>
+                <text id="txtShadow1" x="324" y="134" transform="rotate(28, 324, 134)" class="etched-shadow">RESEARCH</text>
+                <text id="txt1" x="323" y="133" transform="rotate(28, 323, 133)" class="etched-word" style="fill: rgba(255, 255, 255, 0.1);">RESEARCH</text>
+
+                <!-- Segment 2: UNDERSTAND (Right) -->
+                <path id="seg2" d="M 403 150 L 429 286 L 381 275 L 375 187 Z" fill="url(#stage2)"/>
+                <text id="txtShadow2" x="398" y="226" transform="rotate(79, 398, 226)" class="etched-shadow etched-long">UNDERSTAND</text>
+                <text id="txt2" x="397" y="225" transform="rotate(79, 397, 225)" class="etched-word etched-long" style="fill: rgba(255, 255, 255, 0.1);">UNDERSTAND</text>
+
+                <!-- Segment 3: EXTRACT (Bottom-Right) -->
+                <path id="seg3" d="M 429 286 L 291 424 L 272 378 L 381 275 Z" fill="url(#stage3)"/>
+                <text id="txtShadow3" x="344" y="342" transform="rotate(-45, 344, 342)" class="etched-shadow">EXTRACT</text>
+                <text id="txt3" x="343" y="341" transform="rotate(-45, 343, 341)" class="etched-word" style="fill: rgba(255, 255, 255, 0.1);">EXTRACT</text>
+
+                <!-- Segment 4: EXAMINE (Bottom-Left) -->
+                <path id="seg4" d="M 291 424 L 120 372 L 149 332 L 272 378 Z" fill="url(#stage4)"/>
+                <text id="txtShadow4" x="209" y="378" transform="rotate(17, 209, 378)" class="etched-shadow">EXAMINE</text>
+                <text id="txt4" x="208" y="377" transform="rotate(17, 208, 377)" class="etched-word" style="fill: rgba(255, 255, 255, 0.1);">EXAMINE</text>
+
+                <!-- Segment 5: IMPLEMENT (Left) -->
+                <path id="seg5" d="M 120 372 L 90 206 L 137 218 L 149 332 Z" fill="url(#stage5)"/>
+                <text id="txtShadow5" x="125" y="283" transform="rotate(-80, 125, 283)" class="etched-shadow etched-long">IMPLEMENT</text>
+                <text id="txt5" x="124" y="282" transform="rotate(-80, 124, 282)" class="etched-word etched-long" style="fill: rgba(255, 255, 255, 0.1);">IMPLEMENT</text>
+
+                <!-- Segment 6: SYNTHESIZE (Top-Left) -->
+                <path id="seg6" d="M 90 206 L 256 72 L 256 122 L 137 218 Z" fill="url(#stage6)"/>
+                <text id="txtShadow6" x="186" y="156" transform="rotate(-39, 186, 156)" class="etched-shadow etched-long">SYNTHESIZE</text>
+                <text id="txt6" x="185" y="155" transform="rotate(-39, 185, 155)" class="etched-word etched-long" style="fill: rgba(255, 255, 255, 0.1);">SYNTHESIZE</text>
+
+                <!-- 3D Overlap Dynamic Folds (Precision bounded, harmonious 3D depth shadows) -->
+                <polygon id="fold1" points="256,72 278,84 274,132 256,122" fill="#000000" opacity="0.25"/>
+                <polygon id="fold2" points="403,150 407,170 376,200 375,187" fill="#000000" opacity="0.25"/>
+                <polygon id="fold3" points="429,286 408,307 365,290 381,275" fill="#000000" opacity="0.25"/>
+                <polygon id="fold4" points="291,424 265,416 254,371 272,378" fill="#000000" opacity="0.25"/>
+                <polygon id="fold5" points="120,372 116,347 147,315 149,332" fill="#000000" opacity="0.25"/>
+                <polygon id="fold6" points="90,206 115,186 155,204 137,218" fill="#000000" opacity="0.25"/>
+              </g>
+
+              <!-- ==================== SPACIOUS CENTRAL TRANSFORMATION SCENE ==================== -->
+              <g id="centerTransformationScene">
+                <!-- Ambient Platform Glow -->
+                <ellipse cx="256" cy="276" rx="102" ry="22" fill="#38bdf8" opacity="0.14" filter="url(#coreGlow)"/>
+
+                <!-- 1. CYBERNETIC DATA STREAM -->
+                <g filter="url(#laserGlow)">
+                  <!-- Left Stream: Paper to AI Gateway -->
+                  <path d="M 210 242 C 224 242, 234 248, 244 250 L 244 262 C 234 264, 224 270, 210 270 Z" fill="url(#streamGrad)" opacity="0.45"/>
+                  <path d="M 210 256 C 224 256, 234 256, 244 256" stroke="#ffffff" stroke-width="1.5" stroke-dasharray="3.5,2" opacity="0.9"/>
+                  <circle cx="222" cy="248" r="2.5" fill="#38bdf8"/>
+                  <circle cx="232" cy="256" r="2.8" fill="#ffffff"/>
+                  <circle cx="224" cy="264" r="2.5" fill="#06b6d4"/>
+
+                  <!-- Right Stream: AI Gateway to Code Window -->
+                  <path d="M 268 250 C 278 248, 288 242, 302 242 L 302 270 C 288 270, 278 264, 268 262 Z" fill="url(#streamGrad)" opacity="0.45"/>
+                  <path d="M 268 256 C 278 256, 288 256, 302 256" stroke="#ffffff" stroke-width="1.5" stroke-dasharray="3.5,2" opacity="0.9"/>
+                  <circle cx="278" cy="248" r="2.5" fill="#38bdf8"/>
+                  <circle cx="288" cy="256" r="2.8" fill="#ffffff"/>
+                  <circle cx="280" cy="264" r="2.5" fill="#60a5fa"/>
+                </g>
+
+                <!-- 2. LEFT: RESEARCH PAPER DOCUMENT -->
+                <g filter="url(#dropShadow)">
+                  <rect x="166" y="222" width="44" height="62" rx="3.5" fill="#94a3b8" opacity="0.4"/>
+                  <rect x="170" y="218" width="44" height="62" rx="3.5" fill="url(#paperGrad)" stroke="#cbd5e1" stroke-width="0.9"/>
+                  <path d="M 202 218 L 214 230 L 202 230 Z" fill="#94a3b8"/>
+                  <path d="M 202 218 L 214 230 L 202 230 Z" fill="#e2e8f0" opacity="0.8"/>
+                  <rect x="175" y="224" width="20" height="3.8" rx="1" fill="#3b82f6"/>
+                  <line x1="175" y1="232" x2="206" y2="232" stroke="#94a3b8" stroke-width="1.3" stroke-linecap="round"/>
+                  <line x1="175" y1="237" x2="202" y2="237" stroke="#94a3b8" stroke-width="1.3" stroke-linecap="round"/>
+                  <line x1="175" y1="242" x2="207" y2="242" stroke="#94a3b8" stroke-width="1.3" stroke-linecap="round"/>
+                  <rect x="176" y="262" width="3.2" height="9" rx="0.7" fill="#3b82f6"/>
+                  <rect x="181" y="257" width="3.2" height="14" rx="0.7" fill="#06b6d4"/>
+                  <rect x="186" y="253" width="3.2" height="18" rx="0.7" fill="#10b981"/>
+                  <line x1="205" y1="257" x2="200" y2="268" stroke="#6366f1" stroke-width="0.8"/>
+                  <line x1="205" y1="257" x2="209" y2="268" stroke="#6366f1" stroke-width="0.8"/>
+                  <line x1="200" y1="268" x2="209" y2="268" stroke="#6366f1" stroke-width="0.8"/>
+                  <circle cx="205" cy="257" r="2" fill="#6366f1"/>
+                  <circle cx="200" cy="268" r="2" fill="#6366f1"/>
+                  <circle cx="209" cy="268" r="2" fill="#6366f1"/>
+                </g>
+
+                <!-- 3. CENTER: VERTICAL "AI" HOLOGRAPHIC GLASS GATEWAY -->
+                <g filter="url(#dropShadow)">
+                  <polygon points="244,214 268,205 268,296 244,305" fill="#38bdf8" opacity="0.32" filter="url(#laserGlow)"/>
+                  <polygon points="244,214 268,205 268,296 244,305" fill="url(#aiGlassGrad)" stroke="#38bdf8" stroke-width="2"/>
+                  <polygon points="244,214 250,211 274,202 268,205" fill="#e0f2fe" opacity="0.95"/>
+                  <line x1="244" y1="214" x2="244" y2="305" stroke="#ffffff" stroke-width="1.3"/>
+                  <line x1="268" y1="205" x2="268" y2="296" stroke="#38bdf8" stroke-width="1.3"/>
+                  <g filter="url(#laserGlow)">
+                    <path d="M 256 234 L 263.5 251.5 L 260 251.5 L 258.2 247 L 253.8 247 L 252 251.5 L 248.5 251.5 Z M 256 240.2 L 257.3 244.2 L 254.7 244.2 Z" fill="#ffffff"/>
+                    <rect x="254.2" y="259.5" width="3.6" height="15" rx="0.8" fill="#ffffff"/>
+                  </g>
+                </g>
+
+                <!-- 4. RIGHT: THE CODE IDE TERMINAL WINDOW -->
+                <g filter="url(#dropShadow)">
+                  <rect x="302" y="217" width="48" height="68" rx="6" fill="url(#ideBg)" stroke="#38bdf8" stroke-width="1.7"/>
+                  <line x1="302" y1="229" x2="350" y2="229" stroke="rgba(255, 255, 255, 0.14)" stroke-width="0.9"/>
+                  <circle cx="309" cy="223" r="1.6" fill="#ef4444"/>
+                  <circle cx="314" cy="223" r="1.6" fill="#f59e0b"/>
+                  <circle cx="319" cy="223" r="1.6" fill="#10b981"/>
+                  <g filter="url(#laserGlow)">
+                    <path d="M 319 239 L 314 243 L 319 247" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    <line x1="324" y1="248" x2="328" y2="238" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M 333 239 L 338 243 L 333 247" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </g>
+                  <line x1="309" y1="255" x2="320" y2="255" stroke="#a855f7" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="323" y1="255" x2="341" y2="255" stroke="#f97316" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="313" y1="262" x2="338" y2="262" stroke="#38bdf8" stroke-width="1.8" stroke-linecap="round"/>
+                  <line x1="313" y1="269" x2="333" y2="269" stroke="#10b981" stroke-width="1.8" stroke-linecap="round"/>
+                  <rect x="345" y="240" width="10" height="10" rx="2" fill="#0f172a" stroke="#38bdf8" stroke-width="0.9"/>
+                  <circle cx="350" cy="245" r="2" fill="#38bdf8"/>
+                </g>
+              </g>
+
+              <!-- Constellation Accent Dots on Workflow Vertices -->
+              <circle id="dot1" cx="256" cy="72" r="4.5" fill="#e0e7ff" opacity="0.85"/>
+              <circle id="dot2" cx="403" cy="150" r="4.5" fill="#bae6fd" opacity="0.85"/>
+              <circle id="dot3" cx="429" cy="286" r="4.5" fill="#a7f3d0" opacity="0.85"/>
+              <circle id="dot4" cx="291" cy="424" r="4.5" fill="#fde68a" opacity="0.85"/>
+              <circle id="dot5" cx="120" cy="372" r="4.5" fill="#fed7aa" opacity="0.85"/>
+              <circle id="dot6" cx="90" cy="206" r="4.5" fill="#f5d0fe" opacity="0.85"/>
+            </g>
+          </svg>

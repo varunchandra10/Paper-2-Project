@@ -1,6 +1,6 @@
 import React from 'react';
 import { usePanelStore } from '../../store/panelStore';
-import mrNerdyStandSleep from '../../assets/mr_nerdy_stand_sleep-removebg-preview.png';
+import mrNerdyStandSleep from '../../assets/mr_nerdy/mr_nerdy_sleeping.png';
 import { SystemWideLoader } from './Loader';
 import { IconUser, IconMail, IconArrowRight, IconAlertCircle, IconTerminal } from './Icons';
 
@@ -41,7 +41,7 @@ export const LocalAuthModal: React.FC = () => {
   return (
     <>
       {/* Full-screen Loading Overlay during Auth Verification */}
-      {isLoading && <SystemWideLoader text="INITIALIZING LOCAL ENVIRONMENT..." />}
+      {isLoading && <SystemWideLoader message="INITIALIZING LOCAL ENVIRONMENT..." />}
 
       {/* Main Glassmorphic Modal Backdrop */}
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fade-in select-none">

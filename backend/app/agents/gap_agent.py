@@ -35,7 +35,7 @@ def search_github(query: str) -> str:
     url = f"https://api.github.com/search/repositories?q={query}"
     headers = {
         "Accept": "application/vnd.github.v3+json",
-        "User-Agent": "Synthexis-AI-Paper-Agent"
+        "User-Agent": "RUEXIS-AI-Paper-Agent"
     }
     token = os.environ.get("GITHUB_TOKEN")
     if token:

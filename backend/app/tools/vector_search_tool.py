@@ -1,6 +1,14 @@
+import re
 from app.tools.base_tool import BaseTool
 from app.retrieval.vector_db import PaperVectorDB
 from app.retrieval.embeddings import generate_local_embedding
+
+
+def _normalize_paper_id(p_id: str) -> str:
+    if not p_id:
+        return ""
+    clean = re.sub(r'[^a-zA-Z0-9]', '', p_id).lower()
+    return clean.replace("paper", "")
 
 
 class VectorSearchTool(BaseTool):
@@ -13,10 +21,24 @@ class VectorSearchTool(BaseTool):
             
         vector_db = PaperVectorDB()
         query_vector = generate_local_embedding(query)
-        candidates = vector_db.hybrid_search(query, query_vector, top_k=10)
+        candidates = vector_db.hybrid_search(query, query_vector, top_k=15)
         
+        if not candidates:
+            candidates = vector_db.keyword_search(query, top_k=15)
+
+        if not candidates:
+            return f"No matching paper chunks found for query '{query}'."
+
         if paper_id:
-            paper_chunks = [c for c in candidates if c.get("paper_id") == paper_id][:3]
+            norm_target = _normalize_paper_id(paper_id)
+            filtered = [
+                c for c in candidates
+                if c.get("paper_id") == paper_id
+                or _normalize_paper_id(c.get("paper_id", "")) == norm_target
+                or (norm_target and norm_target in _normalize_paper_id(c.get("paper_id", "")))
+                or (_normalize_paper_id(c.get("paper_id", "")) and _normalize_paper_id(c.get("paper_id", "")) in norm_target)
+            ]
+            paper_chunks = filtered[:3] if filtered else candidates[:3]
         else:
             paper_chunks = candidates[:3]
             
@@ -25,7 +47,10 @@ class VectorSearchTool(BaseTool):
             
         results = []
         for idx, chunk in enumerate(paper_chunks, 1):
+            content = (chunk.get("content") or "").strip()
+            if len(content) > 750:
+                content = content[:750] + "..."
             results.append(
-                f"[Chunk {idx} (Page {chunk.get('page')}, Section: {chunk.get('section')})]:\n{chunk.get('content')}"
+                f"[Chunk {idx} (Page {chunk.get('page')}, Section: {chunk.get('section')})]:\n{content}"
             )
         return "\n\n".join(results)

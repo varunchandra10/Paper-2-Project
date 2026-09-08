@@ -12,6 +12,9 @@ export interface ProfileSlice {
   projectPath: string | null;
   ollamaLink: string | null;
   avatarId: string | null;
+  groqApiKey: string | null;
+  openrouterApiKey: string | null;
+  setAvatarId: (avatarId: string) => void;
   fetchProfile: () => Promise<void>;
   loginLocalUser: (username: string, email: string) => Promise<void>;
   updateProfile: (profile: {
@@ -23,6 +26,8 @@ export interface ProfileSlice {
     projectPath?: string | null;
     ollamaLink?: string | null;
     avatarId?: string | null;
+    groqApiKey?: string | null;
+    openrouterApiKey?: string | null;
   }) => Promise<void>;
 }
 
@@ -36,6 +41,16 @@ export const createProfileSlice: StateCreator<PanelState, [], [], ProfileSlice> 
   projectPath: localStorage.getItem('local_project_path') || null,
   ollamaLink: localStorage.getItem('local_ollama_link') || null,
   avatarId: localStorage.getItem('local_avatar_id') || 'mr-nerdy',
+  groqApiKey: localStorage.getItem('local_groq_api_key') || null,
+  openrouterApiKey: localStorage.getItem('local_openrouter_api_key') || null,
+
+  setAvatarId: (avatarId: string) => {
+    localStorage.setItem('local_avatar_id', avatarId);
+    set({ avatarId });
+    if (typeof window !== 'undefined' && window.mascotAPI?.setMascotSkin) {
+      window.mascotAPI.setMascotSkin(avatarId);
+    }
+  },
 
   fetchProfile: async () => {
     try {
@@ -43,6 +58,7 @@ export const createProfileSlice: StateCreator<PanelState, [], [], ProfileSlice> 
       const response = await fetch(`${API_BASE}/auth/user/profile?user_id=${uid}`);
       if (response.ok) {
         const data = await response.json();
+        const effectiveAvatarId = data.avatarId ?? get().avatarId ?? 'mr-nerdy';
         set({
           userId: data.user_id || uid,
           username: data.username || get().username,
@@ -52,8 +68,16 @@ export const createProfileSlice: StateCreator<PanelState, [], [], ProfileSlice> 
           phoneNumber: data.phoneNumber ?? get().phoneNumber,
           projectPath: data.projectPath ?? get().projectPath,
           ollamaLink: data.ollamaLink ?? get().ollamaLink,
-          avatarId: data.avatarId ?? get().avatarId
+          avatarId: effectiveAvatarId,
+          groqApiKey: data.groqApiKey ?? get().groqApiKey,
+          openrouterApiKey: data.openrouterApiKey ?? get().openrouterApiKey
         });
+        if (effectiveAvatarId) {
+          localStorage.setItem('local_avatar_id', effectiveAvatarId);
+          if (typeof window !== 'undefined' && window.mascotAPI?.setMascotSkin) {
+            window.mascotAPI.setMascotSkin(effectiveAvatarId);
+          }
+        }
       }
     } catch (err) {
       console.error("Failed to fetch user profile from database:", err);
@@ -131,8 +155,22 @@ export const createProfileSlice: StateCreator<PanelState, [], [], ProfileSlice> 
         else localStorage.removeItem('local_ollama_link');
       }
       if (profile.avatarId !== undefined) {
-        if (profile.avatarId) localStorage.setItem('local_avatar_id', profile.avatarId);
-        else localStorage.removeItem('local_avatar_id');
+        if (profile.avatarId) {
+          localStorage.setItem('local_avatar_id', profile.avatarId);
+          if (typeof window !== 'undefined' && window.mascotAPI?.setMascotSkin) {
+            window.mascotAPI.setMascotSkin(profile.avatarId);
+          }
+        } else {
+          localStorage.removeItem('local_avatar_id');
+        }
+      }
+      if (profile.groqApiKey !== undefined) {
+        if (profile.groqApiKey) localStorage.setItem('local_groq_api_key', profile.groqApiKey);
+        else localStorage.removeItem('local_groq_api_key');
+      }
+      if (profile.openrouterApiKey !== undefined) {
+        if (profile.openrouterApiKey) localStorage.setItem('local_openrouter_api_key', profile.openrouterApiKey);
+        else localStorage.removeItem('local_openrouter_api_key');
       }
 
       set({
@@ -144,7 +182,9 @@ export const createProfileSlice: StateCreator<PanelState, [], [], ProfileSlice> 
         phoneNumber: profile.phoneNumber !== undefined ? profile.phoneNumber : get().phoneNumber,
         projectPath: profile.projectPath !== undefined ? profile.projectPath : get().projectPath,
         ollamaLink: profile.ollamaLink !== undefined ? profile.ollamaLink : get().ollamaLink,
-        avatarId: profile.avatarId !== undefined ? profile.avatarId : get().avatarId
+        avatarId: profile.avatarId !== undefined ? profile.avatarId : get().avatarId,
+        groqApiKey: profile.groqApiKey !== undefined ? profile.groqApiKey : get().groqApiKey,
+        openrouterApiKey: profile.openrouterApiKey !== undefined ? profile.openrouterApiKey : get().openrouterApiKey
       });
       get().fetchConversations();
       get().fetchUploadedPapers();

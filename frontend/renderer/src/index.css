@@ -69,6 +69,41 @@
     0%, 100% { box-shadow: 0 0 12px -2px rgba(212, 163, 56, 0.25); }
     50% { box-shadow: 0 0 20px 2px rgba(212, 163, 56, 0.5); }
   }
+
+  @keyframes rotate-vertical-lifecycle {
+    0% {
+      transform: perspective(700px) rotateY(0deg);
+    }
+    100% {
+      transform: perspective(700px) rotateY(360deg);
+    }
+  }
+
+  @keyframes rotate-wheel-lifecycle {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  --animate-rotate-clockwise: rotate-clockwise 14s linear infinite;
+}
+
+@keyframes rotate-clockwise {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-rotate-clockwise {
+  animation: rotate-clockwise 14s linear infinite !important;
+  transform-origin: 50% 50% !important;
+  display: inline-flex !important;
 }
 
 :root {
@@ -92,6 +127,14 @@
   --bubble-assistant: #222227;
   --bubble-assistant-border: rgba(255, 255, 255, 0.08);
   --bubble-assistant-fg: #F4F3EE;
+
+  /* Theme-Tailored Rate Limit & Warning Feedback */
+  --warning-fg: #FBBF24;
+  --warning-bg: rgba(245, 158, 11, 0.12);
+  --warning-border: rgba(245, 158, 11, 0.35);
+  --warning-btn-fg: #FDE68A;
+  --warning-btn-bg: rgba(245, 158, 11, 0.22);
+  --warning-btn-border: rgba(245, 158, 11, 0.45);
 }
 
 /* ─── PALETTE 2: ARCTIC SLATE (Perplexity Sky Cyan & Deep Slate) ───── */
@@ -161,6 +204,13 @@ body.theme-light {
   --bubble-assistant: #FFFFFF !important;
   --bubble-assistant-border: #E6E4DD !important;
   --bubble-assistant-fg: #2A2825 !important;
+
+  --warning-fg: #B45309 !important; /* Rich amber-700 with high contrast against light surfaces */
+  --warning-bg: rgba(245, 158, 11, 0.09) !important;
+  --warning-border: rgba(217, 119, 6, 0.28) !important;
+  --warning-btn-fg: #78350F !important; /* Deep dark amber-900 */
+  --warning-btn-bg: rgba(245, 158, 11, 0.16) !important;
+  --warning-btn-border: rgba(217, 119, 6, 0.45) !important;
 }
 
 body.theme-light.palette-arctic {
@@ -216,6 +266,12 @@ body {
   --border: var(--border-color);
   --muted: var(--bg-sidebar);
   --muted-foreground: var(--text-muted);
+  --popover: var(--bg-card);
+  --popover-foreground: var(--text-main);
+  --brass: var(--accent);
+  --ink: var(--text-main);
+  --parchment: var(--bg-base);
+  --input: var(--bg-card);
 }
 
 .app-rail {
@@ -267,26 +323,42 @@ body {
     overflow: hidden;
   }
 
+  html,
   body {
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden !important;
+    max-width: 100vw;
+    width: 100%;
   }
 
   #root {
     height: 100%;
     width: 100%;
+    max-width: 100vw;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    overflow-x: hidden !important;
   }
 }
 
+/* ── Custom Vertical Scrollbar ── */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 0px;
+}
+
+/* ── Eliminate Horizontal Scrollbars Across Entire Application ── */
+::-webkit-scrollbar:horizontal,
+*::-webkit-scrollbar:horizontal {
+  height: 0px !important;
+  display: none !important;
+  width: 0px !important;
+  background: transparent !important;
 }
 
 ::-webkit-scrollbar-track {
@@ -294,19 +366,19 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--muted-foreground);
-  border-radius: 2px;
+  background: rgba(150, 150, 150, 0.25);
+  border-radius: 4px;
   transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--brass);
-  box-shadow: 0 0 8px var(--brass);
+  background: rgba(150, 150, 150, 0.45);
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--muted-foreground) transparent;
+  scrollbar-color: rgba(150, 150, 150, 0.25) transparent;
+  box-sizing: border-box;
 }
 
 @layer utilities {
@@ -330,4 +402,99 @@ body {
   .synthesizing-glow {
     animation: var(--animate-glow-pulse);
   }
+}
+
+/* ─── Global Themed Tooltips (Claude Warm Atelier & Light Modes) ─── */
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]:hover {
+  z-index: 50;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.95);
+  padding: 5px 9px;
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  max-width: 260px;
+  width: max-content;
+  white-space: normal;
+  line-height: 1.35;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+  z-index: 9999;
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+}
+
+[data-tooltip]:hover::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) scale(1);
+}
+
+[data-tooltip-pos="bottom"]::after {
+  bottom: auto;
+  top: calc(100% + 6px);
+  transform: translateX(-50%) scale(0.95);
+}
+[data-tooltip-pos="bottom"]:hover::after {
+  transform: translateX(-50%) scale(1);
+}
+
+[data-tooltip-pos="bottom-right"]::after {
+  bottom: auto;
+  top: calc(100% + 6px);
+  left: 0;
+  transform: scale(0.95);
+  transform-origin: top left;
+}
+[data-tooltip-pos="bottom-right"]:hover::after {
+  transform: scale(1);
+}
+
+[data-tooltip-pos="bottom-left"]::after {
+  bottom: auto;
+  top: calc(100% + 6px);
+  left: auto;
+  right: 0;
+  transform: scale(0.95);
+  transform-origin: top right;
+}
+[data-tooltip-pos="bottom-left"]:hover::after {
+  transform: scale(1);
+}
+
+[data-tooltip-pos="right"]::after {
+  bottom: auto;
+  top: 50%;
+  left: calc(100% + 8px);
+  transform: translateY(-50%) scale(0.95);
+}
+[data-tooltip-pos="right"]:hover::after {
+  transform: translateY(-50%) scale(1);
+}
+
+[data-tooltip-pos="left"]::after {
+  bottom: auto;
+  top: 50%;
+  left: auto;
+  right: calc(100% + 8px);
+  transform: translateY(-50%) scale(0.95);
+}
+[data-tooltip-pos="left"]:hover::after {
+  transform: translateY(-50%) scale(1);
 }

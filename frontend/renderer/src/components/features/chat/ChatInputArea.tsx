@@ -1,8 +1,8 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { usePanelStore } from '../../../store/panelStore';
 import { ModelSelector } from '../../ui/ModelSelector';
 import {
-  IconPlus, IconFileText, IconTerminal,
+  IconPlus,
   IconClose, IconFile, IconArrowUp,
   IconCheckCircle, IconAlertCircle, IconLoader
 } from '../../ui/Icons';
@@ -25,7 +25,7 @@ interface ChatInputAreaProps {
 }
 
 export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
-  isMaximized,
+  isMaximized: _isMaximized,
   chatInputValue,
   setChatInputValue,
   handleBrowseFile,
@@ -34,17 +34,38 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
   onSend,
 }) => {
   const { 
-    isHistoryOpen, 
-    toggleHistory,
-    isLogsOpen,
-    toggleLogs,
     sendMessage,
     isAnalyzing,
     activeMilestoneIndex,
-    analysisStatus
+    analysisStatus,
+    messages
   } = usePanelStore();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  // Live elapsed timer for document ingestion pipeline
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | null = null;
+    if (isAnalyzing) {
+      setElapsedSeconds(0);
+      const startTime = Date.now();
+      interval = setInterval(() => {
+        setElapsedSeconds(Math.floor((Date.now() - startTime) / 1000));
+      }, 1000);
+    } else {
+      setElapsedSeconds(0);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isAnalyzing]);
+
+  const formatTimer = (totalSeconds: number) => {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   // Auto-resize textarea logic
   useEffect(() => {
@@ -71,6 +92,13 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
+    } else if (e.key === 'ArrowUp' && !chatInputValue.trim()) {
+      // Recall previous user prompt on ArrowUp when input is empty
+      const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+      if (lastUserMsg?.content) {
+        e.preventDefault();
+        setChatInputValue(lastUserMsg.content);
+      }
     }
   };
 
@@ -80,40 +108,14 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     <div className="w-full max-w-[800px] px-4 pt-2 pb-1 z-20 shrink-0">
       <div className="flex flex-col gap-2">
         
-        {/* Header Toolbar (Docs & Terminal toggles) */}
-        {!isMaximized && (
-          <div className="flex items-center gap-2 px-1 select-none">
-            <button 
-              onClick={toggleHistory}
-              className={`group relative rounded-lg border transition-all duration-200 cursor-pointer flex items-center justify-center w-7 h-7 ${
-                isHistoryOpen 
-                  ? 'border-red-500/40 bg-red-500/10 text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.15)]' 
-                  : 'border-border/60 text-muted-foreground hover:bg-accent hover:text-foreground'
-              }`}
-              title="Documents & History"
-            >
-              <IconFileText className="text-xs transition-transform group-hover:scale-110" />
-            </button>
-
-            <button 
-              onClick={toggleLogs}
-              className={`group relative rounded-lg border transition-all duration-200 cursor-pointer flex items-center justify-center w-7 h-7 ${
-                isLogsOpen 
-                  ? 'border-amber-500/40 bg-amber-500/10 text-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.15)]' 
-                  : 'border-border/60 text-muted-foreground hover:bg-accent hover:text-foreground'
-              }`}
-              title="Terminal Console"
-            >
-              <IconTerminal className="text-xs transition-transform group-hover:scale-110" />
-            </button>
-          </div>
-        )}
-
-        {/* Status Loader */}
+        {/* Status Loader with Live Elapsed Timer */}
         {isAnalyzing && (
-          <div className="flex items-center gap-2 px-2 py-1 select-none text-[10px] font-mono text-brass font-semibold tracking-wide bg-brass/5 border border-brass/20 rounded-lg w-fit animate-pulse">
-            <IconLoader className="w-3 h-3 animate-spin text-brass shrink-0" />
+          <div className="flex items-center gap-2 px-2.5 py-1 select-none text-[10px] font-mono text-[var(--accent)] font-semibold tracking-wide bg-[var(--accent-subtle)] border border-[var(--accent-border)] rounded-lg w-fit shadow-xs animate-pulse">
+            <IconLoader className="w-3 h-3 animate-spin text-[var(--accent)] shrink-0" />
             <span>Processing document pipeline...</span>
+            <span className="px-1.5 py-0.5 rounded bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--accent-border)] text-[9px] font-mono font-bold tracking-wider">
+              {formatTimer(elapsedSeconds)}
+            </span>
           </div>
         )}
 
@@ -133,7 +135,7 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                   <button
                     onClick={onClearStagedFile}
                     className="ml-1 p-0.5 rounded-full hover:bg-[var(--accent-subtle)] text-[var(--accent)] transition-colors shrink-0 cursor-pointer"
-                    title="Remove file"
+                    data-tooltip="Remove file"
                   >
                     <IconClose className="text-xs" />
                   </button>
@@ -193,7 +195,7 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                 onClick={handleBrowseFile}
                 disabled={isAnalyzing}
                 className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-subtle)] rounded-lg transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 border border-transparent"
-                title="Upload PDF/Document"
+                data-tooltip="Upload PDF/Document"
               >
                 <IconPlus className="text-sm" />
               </button>
@@ -212,7 +214,8 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
                   ? 'bg-[var(--accent)] hover:opacity-90 text-white font-bold active:scale-95' 
                   : 'bg-[var(--bg-base)] text-[var(--text-muted)] opacity-40 cursor-not-allowed border app-border'
               }`}
-              title="Send Message"
+              data-tooltip={canSend ? "Send Message (Enter)" : "Enter a message to send"}
+              data-tooltip-pos="left"
             >
               <IconArrowUp className="text-xs" />
             </button>

@@ -1,7 +1,7 @@
 {
   "name": "electron_app",
   "version": "2.0.0",
-  "description": "Synthexis 2.0 Desktop Container Application",
+  "description": "RUEXIS AI 2.0 Desktop Container Application",
   "main": "src/main.js",
   "scripts": {
     "start": "electron ."

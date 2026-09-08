@@ -1,0 +1,136 @@
+{
+  "wave": {
+    "loop": false,
+    "description": "Single waving gesture starting and ending in standing position",
+    "steps": [
+      { "sheet": "wave", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "wave", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "wave", "frame": 2, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "wave", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "wave", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  },
+  "wave-intro": {
+    "loop": false,
+    "description": "Startup wake and single waving starting in standing and ending in standing",
+    "steps": [
+      { "sheet": "sleep", "frame": 2, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "sleep", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "sleep", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "wave", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "wave", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "wave", "frame": 2, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "wave", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "wave", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  },
+  "sleep": {
+    "loop": false,
+    "description": "Bedtime transition from standing (0) to sleeping on book (2)",
+    "steps": [
+      { "sheet": "sleep", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "sleep", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "sleep", "frame": 2, "hold": 0, "fade": 0, "bubble": false, "zzz": true }
+    ]
+  },
+  "wake": {
+    "loop": false,
+    "description": "Wake-up transition from sleeping on book (2) to standing (0)",
+    "steps": [
+      { "sheet": "sleep", "frame": 2, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "sleep", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "sleep", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  },
+  "idle": {
+    "loop": false,
+    "description": "Neutral standing position",
+    "steps": [
+      { "sheet": "blink", "frame": 0, "hold": 0, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  },
+  "blink": {
+    "loop": false,
+    "description": "Idle eye blinking: 1 or 2 blinks (0 -> 1 -> 2 -> 1 -> 0) with 10-15s gap, 120ms hold and 0 fade",
+    "steps": [
+      { "sheet": "blink", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "blink", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "blink", "frame": 2, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "blink", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "blink", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  },
+  "catching": {
+    "loop": false,
+    "description": "PDF Document Catching: starts in standing (0), catches paper, returns to standing (0)",
+    "steps": [
+      { "sheet": "catching", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "catching", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "catching", "frame": 2, "hold": 800, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "catching", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "catching", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  },
+  "hunch": {
+    "loop": false,
+    "description": "Laptop typing posture",
+    "steps": [
+      { "sheet": "hunch", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "hunch", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "hunch", "frame": 2, "hold": 0, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  },
+  "thinking": {
+    "loop": false,
+    "description": "Thinking posture during reasoning",
+    "steps": [
+      { "sheet": "thinking", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "thinking", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "thinking", "frame": 2, "hold": 0, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  },
+  "excited": {
+    "loop": false,
+    "description": "Success celebration: starts in standing (0) and returns to standing (0)",
+    "steps": [
+      { "sheet": "excite", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "excite", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "excite", "frame": 2, "hold": 400, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "excite", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "excite", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  },
+  "angry": {
+    "loop": false,
+    "description": "Inactivity timeout reaction: starts in standing (0) and returns to standing (0)",
+    "steps": [
+      { "sheet": "angry", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "angry", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "angry", "frame": 2, "hold": 400, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "angry", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "angry", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  },
+  "tired": {
+    "loop": false,
+    "description": "Extended inactivity slump: starts in standing (0) and returns to standing (0)",
+    "steps": [
+      { "sheet": "tired", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "tired", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "tired", "frame": 2, "hold": 400, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "tired", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "tired", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  },
+  "having_sipping": {
+    "loop": false,
+    "description": "Coffee sipping: starts in standing (0) and returns to standing (0)",
+    "steps": [
+      { "sheet": "having_sipping", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "having_sipping", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "having_sipping", "frame": 2, "hold": 600, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "having_sipping", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "having_sipping", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  }
+}

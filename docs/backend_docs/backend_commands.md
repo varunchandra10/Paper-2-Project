@@ -1,131 +1,112 @@
-# Backend Commands & Setup Guide
+﻿# Backend Commands & Setup Guide
 
-This document contains all the essential setup, dependency installation, service orchestration, and execution commands for the **Synthexis Backend**.
+All essential commands for setting up, configuring, and running the **RUEXIS AI Backend** (v2.0).
 
 ---
 
 ## 1. Virtual Environment Setup
 
-> **Note:** We strongly recommend using **`uv`** for managing environments and packages because it is 10x–100x faster than standard `pip`. However, standard Python `venv`/`pip` commands work as well.
-
-### A. Activate Virtual Environment (PowerShell)
-Always ensure your `.venv` is activated before running backend commands:
 ```powershell
-.venv\Scripts\Activate.ps1
-```
-*(If script execution is disabled on Windows, run once: `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`)*
+# Create virtual environment
+python -m venv venv
 
-### B. Create Virtual Environment (If setting up fresh)
-```powershell
-# Using uv (Recommended - ultra-fast)
-uv venv .venv --python 3.12
+# Activate (Windows PowerShell)
+venv\Scripts\Activate.ps1
+# If execution policy blocks it:
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
-# OR using standard Python
-python -m venv .venv
+# Activate (Windows CMD)
+venv\Scripts\activate.bat
 ```
 
 ---
 
-## 2. Dependency Installation Commands
-
-Choose **ONE** of the two approaches below:
-
----
-
-### 👉 OPTION 1: All-in-One Installation (Recommended)
-If you just want to get the entire backend running immediately with all tested dependencies:
+## 2. Install Dependencies
 
 ```powershell
-# Using uv (Recommended - takes seconds)
-uv pip install -r backend/requirements.txt
+# From the backend/ directory
+pip install -r requirements.txt
+```
 
-# OR using standard pip
-pip install -r backend/requirements.txt
+### Key Package Groups
+
+| Group | Packages | Purpose |
+|-------|----------|---------|
+| **API Server** | `fastapi`, `uvicorn`, `sse-starlette`, `python-multipart` | HTTP + SSE streaming |
+| **HTTP Client** | `httpx`, `requests` | Provider API calls |
+| **Schemas** | `pydantic`, `python-dotenv` | Validation + env config |
+| **Agents** | `langgraph` | 5-node autonomous pipeline |
+| **PDF Parsing** | `docling`, `pymupdf` | Multi-engine PDF extraction |
+| **Search** | `tavily-python` | arXiv + Google Scholar tools |
+| **ML/Hardware** | `torch`, `numpy`, `psutil` | CUDA check + hardware metrics |
+| **Graph** | `networkx` | Knowledge graph construction |
+| **Local LLM** | `ollama` | Offline local model client |
+
+### Freeze/Update requirements.txt
+
+```powershell
+pip freeze > requirements.txt
 ```
 
 ---
 
-### 👉 OR OPTION 2: Step-by-Step Modular Installation
-If you want to understand what each dependency is used for or install packages category-by-category:
+## 3. Environment Configuration
 
-#### 1. Core Backend & API Framework
-*FastAPI server, Uvicorn ASGI runner, Pydantic schemas, and file upload handlers:*
 ```powershell
-# Using uv
-uv pip install fastapi uvicorn pydantic pydantic-settings python-multipart requests
-
-# OR using pip
-pip install fastapi uvicorn pydantic pydantic-settings python-multipart requests
+# Copy template
+cp .env.example .env
 ```
 
-#### 2. Local AI & LLM (Ollama & LangChain)
-*Ollama client library and LangChain primitives for agent reasoning:*
-```powershell
-# Using uv
-uv pip install ollama langchain langchain-ollama langchain-core
+Edit `backend/.env` with your keys:
 
-# OR using pip
-pip install ollama langchain langchain-ollama langchain-core
+```env
+# Required
+SECRET_KEY=<generate with: python -c "import secrets; print(secrets.token_hex(32))">
+GROQ_API_KEY=gsk_...
+OPENROUTER_API_KEY=sk-or-...
+GEMINI_API_KEY=AIza...
+HUGGINGFACE_API_KEY=hf_...
+
+# Recommended
+TAVILY_API_KEY=tvly-...
+
+# Optional
+OLLAMA_HOST=http://localhost:11434
+GEMINI_MODEL=gemini-2.5-flash
+EXTRACTION_PROVIDER=gemini
 ```
 
-#### 3. PDF Processing & Layout Extraction
-*PyMuPDF, pdfplumber, and Docling for document layout, font metrics, and table parsing:*
+Validate your keys are loaded:
+
 ```powershell
-# Using uv
-uv pip install pymupdf pdfplumber docling
-
-# OR using pip
-pip install pymupdf pdfplumber docling
-```
-
-#### 4. Math, Machine Learning & PyTorch (Code Synthesis)
-*NumPy for vector cosine similarity and PyTorch for code generation & evaluation:*
-```powershell
-# Using uv
-uv pip install numpy scipy torch torchvision
-
-# OR using pip
-pip install numpy scipy torch torchvision
+python -c "from app.core.config import settings; print('Groq:', settings.has_groq()); print('Gemini:', settings.has_gemini()); print('HF:', settings.has_huggingface())"
 ```
 
 ---
 
-### 🔄 Freezing / Updating requirements.txt
-Whenever you install new packages, freeze them back to `backend/requirements.txt`:
-```powershell
-# Using uv
-uv pip freeze > backend/requirements.txt
+## 4. Optional External Services
 
-# OR using standard pip
-python -m pip freeze > backend/requirements.txt
-```
+### GROBID (Scholarly PDF metadata — optional)
 
----
-
-## 3. External Services Orchestration
-
-### A. Grobid Document Layout Parser (Docker)
-Grobid parses scientific headers, TEI-XML, citations, and formulas on port `8070`:
 ```powershell
 docker run --rm --init --ulimit core=0 -p 8070:8070 grobid/grobid:0.9.0-crf
 ```
-**Verify Grobid Status:**
+
+Verify:
 ```powershell
 curl http://localhost:8070/api/isalive
-# Expected response: true
+# Expected: true
 ```
 
-### B. Ollama Local LLM Daemon & Models
-Ensure Ollama is running and download the required local models:
+### Ollama (Local offline models — optional)
+
 ```powershell
-# Start Ollama service (if not running in background)
+# Start daemon
 ollama serve
 
-# Pull coder reasoning model
-ollama pull qwen2.5-coder:1.5b
-
-# Pull text embedding model for RAG search
-ollama pull nomic-embed-text:latest
+# Pull any model (shown in ModelSelector when running)
+ollama pull qwen2.5:7b
+ollama pull llama3.2:3b
 
 # List installed models
 ollama list
@@ -133,42 +114,100 @@ ollama list
 
 ---
 
-## 4. Running the Backend Server
+## 5. Start the Backend Server
 
-### Start the FastAPI Application
-Run directly from the repository root:
 ```powershell
-python backend/main.py
-```
-Or directly using `uvicorn`:
-```powershell
-uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+# From inside backend/
+python main.py
+
+# Or directly with uvicorn
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-- **Interactive API Docs (Swagger UI):** [http://localhost:8000/docs](http://localhost:8000/docs)
-- **Alternative ReDoc UI:** [http://localhost:8000/redoc](http://localhost:8000/redoc)
-- **Server Health Check:** [http://localhost:8000/](http://localhost:8000/)
+| URL | Purpose |
+|-----|---------|
+| `http://localhost:8000` | Root — HTML dashboard or JSON status |
+| `http://localhost:8000/docs` | Interactive Swagger API docs |
+| `http://localhost:8000/redoc` | ReDoc API reference |
+| `http://localhost:8000/api/status` | Machine-readable JSON health check |
+| `http://localhost:8000/limits-dashboard` | Live rate limits & quota UI |
 
 ---
 
-## 5. Verification & Health Check Commands
+## 6. API Quick-Test Commands
 
-### Check Python Interpreter & Environment
+### Health check
 ```powershell
-python -c "import sys; print('Active Python:', sys.executable)"
+curl http://localhost:8000/api/status
 ```
 
-### Test Ollama Python Integration
+### List available models
 ```powershell
-python -c "import ollama; client = ollama.Client(); print('Ollama Models:', client.list())"
+curl http://localhost:8000/api/v1/models
 ```
 
-### Test PDF Extraction & PyMuPDF Integration
+### Check rate limits / quota dashboard
 ```powershell
-python -c "import fitz, requests; print('PyMuPDF Version:', fitz.__version__)"
+curl http://localhost:8000/api/v1/models/limits
 ```
 
-### Test Backend Extraction Pipeline Import
+### Check Dual Code Engine status
 ```powershell
-python -c "import sys; sys.path.insert(0, 'backend'); from app.extraction.pdf_parser import parse_pdf_document; print('Extraction modules connected successfully!')"
+curl http://localhost:8000/api/v1/models/dual-engine
+```
+
+### Check hardware metrics
+```powershell
+curl http://localhost:8000/api/v1/hardware/metrics
+```
+
+### List conversations
+```powershell
+curl http://localhost:8000/api/v1/conversations
+```
+
+### Create a conversation
+```powershell
+curl -X POST http://localhost:8000/api/v1/conversations `
+  -H "Content-Type: application/json" `
+  -d '{"title": "Test Chat"}'
+```
+
+### Send a streaming chat message
+```powershell
+# Replace <conv_id> with actual conversation ID
+curl -N -X POST http://localhost:8000/api/v1/conversations/<conv_id>/chat/stream `
+  -H "Content-Type: application/json" `
+  -d '{"message": "What is this paper about?", "model_name": "qwen/qwen3.8-27b"}'
+```
+
+### Upload a PDF paper
+```powershell
+curl -X POST http://localhost:8000/api/v1/upload `
+  -F "file=@path/to/paper.pdf"
+```
+
+---
+
+## 7. Module Connectivity Checks
+
+```powershell
+# Verify all core imports
+python -c "from app.agents.chat_agent import ChatAgent; print('ChatAgent OK')"
+python -c "from app.core.model_router import ModelRouter; print('ModelRouter OK')"
+python -c "from app.core.dual_code_engine import dual_code_engine; print('DualCodeEngine OK')"
+python -c "from app.graph.workflow import app_workflow; print('LangGraph pipeline OK')"
+python -c "from app.tools import get_all_tools; print('Tools:', [t.name for t in get_all_tools()])"
+python -c "from app.extraction.pdf_parser import parse_pdf_document; print('PDF parser OK')"
+python -c "from app.retrieval.vector_db import PaperVectorDB; print('VectorDB OK')"
+python -c "from app.retrieval.knowledge_graph import PaperKnowledgeGraph; print('KnowledgeGraph OK')"
+```
+
+---
+
+## 8. Run Tests
+
+```powershell
+cd backend
+python -m pytest tests/ -v
 ```

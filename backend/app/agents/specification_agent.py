@@ -59,7 +59,7 @@ def run_specification_agent(
 INSTRUCTION:
 Return ONLY a valid JSON object matching the following structure:
 {{
-  "project_name": "SynthexisAdaptedModel",
+  "project_name": "RUEXISAdaptedModel",
   "framework": "PyTorch 2.x",
   "requirements": "Python 3.10+, PyTorch 2.0+, CUDA 11.8+, NumPy, PyMuPDF",
   "architecture_overview": "Bi-temporal inputs ➔ Backbone feature extraction ➔ Feature fusion bottleneck ➔ Classifier decoder ➔ Output map",
@@ -88,7 +88,7 @@ Return ONLY a valid JSON object matching the following structure:
     except Exception as e:
         print(f"[Specification Agent WARN] LLM call fallback ({e}). Using baseline specification blueprint.")
         return {
-            "project_name": "SynthexisAdaptedModel",
+            "project_name": "RUEXISAdaptedModel",
             "framework": "PyTorch 2.x",
             "requirements": "Python 3.10+, PyTorch 2.0+, CUDA 11.8+, NumPy",
             "architecture_overview": "Bi-temporal input processing ➔ Visual backbone ➔ Cross-attention fusion ➔ Decoder mask",

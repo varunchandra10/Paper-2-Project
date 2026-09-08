@@ -18,7 +18,13 @@ declare global {
     onPipelineCompleted: (callback: (status: { success: boolean; filename?: string; type?: 'pdf' | 'docx'; reportContent?: string; error?: string }) => void) => void;
     toggleMaximize: () => void;
     onMaximizeChange: (callback: (isMaximized: boolean) => void) => void;
+    setMascotState: (state: string) => void;
+    reportUserActivity: () => void;
+    setMascotSkin?: (skinId: string) => void;
+    onMascotSkinChange?: (callback: (skinId: string) => void) => void;
+    getMascotSkin?: () => Promise<string>;
   }
+
 
   interface Window {
     mascotAPI?: MascotAPI;

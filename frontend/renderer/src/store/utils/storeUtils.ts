@@ -1,6 +1,4 @@
-export const API_BASE = (typeof window !== 'undefined' && (!!window.mascotAPI || window.location.protocol === 'file:'))
-  ? 'http://localhost:8000'
-  : '/api';
+export { API_BASE, getApiBase, isElectronEnvironment } from '../../config/api';
 
 export function getPaperId(filename: string): string {
   const baseName = filename.replace(/\.[^/.]+$/, ""); // Strip extension

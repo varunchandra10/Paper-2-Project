@@ -1,3 +1,5 @@
+import { APP_BRANDING } from '../../../constants/branding';
+
 export interface ReActData {
   thought?: string;
   action?: string;
@@ -23,7 +25,7 @@ export const parseReAct = (content: string): ReActData => {
     hasReAct = true;
     return {
       thought: thought || "Analyzed user query against paper index and reasoning graph.",
-      action: "Queried Synthexis multi-agent RAG vector store.",
+      action: `Queried ${APP_BRANDING.NAME} multi-agent RAG vector store.`,
       observation: "Extracted relevant document sections & structural metadata.",
       answer: answer || content,
       hasReAct: true
@@ -47,7 +49,19 @@ export const parseReAct = (content: string): ReActData => {
     if (aMatch) action = aMatch[1].trim();
     if (oMatch) observation = oMatch[1].trim();
     if (ansMatch) {
-      answer = ansMatch[1].trim();
+      let rawAns = ansMatch[1].trim();
+      // If answer starts with THOUGHT: or Reasoning:, strip the internal trace prefix
+      if (/^(?:\*{1,2}|\[)?(?:THOUGHT|Thinking|Reasoning)/i.test(rawAns)) {
+        const innerAnsMatch = rawAns.match(/(?:\*{1,2}|\[)?ANSWER(?:\*{1,2}|\])?:\s*([\s\S]*)/i);
+        if (innerAnsMatch) {
+          rawAns = innerAnsMatch[1].trim();
+        } else {
+          // Remove internal ACTION command lines like ACTION: get_canonical_document(...)
+          rawAns = rawAns.replace(/(?:\*{1,2}|\[)?(?:ACTION|Tool)(?:\*{1,2}|\])?:\s*[\s\S]*$/i, '').trim();
+          rawAns = rawAns.replace(/^(?:\*{1,2}|\[)?(?:THOUGHT|Thinking|Reasoning)(?:\*{1,2}|\])?:\s*/i, '').trim();
+        }
+      }
+      answer = rawAns;
     } else {
       answer = content
         .replace(/(?:\*{1,2}|\[)?(?:THOUGHT|Thinking|Reasoning)(?:\*{1,2}|\])?:\s*[\s\S]*?(?=(?:\*{1,2}|\[)?(?:ACTION|OBSERVATION|ANSWER|Tool|Result)(?:\*{1,2}|\])?:|$)/gi, '')
@@ -56,12 +70,14 @@ export const parseReAct = (content: string): ReActData => {
         .trim();
     }
   } else {
-    // Standard LLM response: synthesize high-level ReACT trace steps for clean UI presentation
-    hasReAct = true;
-    thought = "User requested paper analysis or code generation. Evaluating vector index chunks and hyperparameters.";
-    action = "Queried PaperVectorDB hybrid search & ModelRouter inference pipeline.";
-    observation = "Retrieved paper context embeddings and active execution constraints.";
+    // Standard LLM response: no synthetic ReACT trace
+    hasReAct = false;
     answer = content;
+  }
+
+  if (!answer.trim()) {
+    answer = content;
+    hasReAct = false;
   }
 
   return { thought, action, observation, answer, hasReAct };

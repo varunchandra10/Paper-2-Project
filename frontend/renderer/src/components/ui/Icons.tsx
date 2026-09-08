@@ -1,5 +1,5 @@
 /**
- * Icons.tsx — Central Icon Registry for Synthexis
+ * Icons.tsx — Central Icon Registry for REUXIS AI
  * ─────────────────────────────────────────────────
  * ONE icon per purpose. No duplicates across packages.
  * All components import from here — never from react-icons/* directly.
@@ -43,6 +43,7 @@ export { FaCheck      as IconCheck    } from 'react-icons/fa6';
 export { FaTrashCan   as IconTrash    } from 'react-icons/fa6';
 export { FaSearch     as IconSearch   } from 'react-icons/fa';
 export { FaTerminal   as IconTerminal } from 'react-icons/fa6';
+export { IoEyeOutline as IconEye, IoEyeOffOutline as IconEyeOff } from 'react-icons/io5';
 
 // ─── Navigation Icons ─────────────────────────────────────────────────────────
 export {
@@ -63,20 +64,25 @@ export {
 export {
   FiPlus          as IconPlus,
   FiFile          as IconFile,
+  FiInfo          as IconInfo,
   FiFileText      as IconFileText,
   FiMessageSquare as IconMessageSquare,
   FiClock         as IconClock,
   FiUploadCloud   as IconUploadCloud,
+  FiDownload      as IconDownload,
   FiLoader        as IconLoader,
   FiCopy          as IconCopy,
   FiCpu           as IconCpu,
   FiActivity      as IconActivity,
   FiBookOpen      as IconBookOpen,
+  FiMoreHorizontal as IconMoreHorizontal,
+  FiEdit2         as IconEdit,
+  FiRotateCcw     as IconRotateCcw,
+  FiRefreshCw     as IconRefresh,
 } from 'react-icons/fi';
 
 // ─── User / Profile Icons ─────────────────────────────────────────────────────
 export {
-  FiUser,
   FiMail         as IconMail,
   FiPhone        as IconPhone,
   FiCalendar     as IconCalendar,
@@ -84,7 +90,6 @@ export {
   FiCheckCircle  as IconCheckCircle,
   FiSave         as IconSave,
   FiSmile        as IconSmile,
-  FiInfo         as IconInfo,
   FiLink         as IconLink,
   FiAlertCircle  as IconAlertCircle,
   FiUser         as IconUser,

@@ -8,7 +8,7 @@ class ScholarSearchTool(BaseTool):
     name = "search_scholar_literature"
     description = "Queries Semantic Scholar literature API for academic metadata and paper summaries."
 
-    def execute(self, query: str) -> str:
+    def execute(self, query: str = "", *args, **kwargs) -> str:
         if not query:
             return "No literature query provided."
             
@@ -17,7 +17,7 @@ class ScholarSearchTool(BaseTool):
         url = f"https://api.semanticscholar.org/graph/v1/paper/search?query={encoded}&limit=1&fields=title,abstract,tldr,citationCount"
         
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "Synthexis/2.0 Research Platform"})
+            req = urllib.request.Request(url, headers={"User-Agent": "RUEXIS/2.0 Research Platform"})
             with urllib.request.urlopen(req, timeout=5) as resp:
                 data = json.loads(resp.read().decode('utf-8'))
                 
