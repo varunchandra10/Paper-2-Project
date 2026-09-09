@@ -10,6 +10,7 @@ import {
   Repeat,
   ChevronDown
 } from "lucide-react";
+import { getAssetPath } from "@/lib/basePath";
 
 export type AvatarId = "mr-nerdy" | "ms-nerdy" | "mr-nerd" | "ms-nerd";
 
@@ -249,7 +250,7 @@ export function MascotFSMSection() {
       const cacheKey = `${activeMascotId}_${key}`;
       if (!loadedImagesRef.current[cacheKey]) {
         const img = new Image();
-        img.src = src;
+        img.src = getAssetPath(src);
         img.onload = () => {
           loadedImagesRef.current[cacheKey] = img;
           // Trigger immediate redraw if currently displaying this sheet
@@ -516,7 +517,7 @@ export function MascotFSMSection() {
                         <div
                           className="w-full h-full rounded-lg"
                           style={{
-                            backgroundImage: `url(${mascot.avatarThumb})`,
+                            backgroundImage: `url(${getAssetPath(mascot.avatarThumb)})`,
                             backgroundSize: "280%",
                             backgroundPosition: "center 8%",
                             backgroundRepeat: "no-repeat",

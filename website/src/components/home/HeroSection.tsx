@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Layers
 } from "lucide-react";
+import { getAssetPath } from "@/lib/basePath";
 
 interface HeroSectionProps {
   onOpenDownload?: () => void;
@@ -215,7 +216,7 @@ export function HeroSection({ onOpenDownload }: HeroSectionProps) {
                         <div
                           className="w-24 sm:w-28 h-full filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)] transition-transform duration-200 group-hover:scale-105"
                           style={{
-                            backgroundImage: `url(${mascot.image})`,
+                            backgroundImage: `url(${getAssetPath(mascot.image)})`,
                             backgroundSize: "300% 100%",
                             backgroundPosition: "50% 50%",
                             backgroundRepeat: "no-repeat",
