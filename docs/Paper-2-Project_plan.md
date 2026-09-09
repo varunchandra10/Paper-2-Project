@@ -1,6 +1,6 @@
-﻿# RUEXIS AI — Master Project Implementation Plan
+# RUEXIS AI — Master Project Implementation Plan
 
-> **Project Name:** RUEXIS AI (Research Understanding & Execution Intelligence System)  
+> **Project Name:** RUEXIS AI (**R**esearch, **U**nderstand, **E**xtract, e**X**amine, **I**mplement, **S**ynthesize)  
 > **Concept:** A local-first, fully agentic desktop application that converts any scientific research PDF into a feasibility-checked, staged PyTorch implementation — delivered through a multi-provider AI chat interface and an animated desktop mascot companion.  
 > **Status:** ✅ Backend 100% Complete & Verified · ✅ Frontend v2.0 Live
 
