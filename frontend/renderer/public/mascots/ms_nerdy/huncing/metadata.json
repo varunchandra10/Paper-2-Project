@@ -1,0 +1,316 @@
+{
+  "character": "Ms. Nerdy",
+  "animation_id": "huncing",
+  "title": "Working on Laptop / Hunching",
+  "source_file": "Pixel-Art Workday Animation Spritesheet.png",
+  "strategy": "complete_standardized",
+  "frame_count": 17,
+  "canvas_size": [
+    640,
+    740
+  ],
+  "anchor": "feet",
+  "anchor_coordinates": [
+    320,
+    700
+  ],
+  "loop": true,
+  "frame_duration_ms": 141,
+  "fps": 7.1,
+  "props": [
+    "desk",
+    "chair",
+    "laptop"
+  ],
+  "frames": [
+    {
+      "index": 0,
+      "filename": "frame_00.png",
+      "rel_path": "assets/processed/huncing/frames/frame_00.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        158,
+        40,
+        480,
+        700
+      ],
+      "fg_width": 323,
+      "fg_height": 661,
+      "foot_y": 700,
+      "center_x": 319.5
+    },
+    {
+      "index": 1,
+      "filename": "frame_01.png",
+      "rel_path": "assets/processed/huncing/frames/frame_01.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        168,
+        40,
+        470,
+        698
+      ],
+      "fg_width": 303,
+      "fg_height": 659,
+      "foot_y": 698,
+      "center_x": 319.5
+    },
+    {
+      "index": 2,
+      "filename": "frame_02.png",
+      "rel_path": "assets/processed/huncing/frames/frame_02.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        164,
+        49,
+        474,
+        696
+      ],
+      "fg_width": 311,
+      "fg_height": 648,
+      "foot_y": 696,
+      "center_x": 319.5
+    },
+    {
+      "index": 3,
+      "filename": "frame_03.png",
+      "rel_path": "assets/processed/huncing/frames/frame_03.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        151,
+        62,
+        488,
+        696
+      ],
+      "fg_width": 338,
+      "fg_height": 635,
+      "foot_y": 696,
+      "center_x": 320.0
+    },
+    {
+      "index": 4,
+      "filename": "frame_04.png",
+      "rel_path": "assets/processed/huncing/frames/frame_04.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        105,
+        91,
+        534,
+        698
+      ],
+      "fg_width": 430,
+      "fg_height": 608,
+      "foot_y": 698,
+      "center_x": 320.0
+    },
+    {
+      "index": 5,
+      "filename": "frame_05.png",
+      "rel_path": "assets/processed/huncing/frames/frame_05.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        118,
+        77,
+        520,
+        698
+      ],
+      "fg_width": 403,
+      "fg_height": 622,
+      "foot_y": 698,
+      "center_x": 319.5
+    },
+    {
+      "index": 6,
+      "filename": "frame_06.png",
+      "rel_path": "assets/processed/huncing/frames/frame_06.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        130,
+        97,
+        509,
+        698
+      ],
+      "fg_width": 380,
+      "fg_height": 602,
+      "foot_y": 698,
+      "center_x": 320.0
+    },
+    {
+      "index": 7,
+      "filename": "frame_07.png",
+      "rel_path": "assets/processed/huncing/frames/frame_07.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        139,
+        101,
+        500,
+        698
+      ],
+      "fg_width": 362,
+      "fg_height": 598,
+      "foot_y": 698,
+      "center_x": 320.0
+    },
+    {
+      "index": 8,
+      "filename": "frame_08.png",
+      "rel_path": "assets/processed/huncing/frames/frame_08.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        153,
+        66,
+        486,
+        700
+      ],
+      "fg_width": 334,
+      "fg_height": 635,
+      "foot_y": 700,
+      "center_x": 320.0
+    },
+    {
+      "index": 9,
+      "filename": "frame_09.png",
+      "rel_path": "assets/processed/huncing/frames/frame_09.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        146,
+        124,
+        492,
+        700
+      ],
+      "fg_width": 347,
+      "fg_height": 577,
+      "foot_y": 700,
+      "center_x": 319.5
+    },
+    {
+      "index": 10,
+      "filename": "frame_10.png",
+      "rel_path": "assets/processed/huncing/frames/frame_10.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        56,
+        124,
+        584,
+        700
+      ],
+      "fg_width": 529,
+      "fg_height": 577,
+      "foot_y": 700,
+      "center_x": 320.5
+    },
+    {
+      "index": 11,
+      "filename": "frame_11.png",
+      "rel_path": "assets/processed/huncing/frames/frame_11.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        79,
+        126,
+        560,
+        700
+      ],
+      "fg_width": 482,
+      "fg_height": 575,
+      "foot_y": 700,
+      "center_x": 320.0
+    },
+    {
+      "index": 12,
+      "filename": "frame_12.png",
+      "rel_path": "assets/processed/huncing/frames/frame_12.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        80,
+        126,
+        558,
+        700
+      ],
+      "fg_width": 479,
+      "fg_height": 575,
+      "foot_y": 700,
+      "center_x": 319.5
+    },
+    {
+      "index": 13,
+      "filename": "frame_13.png",
+      "rel_path": "assets/processed/huncing/frames/frame_13.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        85,
+        124,
+        554,
+        700
+      ],
+      "fg_width": 470,
+      "fg_height": 577,
+      "foot_y": 700,
+      "center_x": 320.0
+    },
+    {
+      "index": 14,
+      "filename": "frame_14.png",
+      "rel_path": "assets/processed/huncing/frames/frame_14.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        79,
+        130,
+        560,
+        700
+      ],
+      "fg_width": 482,
+      "fg_height": 571,
+      "foot_y": 700,
+      "center_x": 320.0
+    },
+    {
+      "index": 15,
+      "filename": "frame_15.png",
+      "rel_path": "assets/processed/huncing/frames/frame_15.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        76,
+        130,
+        564,
+        700
+      ],
+      "fg_width": 489,
+      "fg_height": 571,
+      "foot_y": 700,
+      "center_x": 320.5
+    },
+    {
+      "index": 16,
+      "filename": "frame_16.png",
+      "rel_path": "assets/processed/huncing/frames/frame_16.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        48,
+        130,
+        591,
+        700
+      ],
+      "fg_width": 544,
+      "fg_height": 571,
+      "foot_y": 700,
+      "center_x": 320.0
+    }
+  ]
+}

@@ -18,6 +18,8 @@ export interface UISlice {
   setLogsOpen: (isOpen: boolean) => void;
   toggleHistory: () => void;
   setHistoryOpen: (isOpen: boolean) => void;
+  isInputThinking: boolean;
+  setIsInputThinking: (val: boolean) => void;
 }
 
 const getInitialSelectedModel = (): string => {
@@ -51,4 +53,6 @@ export const createUISlice: StateCreator<PanelState, [], [], UISlice> = (set) =>
   setLogsOpen: (isOpen) => set({ isLogsOpen: isOpen }),
   toggleHistory: () => set((state) => ({ isHistoryOpen: !state.isHistoryOpen })),
   setHistoryOpen: (isOpen) => set({ isHistoryOpen: isOpen }),
+  isInputThinking: false,
+  setIsInputThinking: (val) => set({ isInputThinking: val }),
 });

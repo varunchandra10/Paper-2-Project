@@ -19,6 +19,7 @@ try {
 let mascotWindow = null;
 let activeWindowInterval = null;
 let isPanelMaximized = false;
+let hasGreetedOnAppLaunch = false;
 
 // --- Win32 Taskbar Detection via Koffi ---
 let SHAppBarMessage = null;
@@ -226,12 +227,23 @@ ipcMain.on('user-activity', () => {
 
 
 let hasWavedAtStartup = false;
+let currentMascotActiveState = 'sleep';
 
 function sendMascotState(state) {
+    // Normalize aliases between React and Electron state machine
+    let normalized = state;
+    if (state === 'sipping_coffee') normalized = 'having_sipping';
+    if (state === 'document_catching') normalized = 'catching';
+    if (state === 'hunching') normalized = 'hunch';
+    if (state === 'waving') normalized = 'wave';
+    if (state === 'ready') normalized = 'excited';
+
+    currentMascotActiveState = normalized;
+
     const isPanelOpen = panelWindow && !panelWindow.isDestroyed() && panelWindow.isVisible();
     // When the sidebar panel is closed, keep mascot in sleeping pose unless active research or work is occurring
-    let effectiveState = state;
-    if (!isPanelOpen && state === 'idle') {
+    let effectiveState = normalized;
+    if (!isPanelOpen && normalized === 'idle') {
         effectiveState = 'sleeping';
     }
     if (mascotWindow && !mascotWindow.isDestroyed()) {
@@ -639,8 +651,14 @@ function togglePanel() {
 
         panelWindow.show();
         panelWindow.focus();
-        // Whenever panel is opened, mascot stands and says "hii"
-        sendMascotState('wave-intro');
+        // Mascot says HII and waves ONLY once when user first opens the application
+        if (!hasGreetedOnAppLaunch) {
+            hasGreetedOnAppLaunch = true;
+            sendMascotState('wave-intro');
+        } else {
+            // Idle to open: smoothly transition to standing idle without waving every time
+            sendMascotState('idle');
+        }
     }
 }
 
@@ -763,6 +781,12 @@ async function startActiveWindowPolling() {
 
     activeWindowInterval = setInterval(async () => {
         try {
+            // Guard: Never overwrite active mascot states if panel is open or if mascot is actively working/reacting
+            const isPanelOpen = panelWindow && !panelWindow.isDestroyed() && panelWindow.isVisible();
+            if (isPanelOpen || (currentMascotActiveState && currentMascotActiveState !== 'idle' && currentMascotActiveState !== 'sleep' && currentMascotActiveState !== 'reading')) {
+                return;
+            }
+
             const winDetails = await activeWin();
             if (winDetails && mascotWindow) {
                 const title = (winDetails.title || "").toLowerCase();

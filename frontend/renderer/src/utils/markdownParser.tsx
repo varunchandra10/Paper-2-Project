@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
 import { IconCopy, IconCheck } from '../components/ui/Icons';
+import { MermaidRenderer } from '../components/ui/MermaidRenderer';
 
 // ─── Code Copy Button ─────────────────────────────────────────────────────────
 
@@ -37,25 +40,98 @@ export const CodeCopyButton: React.FC<{ code: string }> = ({ code }) => {
   );
 };
 
+// ─── Math Typography & KaTeX Helper ───────────────────────────────────────────
+
+export const cleanMathText = (raw: string): string => {
+  return raw
+    .replace(/\\Delta/g, 'Δ')
+    .replace(/\\alpha/g, 'α')
+    .replace(/\\beta/g, 'β')
+    .replace(/\\gamma/g, 'γ')
+    .replace(/\\theta/g, 'θ')
+    .replace(/\\lambda/g, 'λ')
+    .replace(/\\sigma/g, 'σ')
+    .replace(/\\mu/g, 'μ')
+    .replace(/\\times/g, ' × ')
+    .replace(/\\in/g, ' ∈ ')
+    .replace(/\\mathbb\{R\}/g, 'ℝ')
+    .replace(/\\mathbb\{([A-Za-z0-9]+)\}/g, '$1')
+    .replace(/\\mathbf\{([A-Za-z0-9]+)\}/g, '$1')
+    .replace(/\\text\{([A-Za-z0-9\s]+)\}/g, '$1')
+    .replace(/\\boxed\{([^{}]+)\}/g, '$1')
+    .replace(/\\underbrace\{([^{}]+)\}_\{([^{}]+)\}/g, '$1 ($2)')
+    .replace(/\\qquad|\\quad/g, '   ')
+    .replace(/\\left|\\right/g, '')
+    .replace(/\\,/g, ' ')
+    .replace(/\\:/g, ' ')
+    .replace(/\\;/g, ' ')
+    .replace(/\\!/g, '')
+    .replace(/\\le/g, ' ≤ ')
+    .replace(/\\ge/g, ' ≥ ')
+    .replace(/\\neq/g, ' ≠ ')
+    .replace(/\\approx/g, ' ≈ ')
+    .replace(/\\cdot/g, ' · ')
+    .replace(/\\sim/g, ' ~ ')
+    .trim();
+};
+
+export const renderKaTeX = (math: string, displayMode = false): string => {
+  if (!math || !math.trim()) return '';
+  try {
+    return katex.renderToString(math.trim(), {
+      displayMode,
+      throwOnError: false,
+      strict: false,
+    });
+  } catch {
+    return `<span class="font-serif italic">${cleanMathText(math)}</span>`;
+  }
+};
+
 // ─── Inline Markdown Parser ───────────────────────────────────────────────────
 
 export const parseInlineMarkdown = (text: string): React.ReactNode[] => {
   if (!text) return [];
 
-  // Split by inline code: `code`
-  const codeParts = text.split(/(`[^`]+`)/g);
+  // Normalize math nested inside bold (e.g. **\(r\)** or **$r$**) to prevent breaking markdown boundaries
+  const sanitizedText = text
+    .replace(/\*\*\\\(([\s\S]+?)\\\)\*\*/g, '\\($1\\)')
+    .replace(/\*\*\$([^\$\n]+)\$\*\*/g, '$$$1$$');
 
-  return codeParts.flatMap((codePart, cIdx) => {
-    if (codePart.startsWith('`') && codePart.endsWith('`')) {
+  // Split by inline math: \(...\) or $...$
+  const mathParts = sanitizedText.split(/(\\\([\s\S]+?\\\)|\$(?:[^\$\n]+)\$)/g);
+
+  return mathParts.flatMap((part, mIdx) => {
+    if (
+      (part.startsWith('\\(') && part.endsWith('\\)')) ||
+      (part.startsWith('$') && part.endsWith('$') && part.length > 2)
+    ) {
+      const mathInner = part.startsWith('\\(') ? part.slice(2, -2) : part.slice(1, -1);
+      const katexHtml = renderKaTeX(mathInner, false);
       return [
-        <code
-          key={`code-${cIdx}`}
-          className="px-1.5 py-0.5 rounded bg-[var(--bg-base)]/80 border app-border font-mono text-[10.5px] text-[var(--accent)] mx-0.5 select-all"
-        >
-          {codePart.slice(1, -1)}
-        </code>,
+        <span
+          key={`math-${mIdx}`}
+          className="katex-inline-wrapper font-serif inline-flex items-center px-1.5 py-0.5 mx-0.5 rounded bg-[var(--bg-card)] border app-border/60 text-[var(--accent)] shadow-2xs tracking-wide text-[11.5px] select-text align-middle"
+          title={mathInner}
+          dangerouslySetInnerHTML={{ __html: katexHtml }}
+        />,
       ];
     }
+
+    // Split by inline code: `code`
+    const codeParts = part.split(/(`[^`]+`)/g);
+
+    return codeParts.flatMap((codePart, cIdx) => {
+      if (codePart.startsWith('`') && codePart.endsWith('`')) {
+        return [
+          <code
+            key={`code-${mIdx}-${cIdx}`}
+            className="px-1.5 py-0.5 rounded bg-[var(--bg-base)]/80 border app-border font-mono text-[10.5px] text-[var(--accent)] mx-0.5 select-all"
+          >
+            {codePart.slice(1, -1)}
+          </code>,
+        ];
+      }
 
     // Split by bold-italic: ***text***
     const boldItalicParts = codePart.split(/(\*\*\*[^*]+\*\*\*)/g);
@@ -117,6 +193,7 @@ export const parseInlineMarkdown = (text: string): React.ReactNode[] => {
       });
     });
   });
+  });
 };
 
 // ─── Table Component ─────────────────────────────────────────────────────────
@@ -172,23 +249,48 @@ export const MarkdownTable: React.FC<{ table: TableData }> = ({ table }) => {
 export const formatMessageContent = (content: string): React.ReactNode => {
   if (!content) return null;
 
-  // Pre-process: convert pseudo-code / copied prompts (e.g. code\nCOPY\n...) into clean code blocks
-  const normalized = content
+  // Pre-process: convert LaTeX display equations \[ ... \] and $$ ... $$ to math blocks,
+  // and convert pseudo-code / copied prompts into clean code blocks
+  let normalized = content
     .replace(/\r\n/g, '\n')
+    .replace(/\\\[([\s\S]*?)\\\]/g, (_, mathBody) => `\n\`\`\`math\n${mathBody.trim()}\n\`\`\`\n`)
+    .replace(/\$\$([\s\S]*?)\$\$/g, (_, mathBody) => `\n\`\`\`math\n${mathBody.trim()}\n\`\`\`\n`)
     .replace(
       /code\s*\n\s*COPY\s*\n([\s\S]*?Answer[^\n]*\n)/g,
       (_, codeBody) => `\`\`\`text\n${codeBody.trim()}\n\`\`\`\n`
-    );
+    )
+    .replace(/^\s*\*\*\s*$/gm, '');
+
+  // Auto-close any unclosed code block (e.g. if the LLM output was truncated before closing ```)
+  const backtickTriplets = (normalized.match(/```/g) || []).length;
+  if (backtickTriplets % 2 !== 0) {
+    normalized += '\n```';
+  }
 
   // Split out fenced code blocks
   const parts = normalized.split(/(```[\s\S]*?```)/g);
 
   return parts.map((part, index) => {
     if (part.startsWith('```')) {
-      const match = part.match(/```(\w*)\n([\s\S]*?)```/);
+      const match = part.match(/```(\w*)[^\n]*\n([\s\S]*?)```/);
       const language = match ? match[1] : '';
       const code = match ? match[2] : part.slice(3, -3);
       const trimmedCode = code.trim();
+
+      if (language.toLowerCase() === 'mermaid') {
+        return <MermaidRenderer key={`mermaid-block-${index}`} code={trimmedCode} />;
+      }
+
+      if (language.toLowerCase() === 'math') {
+        const katexHtml = renderKaTeX(trimmedCode, true);
+        return (
+          <div
+            key={`math-block-${index}`}
+            className="my-3 px-5 py-3.5 flex flex-col items-center justify-center rounded-xl bg-[var(--bg-card)]/90 border app-border shadow-xs text-center overflow-x-auto select-text text-[var(--accent)] leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: katexHtml }}
+          />
+        );
+      }
 
       return (
         <div

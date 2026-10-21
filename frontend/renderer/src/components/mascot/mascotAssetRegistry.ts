@@ -9,6 +9,9 @@ import mrNerdyAngry from '../../assets/mr_nerdy/mr_nerdy_angry.png';
 import mrNerdyPeeking from '../../assets/mr_nerdy/mr_nerdy_peeking.png';
 import mrNerdySipping from '../../assets/mr_nerdy/mr_nerdy_having_sipping.png';
 import mrNerdyCatching from '../../assets/mr_nerdy/mr_nerdy_document_catching.png';
+import mrNerdyConfused from '../../assets/mr_nerdy/mr_nerdy_confused.png';
+import mrNerdyBlinking from '../../assets/mr_nerdy/mr_nerdy_eye_blinking.png';
+import mrNerdyTired from '../../assets/mr_nerdy/mr_nerdy_tired.png';
 
 // --- Asset Imports for Ms. Nerdy ---
 import msNerdyStanding from '../../assets/ms_nerdy/ms_nerdy_standing.png';
@@ -21,6 +24,9 @@ import msNerdyAngry from '../../assets/ms_nerdy/ms_nerdy_angry.png';
 import msNerdyPeeking from '../../assets/ms_nerdy/ms_nerdy_peeking.png';
 import msNerdySipping from '../../assets/ms_nerdy/ms_nerdy_sipping_coffee.png';
 import msNerdyCatching from '../../assets/ms_nerdy/ms_nerdy_document_catching.png';
+import msNerdyConfused from '../../assets/ms_nerdy/ms_nerdy_confused.png';
+import msNerdyBlinking from '../../assets/ms_nerdy/ms_nerdy_blinking.png';
+import msNerdyTired from '../../assets/ms_nerdy/ms_nerdy_tired.png';
 
 // --- Asset Imports for Mr. Nerd ---
 import mrNerdStanding from '../../assets/mr_nerd/mr_nerd_standing.png';
@@ -33,6 +39,9 @@ import mrNerdAngry from '../../assets/mr_nerd/mr_nerd_angry.png';
 import mrNerdPeeking from '../../assets/mr_nerd/mr_nerd_peeking.png';
 import mrNerdSipping from '../../assets/mr_nerd/mr_nerd_coffee_sipping.png';
 import mrNerdCatching from '../../assets/mr_nerd/mr_nerd_document_catching.png';
+import mrNerdConfused from '../../assets/mr_nerd/mr_nerd_confused.png';
+import mrNerdBlinking from '../../assets/mr_nerd/mr_nerd_blinking.png';
+import mrNerdTired from '../../assets/mr_nerd/mr_nerd_tired.png';
 
 // --- Asset Imports for Ms. Nerd ---
 import msNerdStanding from '../../assets/ms_nerd/ms_nerd_standing.png';
@@ -45,6 +54,9 @@ import msNerdAngry from '../../assets/ms_nerd/ms_nerd_angry.png';
 import msNerdPeeking from '../../assets/ms_nerd/ms_nerd_peeking.png';
 import msNerdSipping from '../../assets/ms_nerd/ms_nerd_coffee_sipping.png';
 import msNerdCatching from '../../assets/ms_nerd/ms_nerd_document_catching.png';
+import msNerdConfused from '../../assets/ms_nerd/ms_nerd_confused.png';
+import msNerdBlinking from '../../assets/ms_nerd/ms_nerd_eye_blinking.png';
+import msNerdTired from '../../assets/ms_nerd/ms_nerd_tired.png';
 
 export type AvatarId = 'mr-nerdy' | 'ms-nerdy' | 'mr-nerd' | 'ms-nerd';
 
@@ -58,7 +70,12 @@ export type MascotPose =
   | 'angry' 
   | 'peeking' 
   | 'sipping_coffee' 
-  | 'document_catching';
+  | 'document_catching'
+  | 'confused'
+  | 'blinking'
+  | 'tired'
+  | 'walking'
+  | 'turnaround';
 
 export interface MascotInfo {
   id: AvatarId;
@@ -87,6 +104,11 @@ export const MASCOT_REGISTRY: Record<AvatarId, MascotInfo> = {
       peeking: mrNerdyPeeking,
       sipping_coffee: mrNerdySipping,
       document_catching: mrNerdyCatching,
+      confused: mrNerdyConfused,
+      blinking: mrNerdyBlinking,
+      tired: mrNerdyTired,
+      walking: mrNerdyStanding,
+      turnaround: mrNerdyStanding,
     }
   },
   'ms-nerdy': {
@@ -106,6 +128,11 @@ export const MASCOT_REGISTRY: Record<AvatarId, MascotInfo> = {
       peeking: msNerdyPeeking,
       sipping_coffee: msNerdySipping,
       document_catching: msNerdyCatching,
+      confused: msNerdyConfused,
+      blinking: msNerdyBlinking,
+      tired: msNerdyTired,
+      walking: msNerdyStanding,
+      turnaround: msNerdyStanding,
     }
   },
   'mr-nerd': {
@@ -125,6 +152,11 @@ export const MASCOT_REGISTRY: Record<AvatarId, MascotInfo> = {
       peeking: mrNerdPeeking,
       sipping_coffee: mrNerdSipping,
       document_catching: mrNerdCatching,
+      confused: mrNerdConfused,
+      blinking: mrNerdBlinking,
+      tired: mrNerdTired,
+      walking: mrNerdStanding,
+      turnaround: mrNerdStanding,
     }
   },
   'ms-nerd': {
@@ -144,6 +176,11 @@ export const MASCOT_REGISTRY: Record<AvatarId, MascotInfo> = {
       peeking: msNerdPeeking,
       sipping_coffee: msNerdSipping,
       document_catching: msNerdCatching,
+      confused: msNerdConfused,
+      blinking: msNerdBlinking,
+      tired: msNerdTired,
+      walking: msNerdStanding,
+      turnaround: msNerdStanding,
     }
   }
 };

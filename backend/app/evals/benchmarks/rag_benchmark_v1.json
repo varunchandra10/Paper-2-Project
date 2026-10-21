@@ -1,0 +1,108 @@
+{
+  "benchmark_version": "1.0.0",
+  "phase": "8.1_rag_evaluation",
+  "created_at": "2026-10-01T18:00:00Z",
+  "description": "Standardized RAG evaluation benchmark for scientific paper retrieval, context grounding, and generation fidelity.",
+  "items": [
+    {
+      "item_id": "rag_bench_01",
+      "paper_id": "VLCD_change_detection_2025",
+      "question": "What optimizer, learning rate, weight decay, and batch size are used for training the VLCD model?",
+      "ground_truth_answer": "The AdamW optimizer is used with a learning rate of 0.001, a weight decay parameter of 0.001, and a batch size of 24 for 250 epochs.",
+      "relevant_chunk_ids": ["VLCD_change_detection_2025_c20"],
+      "relevant_section": "Section IV-A Datasets and Implementation Details",
+      "expected_citation": "Qiu et al., Section IV-A Datasets and Implementation Details",
+      "query_type": "hyperparameter"
+    },
+    {
+      "item_id": "rag_bench_02",
+      "paper_id": "VLCD_change_detection_2025",
+      "question": "How are subimages prepared from the LEVIR-CD dataset in the VLCD experiments?",
+      "ground_truth_answer": "Each image within the LEVIR-CD dataset is cut into six subimages of size 256 × 256.",
+      "relevant_chunk_ids": ["VLCD_change_detection_2025_c20", "VLCD_change_detection_2025_c19"],
+      "relevant_section": "Section IV-A Datasets and Implementation Details",
+      "expected_citation": "Qiu et al., Section IV-A Datasets and Implementation Details",
+      "query_type": "factual"
+    },
+    {
+      "item_id": "rag_bench_03",
+      "paper_id": "VLCD_change_detection_2025",
+      "question": "What is the word embedding dimension width W and number of target classes Ncls in VLCD?",
+      "ground_truth_answer": "W represents the width of the model's word embedding, which is 512 in CLIP, and Ncls represents the number of classes, which is 2 (changing and not changing).",
+      "relevant_chunk_ids": ["VLCD_change_detection_2025_c12", "VLCD_change_detection_2025_c18"],
+      "relevant_section": "Section III Method (III-A & III-C)",
+      "expected_citation": "Qiu et al., Section III Method",
+      "query_type": "architectural"
+    },
+    {
+      "item_id": "rag_bench_04",
+      "paper_id": "VLCD_change_detection_2025",
+      "question": "How does VLCD utilize prompt learning and the NWPU-RESISC45 dataset?",
+      "ground_truth_answer": "VLCD combines soft prompts with hard prompts and selects 45 categories from the NWPU-RESISC45 dataset as predictive labels for visual language alignment.",
+      "relevant_chunk_ids": ["VLCD_change_detection_2025_c11"],
+      "relevant_section": "Section III Method (III-A Multimodal Data Input)",
+      "expected_citation": "Qiu et al., Section III-A Multimodal Data Input",
+      "query_type": "architectural"
+    },
+    {
+      "item_id": "rag_bench_05",
+      "paper_id": "paper_papericaem26012306",
+      "question": "What database and vector database are used for storing data and semantic search in Medi-Assist AI?",
+      "ground_truth_answer": "MongoDB Atlas is used as the primary database for managing user profiles and chat history, and Pinecone vector database is used for storing vector embeddings and fast semantic search.",
+      "relevant_chunk_ids": ["paper_papericaem26012306_c9", "paper_papericaem26012306_c7"],
+      "relevant_section": "Section IV System Architecture & Section V-C Database Structure",
+      "expected_citation": "Kola Varun Chandra et al., 'Medi-Assist AI: A Multilingual Medical Chatbot', Section IV & Section V-C",
+      "query_type": "architectural"
+    },
+    {
+      "item_id": "rag_bench_06",
+      "paper_id": "paper_papericaem26012306",
+      "question": "Which LLM model is integrated into Medi-Assist AI and what role does it perform?",
+      "ground_truth_answer": "Google Gemini 1.5 Flash is integrated as the generative language model to synthesize verified medical responses grounded in context retrieved from Pinecone.",
+      "relevant_chunk_ids": ["paper_papericaem26012306_c10", "paper_papericaem26012306_c7"],
+      "relevant_section": "Section V-D Integration with Google Gemini",
+      "expected_citation": "Kola Varun Chandra et al., Section V-D Integration with Google Gemini",
+      "query_type": "factual"
+    },
+    {
+      "item_id": "rag_bench_07",
+      "paper_id": "paper_papericaem26012306",
+      "question": "How does Medi-Assist AI handle multilingual natural language processing for regional users?",
+      "ground_truth_answer": "Medi-Assist AI implements multilingual NLP to process user queries in multiple regional languages, allowing non-English speaking patients to describe symptoms and receive accurate health guidance.",
+      "relevant_chunk_ids": ["paper_papericaem26012306_c5", "paper_papericaem26012306_c7"],
+      "relevant_section": "Section D. Multilingual Natural Language Processing",
+      "expected_citation": "Kola Varun Chandra et al., Section D Multilingual NLP",
+      "query_type": "factual"
+    },
+    {
+      "item_id": "rag_bench_08",
+      "paper_id": "paper_papericaem26012306",
+      "question": "Who are the authors of the Medi-Assist AI paper and what institution are they affiliated with?",
+      "ground_truth_answer": "The authors are Kola Varun Chandra, Sri Gurubaguvela D, and Anabhayan S from the Department of Computer Science and Engineering, Pondicherry University, Puducherry, India.",
+      "relevant_chunk_ids": ["paper_papericaem26012306_c1"],
+      "relevant_section": "Title and Author Affiliations",
+      "expected_citation": "Kola Varun Chandra et al., Pondicherry University",
+      "query_type": "factual"
+    },
+    {
+      "item_id": "rag_bench_09",
+      "paper_id": "VLCD_change_detection_2025",
+      "question": "Does VLCD use Pinecone vector database or MongoDB Atlas?",
+      "ground_truth_answer": "No, VLCD is a change detection vision model for remote sensing and does not use Pinecone or MongoDB Atlas.",
+      "relevant_chunk_ids": [],
+      "relevant_section": "N/A (Cross-Paper Isolation Test)",
+      "expected_citation": "None (Negative / Isolation test)",
+      "query_type": "cross_paper"
+    },
+    {
+      "item_id": "rag_bench_10",
+      "paper_id": "VLCD_change_detection_2025",
+      "question": "What datasets are evaluated in the VLCD change detection experimental benchmark?",
+      "ground_truth_answer": "The experiments evaluate LEVIR-CD, SYSU-CD, and S2Looking datasets.",
+      "relevant_chunk_ids": ["VLCD_change_detection_2025_c19", "VLCD_change_detection_2025_c20"],
+      "relevant_section": "Section IV-A Datasets and Implementation Details",
+      "expected_citation": "Qiu et al., Section IV-A Datasets and Implementation Details",
+      "query_type": "factual"
+    }
+  ]
+}

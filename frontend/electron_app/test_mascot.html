@@ -3,1143 +3,305 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mr. Nerdy Mascot - Transition Studio</title>
+  <title>Mr. Nerdy Mascot - Animation Transition Visualizer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg-dark: #070a12;
-      --card-bg: rgba(15, 23, 42, 0.85);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --accent-cyan: #38bdf8;
-      --accent-purple: #a855f7;
-      --accent-emerald: #10b981;
-      --accent-amber: #f59e0b;
-      --accent-rose: #f43f5e;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background: radial-gradient(circle at 50% 0%, #1e293b 0%, var(--bg-dark) 65%);
-      color: var(--text-main);
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      padding: 14px 18px;
-      overflow: hidden;
-    }
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-bottom: 10px;
-      border-bottom: 1px solid var(--card-border);
-      margin-bottom: 12px;
-      flex-shrink: 0;
-    }
-
-    .title h1 {
-      font-size: 17px;
-      font-weight: 800;
-      background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .title p {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-top: 1px;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 12px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 600;
-      background: rgba(56, 189, 248, 0.1);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      color: var(--accent-cyan);
-    }
-    .badge-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--accent-cyan);
-      box-shadow: 0 0 6px var(--accent-cyan);
-    }
-
-    /* --- 3-Column Layout: i) Sprite Sheets | Stage | ii) Frames + iii) Speed + iv) Transition --- */
-    .studio-container {
-      display: grid;
-      grid-template-columns: 290px 1fr 350px;
-      gap: 14px;
-      flex: 1;
-      min-height: 0;
-    }
-
-    .panel {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      backdrop-filter: blur(16px);
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-    }
-
-    .panel-header {
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-shrink: 0;
-    }
-
-    .panel-header-title {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--accent-cyan);
-    }
-
-    /* --- 1. Left: i) Sprite Sheets (Direct clickable list with names, no dropdowns) --- */
-    .sheet-list {
-      flex: 1;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      padding-right: 4px;
-    }
-
-    .sheet-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 11px;
-      border-radius: 8px;
-      background: rgba(30, 41, 59, 0.4);
-      border: 1px solid var(--card-border);
-      cursor: pointer;
-      transition: all 0.15s ease;
-      user-select: none;
-    }
-    .sheet-item:hover {
-      background: rgba(56, 189, 248, 0.15);
-      border-color: rgba(56, 189, 248, 0.35);
-      transform: translateX(3px);
-    }
-    .sheet-item.active {
-      background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(99, 102, 241, 0.25));
-      border-color: var(--accent-cyan);
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
-    }
-
-    .sheet-info {
-      display: flex;
-      flex-direction: column;
-      gap: 1px;
-    }
-    .sheet-name {
-      font-size: 12.5px;
-      font-weight: 700;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .sheet-filename {
-      font-size: 9.5px;
-      color: var(--text-muted);
-      font-family: 'JetBrains Mono', monospace;
-    }
-    .sheet-frames-count {
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--accent-cyan);
-      background: rgba(56, 189, 248, 0.1);
-      padding: 2px 6px;
-      border-radius: 4px;
-      flex-shrink: 0;
-    }
-
-    /* --- Center: Mascot Viewport Stage --- */
-    .stage-panel {
-      align-items: center;
-      justify-content: center;
-      position: relative;
-    }
-
-    .stage-wrapper {
-      position: relative;
-      width: 280px;
-      height: 280px;
-      background: radial-gradient(circle at 50% 50%, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.95) 100%);
-      border: 1.5px solid rgba(56, 189, 248, 0.25);
-      border-radius: 18px;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), inset 0 0 30px rgba(56, 189, 248, 0.05);
-      overflow: hidden;
-    }
-
-    .stage-grid-bg {
-      position: absolute;
-      inset: 0;
-      background-image: 
-        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-      background-size: 20px 20px;
-      pointer-events: none;
-    }
-
-    canvas#stageCanvas {
-      width: 280px;
-      height: 280px;
-      object-fit: contain;
-      z-index: 5;
-    }
-
-    /* Floating Overlays */
-    .zzz-container {
-      position: absolute;
-      bottom: 48%;
-      left: 48%;
-      width: 40px;
-      height: 40px;
-      pointer-events: none;
-      display: none;
-      z-index: 10;
-    }
-    .zzz-container.active { display: block; }
-    .zzz {
-      position: absolute;
-      font-weight: 900;
-      opacity: 0;
-      line-height: 1;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    }
-    .zzz.z1 {
-      font-size: 9px;
-      color: #38bdf8;
-      left: 0px;
-      bottom: 0px;
-      animation: float-z 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite 0s;
-    }
-    .zzz.z2 {
-      font-size: 12px;
-      color: #a855f7;
-      left: 10px;
-      bottom: 8px;
-      animation: float-z 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite 0.8s;
-    }
-    .zzz.z3 {
-      font-size: 15px;
-      color: #f43f5e;
-      left: 20px;
-      bottom: 18px;
-      animation: float-z 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite 1.6s;
-    }
-    @keyframes float-z {
-      0% { transform: translate(0, 4px) scale(0.7) rotate(-10deg); opacity: 0; }
-      25% { opacity: 0.95; }
-      65% { opacity: 0.85; }
-      100% { transform: translate(8px, -18px) scale(1.05) rotate(10deg); opacity: 0; }
-    }
-
-    .stage-status-bar {
-      margin-top: 12px;
-      display: flex;
-      gap: 12px;
-      font-size: 11px;
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 6px 14px;
-    }
-    .status-badge {
-      color: var(--text-muted);
-    }
-    .status-badge b {
-      color: var(--accent-cyan);
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    /* --- Right Controls: ii) Frame Wise Buttons | iii) Speed | iv) Transition Button --- */
-    .controls-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      overflow-y: auto;
-    }
-
-    .control-box {
-      background: rgba(30, 41, 59, 0.35);
-      border: 1px solid var(--card-border);
-      border-radius: 10px;
-      padding: 10px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .control-box-header {
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--accent-cyan);
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    /* ii) Frame Wise Buttons */
-    .frame-buttons-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-      gap: 8px;
-    }
-
-    .frame-btn {
-      padding: 9px 6px;
-      border-radius: 8px;
-      background: #0f172a;
-      border: 1.5px solid var(--card-border);
-      color: var(--text-main);
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      transition: all 0.15s;
-      user-select: none;
-    }
-    .frame-btn:hover {
-      border-color: var(--accent-cyan);
-      background: rgba(56, 189, 248, 0.12);
-      transform: translateY(-1px);
-    }
-    .frame-btn.active {
-      border-color: var(--accent-cyan);
-      background: rgba(56, 189, 248, 0.22);
-      color: var(--accent-cyan);
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
-    }
-    .frame-btn span.sub {
-      font-size: 9px;
-      color: var(--text-muted);
-      font-weight: 500;
-    }
-
-    /* Preset & sequence tags */
-    .sequence-strip {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      flex-wrap: wrap;
-      background: #090d16;
-      border: 1px solid var(--card-border);
-      border-radius: 6px;
-      padding: 6px 8px;
-      min-height: 36px;
-    }
-
-    .seq-tag {
-      background: rgba(56, 189, 248, 0.2);
-      border: 1px solid var(--accent-cyan);
-      color: var(--accent-cyan);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10.5px;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 4px;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .seq-tag.highlight {
-      background: var(--accent-cyan);
-      color: #000;
-      box-shadow: 0 0 8px var(--accent-cyan);
-    }
-    .seq-tag-del {
-      cursor: pointer;
-      color: var(--accent-rose);
-      font-weight: bold;
-    }
-
-    .quick-chip {
-      width: 100%;
-      padding: 7px 8px;
-      border-radius: 6px;
-      background: rgba(56, 189, 248, 0.15);
-      border: 1px solid rgba(56, 189, 248, 0.4);
-      color: var(--accent-cyan);
-      font-size: 10.5px;
-      font-weight: 700;
-      cursor: pointer;
-      text-align: center;
-      transition: all 0.15s;
-    }
-    .quick-chip:hover {
-      background: rgba(56, 189, 248, 0.25);
-      border-color: var(--accent-cyan);
-      color: #fff;
-    }
-
-    /* iii) Speed Controls */
-    .slider-group {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .slider-header {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      font-weight: 600;
-    }
-    .slider-val {
-      font-family: 'JetBrains Mono', monospace;
-      color: var(--accent-cyan);
-      font-weight: 700;
-    }
-    input[type="range"] {
-      -webkit-appearance: none;
-      width: 100%;
-      height: 6px;
-      background: rgba(15, 23, 42, 0.9);
-      border-radius: 4px;
-      outline: none;
-    }
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: var(--accent-cyan);
-      cursor: pointer;
-      box-shadow: 0 0 8px var(--accent-cyan);
-    }
-
-    .speed-presets-row {
-      display: flex;
-      gap: 6px;
-      margin-top: 2px;
-    }
-    .speed-chip {
-      flex: 1;
-      padding: 5px;
-      border-radius: 5px;
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid var(--card-border);
-      color: var(--text-muted);
-      font-size: 10px;
-      font-weight: 600;
-      cursor: pointer;
-      text-align: center;
-    }
-    .speed-chip:hover, .speed-chip.active {
-      background: rgba(56, 189, 248, 0.2);
-      border-color: var(--accent-cyan);
-      color: var(--accent-cyan);
-    }
-
-    /* iv) Big Transition Button */
-    .transition-action-box {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: auto;
-    }
-
-    button.transition-btn {
-      width: 100%;
-      padding: 13px;
-      border-radius: 10px;
-      border: none;
-      background: linear-gradient(135deg, #0284c7, #6366f1);
-      color: white;
-      font-size: 14px;
-      font-weight: 800;
-      letter-spacing: 0.6px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      box-shadow: 0 4px 18px rgba(56, 189, 248, 0.35);
-      transition: all 0.2s;
-    }
-    button.transition-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 22px rgba(56, 189, 248, 0.55);
-      background: linear-gradient(135deg, #38bdf8, #818cf8);
-    }
-    button.transition-btn:active {
-      transform: translateY(0);
-    }
-
-    .aux-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-    .aux-btn {
-      padding: 7px;
-      border-radius: 7px;
-      background: rgba(30, 41, 59, 0.6);
-      border: 1px solid var(--card-border);
-      color: var(--text-main);
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-      transition: background 0.15s;
-    }
-    .aux-btn:hover {
-      background: rgba(56, 189, 248, 0.15);
-      border-color: rgba(56, 189, 248, 0.4);
-    }
-
-    /* Scrollbars */
-    ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
+  <!-- Top App Header -->
   <header>
-    <div class="title">
-      <h1><span>🤖</span> Mr. Nerdy - Transition Studio</h1>
-      <p>Single Proper Transitions (Starts & Ends in Standing Position) &bull; Hold 90ms &bull; Fade 120ms</p>
+    <div class="brand">
+      <div class="brand-logo">👓</div>
+      <div class="brand-text">
+        <h1>MR. NERDY <span style="font-weight: 500; color: var(--accent-cyan); font-size: 13px;">TRANSITION STUDIO</span></h1>
+        <p>Interactive Mascot Animation & Transition Visualizer</p>
+      </div>
     </div>
-    <div class="badge">
-      <span class="badge-dot"></span>
-      <span id="loadBadge">Loading Sprites...</span>
+    
+    <div class="header-badges">
+      <div class="badge success">
+        <span class="badge-dot"></span>
+        <span>17 Animations Loaded</span>
+      </div>
+      <div class="badge">
+        <span class="badge-dot"></span>
+        <span>132 Processed Frames</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn-accent" id="btnOpenExport">
+        <span>💾</span> Export Transition
+      </button>
     </div>
   </header>
 
-  <div class="studio-container">
+  <!-- 3-Column Main Dashboard Layout -->
+  <main class="main-layout">
     
-    <!-- ========================================== -->
-    <!-- 1. LEFT: i) SPRITE SHEETS (ALL WITH NAMES) -->
-    <!-- ========================================== -->
-    <div class="panel">
+    <!-- Left Column: Transition Editor & Presets -->
+    <section class="panel">
       <div class="panel-header">
-        <div class="panel-header-title">
-          <span>📁</span>
-          <span>i) Sprite Sheets</span>
-        </div>
-        <span id="sheetsCount" style="color:var(--accent-cyan); font-family:'JetBrains Mono'; font-size:10px;">13 Sheets</span>
-      </div>
-      
-      <!-- Direct list of all 13 sprite sheets with names -->
-      <div id="sheetList" class="sheet-list">
-        <!-- Injected by JavaScript -->
-      </div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- CENTER: MASCOT VIEWPORT STAGE              -->
-    <!-- ========================================== -->
-    <div class="panel stage-panel">
-      <div class="panel-header" style="width:100%;">
-        <div class="panel-header-title">
-          <span>🎯</span>
-          <span>Mascot Viewport (280x280)</span>
-        </div>
-        <div style="display:flex; gap:10px; font-size:11px; color:var(--text-muted);">
-          <label style="cursor:pointer; display:flex; align-items:center; gap:4px;">
-            <input type="checkbox" id="toggleZzzChk" onchange="toggleZzz(this.checked)"> ZZZ 💤
-          </label>
+        <div class="panel-title">
+          <span>⚙️</span> Transition Editor
         </div>
       </div>
-
-      <div class="stage-wrapper">
-        <div class="stage-grid-bg"></div>
+      <div class="panel-body">
         
-        <!-- Floating ZZZ container -->
-        <div id="zzz-container" class="zzz-container">
-          <span class="zzz z1">Z</span>
-          <span class="zzz z2">Z</span>
-          <span class="zzz z3">Z</span>
+        <!-- Source Animation -->
+        <div class="form-group">
+          <label class="form-label" for="sourceAnimSelect">Source State (From)</label>
+          <select id="sourceAnimSelect"></select>
         </div>
 
-        <!-- Mascot Stage Canvas -->
-        <canvas id="stageCanvas" width="280" height="280"></canvas>
-      </div>
+        <!-- Target Animation -->
+        <div class="form-group">
+          <label class="form-label" for="targetAnimSelect">Target State (To)</label>
+          <select id="targetAnimSelect"></select>
+        </div>
 
-      <div class="stage-status-bar">
-        <span class="status-badge">Sheet: <b id="statSheet">wave</b></span>
-        <span class="status-badge">Frame: <b id="statFrame">0</b></span>
-        <span class="status-badge">Status: <b id="statStatus">Ready (Standing)</b></span>
-      </div>
-    </div>
+        <!-- Transition Type -->
+        <div class="form-group">
+          <label class="form-label" for="transitionTypeSelect">Transition Interpolation Type</label>
+          <select id="transitionTypeSelect">
+            <option value="pose_based">Pose-Based (Intermediate Stance / Natural Prep)</option>
+            <option value="immediate">Immediate (Instant State Switch)</option>
+            <option value="crossfade">Crossfade (Alpha Blend Dissolve)</option>
+            <option value="sequential">Sequential Scene (Natural Multi-Step Flow)</option>
+          </select>
+        </div>
 
-    <!-- ======================================================== -->
-    <!-- RIGHT: ii) FRAME WISE BUTTONS | iii) SPEED | iv) BUTTON  -->
-    <!-- ======================================================== -->
-    <div class="panel controls-panel">
+        <!-- Duration Slider -->
+        <div class="form-group">
+          <div class="form-label">
+            <span>Transition Duration</span>
+            <span class="val-badge" id="durationVal">300ms</span>
+          </div>
+          <input type="range" id="durationSlider" min="50" max="1500" step="25" value="300">
+        </div>
+
+        <!-- Preset Gallery -->
+        <div class="form-group" style="margin-top: 6px;">
+          <div class="form-label">
+            <span>Preset Transition Gallery</span>
+          </div>
+          <div class="presets-list" id="presetsList">
+            <!-- Populated via JavaScript -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Center Column: Visual Stage & Timeline -->
+    <section class="stage-panel">
       
-      <!-- --------------------------------- -->
-      <!-- ii) FRAME WISE BUTTONS           -->
-      <!-- --------------------------------- -->
-      <div class="control-box">
-        <div class="control-box-header">
-          <span>ii) Frame Wise Buttons</span>
-          <span style="font-size:9px; color:var(--text-muted);">Click to preview / add</span>
+      <!-- Stage Toolbar -->
+      <div class="stage-toolbar">
+        <!-- Zoom Pills -->
+        <div class="pill-group" style="width: 220px;">
+          <button class="pill-btn" data-zoom="0.5">50%</button>
+          <button class="pill-btn" data-zoom="0.75">75%</button>
+          <button class="pill-btn active" data-zoom="1.0">100%</button>
+          <button class="pill-btn" data-zoom="1.5">150%</button>
         </div>
 
-        <!-- Dynamically rendered Frame 0, Frame 1, Frame 2 buttons -->
-        <div id="frameButtonsGrid" class="frame-buttons-grid">
-          <!-- Rendered dynamically for active sheet -->
+        <!-- Background Pills -->
+        <div class="pill-group" style="width: 200px;">
+          <button class="pill-btn active" data-bg="checkerboard">Checker</button>
+          <button class="pill-btn" data-bg="solid-dark">Dark</button>
+          <button class="pill-btn" data-bg="solid-light">Light</button>
         </div>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
-          <span style="font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Transition Chain:</span>
-          <span style="color:var(--accent-rose); cursor:pointer; font-size:10px; font-weight:600;" onclick="clearSequence()">Clear Chain</span>
-        </div>
-
-        <div id="sequenceStrip" class="sequence-strip">
-          <!-- Tags injected by JavaScript -->
-        </div>
-
-        <!-- Proper Transition Preset Buttons -->
-        <div style="display:flex; gap:6px; margin-top:2px;">
-          <div class="quick-chip" style="flex:1;" onclick="applyPresetChain('bounce')">
-            ✨ Single (0➔1➔2➔1➔0)
-          </div>
-          <div class="quick-chip" style="flex:1;" onclick="applyPresetChain('double')">
-            ✨ Double Blink (2 Blinks)
-          </div>
-        </div>
-      </div>
-
-      <!-- --------------------------------- -->
-      <!-- iii) SPEED CONTROLS              -->
-      <!-- --------------------------------- -->
-      <div class="control-box">
-        <div class="control-box-header">
-          <span>iii) Speed</span>
-          <span id="speedVal" class="slider-val">120 ms</span>
-        </div>
-
-        <div class="slider-group">
-          <div class="slider-header">
-            <span>Frame Hold Duration:</span>
-          </div>
-          <input type="range" id="speedSlider" min="40" max="700" step="10" value="120" oninput="onSpeedChanged(this.value)">
-        </div>
-
-        <div class="slider-group" style="margin-top:2px;">
-          <div class="slider-header">
-            <span>Cross-Fade Blend:</span>
-            <span id="fadeVal" class="slider-val">0 ms (Snappy)</span>
-          </div>
-          <input type="range" id="fadeSlider" min="0" max="260" step="10" value="0" oninput="onFadeChanged(this.value)">
-        </div>
-
-        <div class="speed-presets-row">
-          <div class="speed-chip active" onclick="setSpeedPreset(120, 0)">✨ Standard (120/0ms)</div>
-          <div class="speed-chip" onclick="setSpeedPreset(75, 0)">⚡ Fast (75/0ms)</div>
-          <div class="speed-chip" onclick="setSpeedPreset(200, 0)">🐢 Relaxed (200/0ms)</div>
-        </div>
-
-        <div style="display:flex; align-items:center; gap:8px; font-size:11px; margin-top:2px;">
-          <input type="checkbox" id="loopChk">
-          <label for="loopChk" style="color:var(--text-muted); cursor:pointer;">Loop Transition (Unchecked = Single Action)</label>
-        </div>
-      </div>
-
-      <!-- --------------------------------- -->
-      <!-- iv) TRANSITION ACTION BUTTON     -->
-      <!-- --------------------------------- -->
-      <div class="transition-action-box">
-        <button id="mainTransitionBtn" class="transition-btn" onclick="toggleTransitionPlay()">
-          <span>▶</span> iv) SINGLE TRANSITION (0 ➔ 1 ➔ 2 ➔ 1 ➔ 0)
+        <!-- Visual Guides Toggle -->
+        <button class="btn-secondary active" id="btnGuides" style="padding: 4px 10px; font-size: 11px;">
+          <span>📏</span> Guides
         </button>
+      </div>
 
-        <div class="aux-actions">
-          <button class="aux-btn" onclick="stopTransition()">
-            <span>⏹</span> Stop
-          </button>
-          <button class="aux-btn" onclick="copyChainCode()">
-            <span>📋</span> Copy Chain Code
-          </button>
+      <!-- Main Stage Viewport -->
+      <div class="stage-container checkerboard" id="stageContainer">
+        <canvas id="stageCanvas" width="400" height="720"></canvas>
+        
+        <!-- Live Frame Information Overlay -->
+        <div class="stage-overlay-info">
+          <span id="timecodeDisplay">0.00s / 1.00s</span>
+          <span id="frameDisplay">Phase: SOURCE (F1)</span>
+          <span id="canvasDimDisplay">400×720</span>
         </div>
       </div>
 
-    </div>
+      <!-- Transport Controls Bar -->
+      <div class="transport-bar">
+        <div class="transport-controls">
+          <button class="btn-primary" id="btnPlay" style="width: 80px;">▶ Play</button>
+          <button class="btn-secondary" id="btnRestart">↺ Restart</button>
+          <button class="btn-icon" id="btnPrev" title="Step Previous Frame">⏮</button>
+          <button class="btn-icon" id="btnNext" title="Step Next Frame">⏭</button>
+          <button class="btn-icon active" id="btnLoop" title="Toggle Looping">🔁</button>
+        </div>
 
+        <!-- Speed Selector Pills -->
+        <div class="pill-group" style="width: 180px;">
+          <button class="pill-btn" data-speed="0.25">0.25×</button>
+          <button class="pill-btn" data-speed="0.5">0.5×</button>
+          <button class="pill-btn active" data-speed="1.0">1.0×</button>
+          <button class="pill-btn" data-speed="2.0">2.0×</button>
+        </div>
+      </div>
+
+      <!-- Interactive Transition Timeline -->
+      <div class="timeline-container">
+        <div class="timeline-header">
+          <span>0ms</span>
+          <span>TRANSITION TIMELINE</span>
+          <span id="timelineTimeTotal">1000ms</span>
+        </div>
+        
+        <div class="timeline-track" id="timelineTrack">
+          <div class="timeline-segment source" id="timelineSource" style="width: 40%;">Source</div>
+          <div class="timeline-segment transition" id="timelineTrans" style="width: 20%;">Transition</div>
+          <div class="timeline-segment target" id="timelineTarget" style="width: 40%;">Target</div>
+          <div class="timeline-playhead" id="timelinePlayhead" style="left: 0%;"></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Right Column: Side-by-Side Comparison & Quality Diagnostics -->
+    <section class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>🔍</span> Pose & Quality Inspector
+        </div>
+      </div>
+      <div class="panel-body">
+        
+        <!-- Side-by-Side Cards -->
+        <div class="form-group">
+          <label class="form-label">Side-by-Side Pose Alignment</label>
+          <div class="side-by-side-grid">
+            <div class="pose-card">
+              <span class="pose-label">Source Exit</span>
+              <div class="pose-preview-box">
+                <canvas id="sourcePoseCanvas" width="90" height="90"></canvas>
+              </div>
+              <span class="pose-dim" id="sourcePoseDim">--</span>
+            </div>
+
+            <div class="pose-card">
+              <span class="pose-label">Transition</span>
+              <div class="pose-preview-box">
+                <canvas id="transPoseCanvas" width="90" height="90"></canvas>
+              </div>
+              <span class="pose-dim" id="transPoseDim">--</span>
+            </div>
+
+            <div class="pose-card">
+              <span class="pose-label">Target Entry</span>
+              <div class="pose-preview-box">
+                <canvas id="targetPoseCanvas" width="90" height="90"></canvas>
+              </div>
+              <span class="pose-dim" id="targetPoseDim">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Automated Quality Diagnostics Report -->
+        <div class="diagnostics-box">
+          <div class="diag-score-row">
+            <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TRANSITION RATING</span>
+            <span class="diag-rating seamless" id="diagScore">Seamless</span>
+          </div>
+
+          <div class="diag-metrics-grid">
+            <div class="diag-metric-item">
+              <span class="diag-metric-label">Center Shift (ΔX)</span>
+              <span class="diag-metric-val" id="diagDeltaX">0px</span>
+            </div>
+            <div class="diag-metric-item">
+              <span class="diag-metric-label">Ground Shift (ΔY)</span>
+              <span class="diag-metric-val" id="diagDeltaY">0px</span>
+            </div>
+            <div class="diag-metric-item">
+              <span class="diag-metric-label">Silhouette Scale</span>
+              <span class="diag-metric-val" id="diagScale">1.00×</span>
+            </div>
+            <div class="diag-metric-item">
+              <span class="diag-metric-label">Transparency</span>
+              <span class="diag-metric-val" style="color: var(--accent-emerald);">Genuine RGBA</span>
+            </div>
+          </div>
+
+          <div class="form-label" style="margin-top: 4px;">
+            <span>Diagnostic Warnings & Advice</span>
+          </div>
+          <div class="diag-warnings-list" id="diagWarnings">
+            <div class="diag-warning-item clean">✓ Consistent foot placement and silhouette scale.</div>
+          </div>
+        </div>
+
+        <!-- Mascot Attribute Summary -->
+        <div class="diagnostics-box" style="margin-top: auto;">
+          <div class="form-label">
+            <span>Mascot Voxel Specs</span>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); line-height: 1.5;">
+            • Character: <strong>Mr. Nerdy</strong> (Researcher)<br>
+            • Attire: White Lab Coat, Blue Shirt, Brown Shoes<br>
+            • Anchors: Ground Baseline pinned at canvas bottom<br>
+            • Preserved Props: Laptops, Desks, Falling Papers
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Export Modal -->
+  <div class="modal-overlay" id="exportModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">💾 Export Mascot Transition Assets</div>
+        <button class="modal-close" id="btnCloseExport">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="export-option-card" id="exportJsonBtn">
+          <div>
+            <div class="export-option-title">Export Transition Definition (JSON)</div>
+            <div class="export-option-desc">Download frame-by-frame timing, easing, and state sequence metadata.</div>
+          </div>
+          <button class="btn-secondary">Download</button>
+        </div>
+
+        <div class="export-option-card" id="exportManifestBtn">
+          <div>
+            <div class="export-option-title">Export App Controller Manifest (JSON)</div>
+            <div class="export-option-desc">Directly formatted for electron_app/src/mascot_transitions.json integration.</div>
+          </div>
+          <button class="btn-primary">Download</button>
+        </div>
+
+        <div class="export-option-card" id="exportSheetBtn">
+          <div>
+            <div class="export-option-title">Export Transition Spritesheet (PNG)</div>
+            <div class="export-option-desc">Stitched horizontal strip of all rendered transition frames with genuine transparency.</div>
+          </div>
+          <button class="btn-secondary">Generate PNG</button>
+        </div>
+      </div>
+    </div>
   </div>
 
+  <!-- Embedded Dataset for Immediate Offline/File Loading -->
   <script>
-    const canvas = document.getElementById("stageCanvas");
-    const ctx = canvas.getContext("2d");
-    const zzzContainer = document.getElementById("zzz-container");
-
-    const statSheet = document.getElementById("statSheet");
-    const statFrame = document.getElementById("statFrame");
-    const statStatus = document.getElementById("statStatus");
-    const loadBadge = document.getElementById("loadBadge");
-    const speedVal = document.getElementById("speedVal");
-    const fadeVal = document.getElementById("fadeVal");
-    const loopChk = document.getElementById("loopChk");
-    const sequenceStrip = document.getElementById("sequenceStrip");
-    const frameButtonsGrid = document.getElementById("frameButtonsGrid");
-    const mainTransitionBtn = document.getElementById("mainTransitionBtn");
-
-    // --- All 13 Available Mr. Nerdy Sprite Sheets ---
-    const SPRITE_SHEETS = [
-      { key: "wave", name: "Waving (Hi!)", file: "mr_nerdy_waving.png", count: 3, icon: "👋", desc: "First open greeting" },
-      { key: "sleep", name: "Sleeping (Bedtime)", file: "mr_nerdy_sleeping.png", count: 3, icon: "💤", desc: "Minimized state" },
-      { key: "blink", name: "Eye Blinking (Idle)", file: "mr_nerdy_eye_blinking.png", count: 3, icon: "👁️", desc: "Continuous idle blink" },
-      { key: "tired", name: "Tired Slump (Office Chair)", file: "mr_nerdy_tired.png", count: 3, icon: "🪑", desc: "Extended idle slump" },
-      { key: "catching", name: "Document Catching", file: "mr_nerdy_document_catching.png", count: 3, icon: "📄", desc: "PDF file selected" },
-      { key: "hunch", name: "Laptop Typing (Hunch)", file: "mr_nerdy_huncing.png", count: 3, icon: "💻", desc: "Ingestion / backend processing" },
-      { key: "thinking", name: "Thinking (Reasoning)", file: "mr_nerdy_thinking.png", count: 3, icon: "🤔", desc: "Accordion / query reasoning" },
-      { key: "excite", name: "Excited (Success)", file: "mr_nerdy_excited.png", count: 3, icon: "🎉", desc: "Process complete celebratory" },
-      { key: "angry", name: "Angry (Timeout)", file: "mr_nerdy_angry.png", count: 3, icon: "😡", desc: "90s inactivity reaction" },
-      { key: "having_sipping", name: "Coffee Sipping", file: "mr_nerdy_having_sipping.png", count: 3, icon: "☕", desc: "Break / refreshment idle" },
-      { key: "confused", name: "Confused", file: "mr_nerdy_confused.png", count: 3, icon: "❓", desc: "Error or unknown state" },
-      { key: "peeking", name: "Peeking Behind Wall", file: "mr_nerdy_peeking.png", count: 3, icon: "👀", desc: "Corner peek interaction" },
-      { key: "standing", name: "Base Standing", file: "mr_nerdy_standing.png", count: 1, icon: "🧍", desc: "Neutral standing pose" }
-    ];
-
-    const images = {};
-    let loadedCount = 0;
-
-    let currentSheetKey = "wave";
-    let currentFrameIndex = 0;
-    // Standard User Specifications
-    let frameHoldMs = 120;
-    let fadeMs = 0;
-    let isPlaying = false;
-    let transitionToken = 0;
-
-    // Transition Chain: Proper single transition starts at 0 and ends at 0
-    let transitionChain = [
-      { sheet: "wave", frame: 0 },
-      { sheet: "wave", frame: 1 },
-      { sheet: "wave", frame: 2 },
-      { sheet: "wave", frame: 1 },
-      { sheet: "wave", frame: 0 }
-    ];
-
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-
-    function toggleZzz(show) {
-      if (zzzContainer) {
-        if (show) zzzContainer.classList.add('active');
-        else zzzContainer.classList.remove('active');
-      }
-      document.getElementById("toggleZzzChk").checked = show;
-    }
-
-    function onSpeedChanged(val) {
-      frameHoldMs = parseInt(val);
-      speedVal.innerText = `${frameHoldMs} ms`;
-      document.querySelectorAll(".speed-chip").forEach(c => c.classList.remove("active"));
-    }
-
-    function onFadeChanged(val) {
-      fadeMs = parseInt(val);
-      fadeVal.innerText = fadeMs === 0 ? "0 ms (Snappy)" : `${fadeMs} ms (Smooth Blend)`;
-    }
-
-    function setSpeedPreset(hold, fade) {
-      frameHoldMs = hold;
-      fadeMs = fade;
-      document.getElementById("speedSlider").value = hold;
-      document.getElementById("fadeSlider").value = fade;
-      speedVal.innerText = `${hold} ms`;
-      fadeVal.innerText = fade === 0 ? "0 ms (Snappy)" : `${fade} ms (Smooth Blend)`;
-      document.querySelectorAll(".speed-chip").forEach(c => {
-        c.classList.toggle("active", c.innerText.includes(`${hold}/${fade}ms`));
-      });
-    }
-
-    // --- i) Render Sprite Sheets List on Left ---
-    function renderSheetList() {
-      const container = document.getElementById("sheetList");
-      container.innerHTML = "";
-
-      SPRITE_SHEETS.forEach(sheet => {
-        const item = document.createElement("div");
-        item.className = `sheet-item ${sheet.key === currentSheetKey ? 'active' : ''}`;
-        item.onclick = () => selectSheet(sheet.key);
-
-        item.innerHTML = `
-          <div class="sheet-info">
-            <span class="sheet-name"><span>${sheet.icon}</span> ${sheet.name}</span>
-            <span class="sheet-filename">${sheet.file}</span>
-          </div>
-          <span class="sheet-frames-count">${sheet.count} fr</span>
-        `;
-        container.appendChild(item);
-      });
-    }
-
-    function selectSheet(key) {
-      currentSheetKey = key;
-      renderSheetList();
-      renderFrameButtons();
-
-      loopChk.checked = false;
-
-      // Reset transition chain to proper start-to-end standing sequence (0 -> 1 -> 2 -> 1 -> 0)
-      const sheet = SPRITE_SHEETS.find(s => s.key === key);
-      const count = sheet ? sheet.count : 3;
-      if (count === 3) {
-        transitionChain = [
-          { sheet: key, frame: 0 },
-          { sheet: key, frame: 1 },
-          { sheet: key, frame: 2 },
-          { sheet: key, frame: 1 },
-          { sheet: key, frame: 0 }
-        ];
-      } else {
-        transitionChain = [{ sheet: key, frame: 0 }];
-      }
-
-      renderSequenceStrip();
-      drawFrame(currentSheetKey, 0);
-      updateActiveFrameButton(0);
-    }
-
-    // --- ii) Render Frame Wise Buttons ---
-    function renderFrameButtons() {
-      frameButtonsGrid.innerHTML = "";
-      const sheet = SPRITE_SHEETS.find(s => s.key === currentSheetKey) || { count: 3 };
-      const count = sheet.count || 1;
-
-      const subLabels = ["Base (Standing)", "Mid Motion", "Peak Action"];
-
-      for (let i = 0; i < count; i++) {
-        const btn = document.createElement("button");
-        btn.id = `frameBtn${i}`;
-        btn.className = `frame-btn ${i === currentFrameIndex ? 'active' : ''}`;
-        btn.onclick = () => onFrameClicked(i);
-
-        btn.innerHTML = `
-          <span>Frame ${i}</span>
-          <span class="sub">${subLabels[i] || 'Frame ' + i}</span>
-        `;
-        frameButtonsGrid.appendChild(btn);
-      }
-    }
-
-    function onFrameClicked(frameIdx) {
-      drawFrame(currentSheetKey, frameIdx);
-      updateActiveFrameButton(frameIdx);
-
-      // Append this frame to transition chain
-      transitionChain.push({ sheet: currentSheetKey, frame: frameIdx });
-      renderSequenceStrip();
-    }
-
-    function updateActiveFrameButton(frameIdx) {
-      const sheet = SPRITE_SHEETS.find(s => s.key === currentSheetKey) || { count: 3 };
-      for (let i = 0; i < (sheet.count || 3); i++) {
-        const btn = document.getElementById(`frameBtn${i}`);
-        if (btn) btn.classList.toggle("active", i === frameIdx);
-      }
-    }
-
-    function renderSequenceStrip(highlightIdx = -1) {
-      if (!transitionChain.length) {
-        sequenceStrip.innerHTML = `<span style="font-size:10px; color:var(--text-muted);">Click frame buttons to build transition</span>`;
-        return;
-      }
-
-      sequenceStrip.innerHTML = transitionChain.map((step, idx) => `
-        <span class="seq-tag ${idx === highlightIdx ? 'highlight' : ''}">
-          ${step.sheet}:${step.frame}
-          <span class="seq-tag-del" onclick="removeStep(${idx})">&times;</span>
-        </span>
-      `).join("");
-    }
-
-    function removeStep(idx) {
-      transitionChain.splice(idx, 1);
-      renderSequenceStrip();
-    }
-
-    function clearSequence() {
-      transitionChain = [];
-      renderSequenceStrip();
-    }
-
-    function applyPresetChain(type) {
-      const sheet = SPRITE_SHEETS.find(s => s.key === currentSheetKey) || { count: 3 };
-      const count = sheet.count || 1;
-
-      if (type === 'bounce') {
-        if (count === 3) {
-          transitionChain = [
-            { sheet: currentSheetKey, frame: 0 },
-            { sheet: currentSheetKey, frame: 1 },
-            { sheet: currentSheetKey, frame: 2 },
-            { sheet: currentSheetKey, frame: 1 },
-            { sheet: currentSheetKey, frame: 0 }
-          ];
-        } else {
-          transitionChain = [{ sheet: currentSheetKey, frame: 0 }];
-        }
-      } else if (type === 'double') {
-        if (count === 3) {
-          transitionChain = [
-            { sheet: currentSheetKey, frame: 0 },
-            { sheet: currentSheetKey, frame: 1 },
-            { sheet: currentSheetKey, frame: 2 },
-            { sheet: currentSheetKey, frame: 1 },
-            { sheet: currentSheetKey, frame: 0 },
-            { sheet: currentSheetKey, frame: 1 },
-            { sheet: currentSheetKey, frame: 2 },
-            { sheet: currentSheetKey, frame: 1 },
-            { sheet: currentSheetKey, frame: 0 }
-          ];
-        } else {
-          transitionChain = [{ sheet: currentSheetKey, frame: 0 }];
-        }
-      }
-      renderSequenceStrip();
-    }
-
-    // --- Canvas Drawing & Cross-Fade ---
-    function drawFrame(sheetKey, frameIndex) {
-      if (!ctx || !images[sheetKey]) return;
-      const sheet = SPRITE_SHEETS.find(s => s.key === sheetKey) || { count: 3 };
-      const img = images[sheetKey];
-      const frameCount = sheet.count || 1;
-      const frameW = img.naturalWidth / frameCount;
-      const frameH = img.naturalHeight;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const scale = Math.min(canvas.width / frameW, canvas.height / frameH);
-      const drawW = frameW * scale;
-      const drawH = frameH * scale;
-      const dx = (canvas.width - drawW) / 2;
-      const dy = canvas.height - drawH;
-
-      ctx.drawImage(
-        img,
-        frameIndex * frameW, 0, frameW, frameH,
-        dx, dy, drawW, drawH
-      );
-
-      currentSheetKey = sheetKey;
-      currentFrameIndex = frameIndex;
-      statSheet.innerText = sheetKey;
-      statFrame.innerText = frameIndex;
-    }
-
-    async function drawFrameCrossFade(sheetKey, fromIndex, toIndex, duration = 120) {
-      if (!ctx || !images[sheetKey]) return;
-      const sheet = SPRITE_SHEETS.find(s => s.key === sheetKey) || { count: 3 };
-      const img = images[sheetKey];
-      const frameCount = sheet.count || 1;
-      const frameW = img.naturalWidth / frameCount;
-      const frameH = img.naturalHeight;
-
-      const scale = Math.min(canvas.width / frameW, canvas.height / frameH);
-      const drawW = frameW * scale;
-      const drawH = frameH * scale;
-      const dx = (canvas.width - drawW) / 2;
-      const dy = canvas.height - drawH;
-
-      const steps = 5;
-      const stepMs = Math.max(12, Math.round(duration / steps));
-
-      for (let i = 1; i <= steps; i++) {
-        const alpha = i / steps;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        ctx.globalAlpha = 1 - alpha;
-        ctx.drawImage(img, fromIndex * frameW, 0, frameW, frameH, dx, dy, drawW, drawH);
-
-        ctx.globalAlpha = alpha;
-        ctx.drawImage(img, toIndex * frameW, 0, frameW, frameH, dx, dy, drawW, drawH);
-
-        ctx.globalAlpha = 1.0;
-        await sleep(stepMs);
-      }
-
-      drawFrame(sheetKey, toIndex);
-    }
-
-    // --- iv) TRANSITION BUTTON ACTION ---
-    function toggleTransitionPlay() {
-      if (isPlaying) {
-        stopTransition();
-      } else {
-        playTransitionChain();
-      }
-    }
-
-    async function playTransitionChain() {
-      if (!transitionChain.length) {
-        alert("Please add at least one frame to the transition chain!");
-        return;
-      }
-
-      stopTransition();
-      isPlaying = true;
-      const myToken = ++transitionToken;
-      const loop = loopChk.checked;
-
-      mainTransitionBtn.innerHTML = `<span>⏹</span> iv) STOPPING`;
-      mainTransitionBtn.style.background = "linear-gradient(135deg, #f43f5e, #e11d48)";
-      statStatus.innerText = "Playing Transition...";
-      statStatus.style.color = "var(--accent-amber)";
-
-      do {
-        let prevStep = null;
-        for (let i = 0; i < transitionChain.length; i++) {
-          if (!isPlaying || myToken !== transitionToken) break;
-          const step = transitionChain[i];
-
-          renderSequenceStrip(i);
-
-          // Auto overlays for sleep
-          if (step.sheet === "sleep" && step.frame === 2) toggleZzz(true);
-          else if (step.sheet === "sleep" && step.frame < 2) toggleZzz(false);
-
-          updateActiveFrameButton(step.frame);
-
-          if (fadeMs > 0 && prevStep && prevStep.sheet === step.sheet && prevStep.frame !== step.frame) {
-            await drawFrameCrossFade(step.sheet, prevStep.frame, step.frame, fadeMs);
-          } else {
-            drawFrame(step.sheet, step.frame);
-          }
-
-          if (frameHoldMs > 0) {
-            await sleep(frameHoldMs);
-          }
-          prevStep = step;
-        }
-      } while (loop && isPlaying && myToken === transitionToken);
-
-      if (myToken === transitionToken) {
-        isPlaying = false;
-        renderSequenceStrip(-1);
-        mainTransitionBtn.innerHTML = `<span>▶</span> iv) SINGLE TRANSITION (0 ➔ 1 ➔ 2 ➔ 1 ➔ 0)`;
-        mainTransitionBtn.style.background = "linear-gradient(135deg, #0284c7, #6366f1)";
-        statStatus.innerText = "Ready (Standing: Frame 0)";
-        statStatus.style.color = "var(--accent-emerald)";
-
-        // Ensure mascot returns to standing position at frame 0
-        drawFrame(currentSheetKey, 0);
-        updateActiveFrameButton(0);
-      }
-    }
-
-    function stopTransition() {
-      isPlaying = false;
-      transitionToken++;
-      renderSequenceStrip(-1);
-      mainTransitionBtn.innerHTML = `<span>▶</span> iv) SINGLE TRANSITION (0 ➔ 1 ➔ 2 ➔ 1 ➔ 0)`;
-      mainTransitionBtn.style.background = "linear-gradient(135deg, #0284c7, #6366f1)";
-      statStatus.innerText = "Ready (Standing: Frame 0)";
-      statStatus.style.color = "var(--accent-emerald)";
-      drawFrame(currentSheetKey, 0);
-      updateActiveFrameButton(0);
-    }
-
-    function copyChainCode() {
-      const code = JSON.stringify({
-        sheet: currentSheetKey,
-        frameHoldMs,
-        fadeMs,
-        loop: loopChk.checked,
-        chain: transitionChain
-      }, null, 2);
-
-      navigator.clipboard.writeText(code);
-      alert("✅ Transition chain code copied to clipboard!\n" + code);
-    }
-
-    // --- Image Preloading with robust multi-directory fallbacks ---
-    function loadImages(cb) {
-      SPRITE_SHEETS.forEach(sheet => {
-        const img = new Image();
-        const candidatePaths = [
-          "assets/mr_nerdy/" + sheet.file,
-          "src/assets/mr_nerdy/" + sheet.file,
-          "../assets/mr_nerdy/" + sheet.file,
-          "./assets/mr_nerdy/" + sheet.file
-        ];
-        let pathIdx = 0;
-
-        img.onload = () => {
-          images[sheet.key] = img;
-          loadedCount++;
-          if (loadedCount === SPRITE_SHEETS.length) {
-            loadBadge.innerText = `All ${SPRITE_SHEETS.length} Sprites Ready`;
-            loadBadge.style.color = "var(--accent-emerald)";
-            loadBadge.style.borderColor = "rgba(16, 185, 129, 0.4)";
-            loadBadge.querySelector('.badge-dot').style.background = "var(--accent-emerald)";
-            if (cb) cb();
-          }
-        };
-
-        img.onerror = () => {
-          pathIdx++;
-          if (pathIdx < candidatePaths.length) {
-            img.src = candidatePaths[pathIdx];
-          } else {
-            console.warn("Failed to load sprite sheet:", sheet.file);
-            loadedCount++;
-            if (loadedCount === SPRITE_SHEETS.length && cb) cb();
-          }
-        };
-
-        img.src = candidatePaths[0];
-      });
-    }
-
-    // Boot Studio
-    renderSheetList();
-    renderFrameButtons();
-    renderSequenceStrip();
-
-    loadImages(() => {
-      drawFrame("wave", 0);
-    });
+    window.EMBEDDED_ANIMATIONS_DATA = {"blinking": {"id": "blinking", "title": "Eye Blinking", "source_file": "blinking.png", "strategy": "strategy_a", "frame_count": 6, "frame_duration_ms": 130, "fps": 7.7, "loop": true, "canvas": {"width": 290, "height": 694, "dimensions": "290x694"}, "anchor": "head", "props": [], "spritesheet_path": "assets/processed/blinking/spritesheet.png", "preview_gif_path": "assets/processed/blinking/preview.gif", "contact_sheet_path": "assets/processed/blinking/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/blinking/frames/frame_00.png", "width": 290, "height": 694, "bbox": [21, 16, 268, 676], "fg_width": 248, "fg_height": 661, "foot_y": 676, "center_x": 144.5}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/blinking/frames/frame_01.png", "width": 290, "height": 694, "bbox": [20, 16, 270, 676], "fg_width": 251, "fg_height": 661, "foot_y": 676, "center_x": 145.0}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/blinking/frames/frame_02.png", "width": 290, "height": 694, "bbox": [18, 17, 271, 676], "fg_width": 254, "fg_height": 660, "foot_y": 676, "center_x": 144.5}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/blinking/frames/frame_03.png", "width": 290, "height": 694, "bbox": [17, 16, 273, 676], "fg_width": 257, "fg_height": 661, "foot_y": 676, "center_x": 145.0}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/blinking/frames/frame_04.png", "width": 290, "height": 694, "bbox": [19, 17, 272, 676], "fg_width": 254, "fg_height": 660, "foot_y": 676, "center_x": 145.5}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/blinking/frames/frame_05.png", "width": 290, "height": 694, "bbox": [20, 17, 270, 676], "fg_width": 251, "fg_height": 660, "foot_y": 676, "center_x": 145.0}]}, "confused": {"id": "confused", "title": "Confused", "source_file": "confused.png", "strategy": "strategy_c", "frame_count": 8, "frame_duration_ms": 140, "fps": 7.1, "loop": true, "canvas": {"width": 308, "height": 650, "dimensions": "308x650"}, "anchor": "feet", "props": ["confusion marks"], "spritesheet_path": "assets/processed/confused/spritesheet.png", "preview_gif_path": "assets/processed/confused/preview.gif", "contact_sheet_path": "assets/processed/confused/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/confused/frames/frame_00.png", "width": 308, "height": 650, "bbox": [43, 22, 264, 633], "fg_width": 222, "fg_height": 612, "foot_y": 633, "center_x": 153.5}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/confused/frames/frame_01.png", "width": 308, "height": 650, "bbox": [40, 30, 269, 633], "fg_width": 230, "fg_height": 604, "foot_y": 633, "center_x": 154.5}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/confused/frames/frame_02.png", "width": 308, "height": 650, "bbox": [34, 28, 274, 633], "fg_width": 241, "fg_height": 606, "foot_y": 633, "center_x": 154.0}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/confused/frames/frame_03.png", "width": 308, "height": 650, "bbox": [37, 33, 271, 633], "fg_width": 235, "fg_height": 601, "foot_y": 633, "center_x": 154.0}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/confused/frames/frame_04.png", "width": 308, "height": 650, "bbox": [17, 19, 291, 632], "fg_width": 275, "fg_height": 614, "foot_y": 632, "center_x": 154.0}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/confused/frames/frame_05.png", "width": 308, "height": 650, "bbox": [26, 35, 283, 633], "fg_width": 258, "fg_height": 599, "foot_y": 633, "center_x": 154.5}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/confused/frames/frame_06.png", "width": 308, "height": 650, "bbox": [35, 20, 272, 633], "fg_width": 238, "fg_height": 614, "foot_y": 633, "center_x": 153.5}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/confused/frames/frame_07.png", "width": 308, "height": 650, "bbox": [31, 19, 278, 632], "fg_width": 248, "fg_height": 614, "foot_y": 632, "center_x": 154.5}]}, "doc_catching": {"id": "doc_catching", "title": "Catching a Falling Document", "source_file": "doc_catching.png", "strategy": "strategy_d", "frame_count": 9, "frame_duration_ms": 130, "fps": 7.7, "loop": false, "canvas": {"width": 286, "height": 714, "dimensions": "286x714"}, "anchor": "scene", "props": ["falling document", "papers"], "spritesheet_path": "assets/processed/doc_catching/spritesheet.png", "preview_gif_path": "assets/processed/doc_catching/preview.gif", "contact_sheet_path": "assets/processed/doc_catching/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/doc_catching/frames/frame_00.png", "width": 286, "height": 714, "bbox": [38, 202, 219, 693], "fg_width": 182, "fg_height": 492, "foot_y": 693, "center_x": 128.5}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/doc_catching/frames/frame_01.png", "width": 286, "height": 714, "bbox": [29, 204, 262, 693], "fg_width": 234, "fg_height": 490, "foot_y": 693, "center_x": 145.5}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/doc_catching/frames/frame_02.png", "width": 286, "height": 714, "bbox": [16, 209, 267, 693], "fg_width": 252, "fg_height": 485, "foot_y": 693, "center_x": 141.5}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/doc_catching/frames/frame_03.png", "width": 286, "height": 714, "bbox": [24, 46, 264, 693], "fg_width": 241, "fg_height": 648, "foot_y": 693, "center_x": 144.0}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/doc_catching/frames/frame_04.png", "width": 286, "height": 714, "bbox": [23, 98, 259, 693], "fg_width": 237, "fg_height": 596, "foot_y": 693, "center_x": 141.0}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/doc_catching/frames/frame_05.png", "width": 286, "height": 714, "bbox": [16, 22, 258, 693], "fg_width": 243, "fg_height": 672, "foot_y": 693, "center_x": 137.0}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/doc_catching/frames/frame_06.png", "width": 286, "height": 714, "bbox": [31, 197, 243, 693], "fg_width": 213, "fg_height": 497, "foot_y": 693, "center_x": 137.0}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/doc_catching/frames/frame_07.png", "width": 286, "height": 714, "bbox": [29, 203, 209, 693], "fg_width": 181, "fg_height": 491, "foot_y": 693, "center_x": 119.0}, {"index": 8, "filename": "frame_08.png", "rel_path": "assets/processed/doc_catching/frames/frame_08.png", "width": 286, "height": 714, "bbox": [35, 207, 219, 693], "fg_width": 185, "fg_height": 487, "foot_y": 693, "center_x": 127.0}]}, "excited": {"id": "excited", "title": "Excited", "source_file": "excited.png", "strategy": "strategy_c", "frame_count": 8, "frame_duration_ms": 110, "fps": 9.1, "loop": true, "canvas": {"width": 346, "height": 640, "dimensions": "346x640"}, "anchor": "feet", "props": [], "spritesheet_path": "assets/processed/excited/spritesheet.png", "preview_gif_path": "assets/processed/excited/preview.gif", "contact_sheet_path": "assets/processed/excited/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/excited/frames/frame_00.png", "width": 346, "height": 640, "bbox": [67, 54, 279, 623], "fg_width": 213, "fg_height": 570, "foot_y": 623, "center_x": 173.0}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/excited/frames/frame_01.png", "width": 346, "height": 640, "bbox": [62, 51, 285, 623], "fg_width": 224, "fg_height": 573, "foot_y": 623, "center_x": 173.5}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/excited/frames/frame_02.png", "width": 346, "height": 640, "bbox": [59, 56, 288, 623], "fg_width": 230, "fg_height": 568, "foot_y": 623, "center_x": 173.5}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/excited/frames/frame_03.png", "width": 346, "height": 640, "bbox": [20, 18, 328, 623], "fg_width": 309, "fg_height": 606, "foot_y": 623, "center_x": 174.0}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/excited/frames/frame_04.png", "width": 346, "height": 640, "bbox": [30, 47, 317, 623], "fg_width": 288, "fg_height": 577, "foot_y": 623, "center_x": 173.5}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/excited/frames/frame_05.png", "width": 346, "height": 640, "bbox": [48, 65, 298, 623], "fg_width": 251, "fg_height": 559, "foot_y": 623, "center_x": 173.0}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/excited/frames/frame_06.png", "width": 346, "height": 640, "bbox": [55, 54, 292, 623], "fg_width": 238, "fg_height": 570, "foot_y": 623, "center_x": 173.5}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/excited/frames/frame_07.png", "width": 346, "height": 640, "bbox": [68, 54, 278, 623], "fg_width": 211, "fg_height": 570, "foot_y": 623, "center_x": 173.0}]}, "hunching_laptop": {"id": "hunching_laptop", "title": "Hunching Over a Laptop", "source_file": "huncing.png", "strategy": "strategy_d", "frame_count": 8, "frame_duration_ms": 130, "fps": 7.7, "loop": true, "canvas": {"width": 296, "height": 336, "dimensions": "296x336"}, "anchor": "scene", "props": ["desk", "chair", "laptop"], "spritesheet_path": "assets/processed/hunching_laptop/spritesheet.png", "preview_gif_path": "assets/processed/hunching_laptop/preview.gif", "contact_sheet_path": "assets/processed/hunching_laptop/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/hunching_laptop/frames/frame_00.png", "width": 296, "height": 336, "bbox": [27, 16, 277, 318], "fg_width": 251, "fg_height": 303, "foot_y": 318, "center_x": 152.0}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/hunching_laptop/frames/frame_01.png", "width": 296, "height": 336, "bbox": [20, 21, 269, 318], "fg_width": 250, "fg_height": 298, "foot_y": 318, "center_x": 144.5}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/hunching_laptop/frames/frame_02.png", "width": 296, "height": 336, "bbox": [17, 20, 266, 318], "fg_width": 250, "fg_height": 299, "foot_y": 318, "center_x": 141.5}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/hunching_laptop/frames/frame_03.png", "width": 296, "height": 336, "bbox": [18, 20, 269, 318], "fg_width": 252, "fg_height": 299, "foot_y": 318, "center_x": 143.5}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/hunching_laptop/frames/frame_04.png", "width": 296, "height": 336, "bbox": [17, 24, 269, 318], "fg_width": 253, "fg_height": 295, "foot_y": 318, "center_x": 143.0}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/hunching_laptop/frames/frame_05.png", "width": 296, "height": 336, "bbox": [16, 24, 271, 318], "fg_width": 256, "fg_height": 295, "foot_y": 318, "center_x": 143.5}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/hunching_laptop/frames/frame_06.png", "width": 296, "height": 336, "bbox": [19, 24, 274, 318], "fg_width": 256, "fg_height": 295, "foot_y": 318, "center_x": 146.5}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/hunching_laptop/frames/frame_07.png", "width": 296, "height": 336, "bbox": [16, 19, 272, 317], "fg_width": 257, "fg_height": 299, "foot_y": 317, "center_x": 144.0}]}, "mad": {"id": "mad", "title": "Angry", "source_file": "mad.png", "strategy": "strategy_c", "frame_count": 8, "frame_duration_ms": 110, "fps": 9.1, "loop": true, "canvas": {"width": 318, "height": 624, "dimensions": "318x624"}, "anchor": "feet", "props": ["anger steam"], "spritesheet_path": "assets/processed/mad/spritesheet.png", "preview_gif_path": "assets/processed/mad/preview.gif", "contact_sheet_path": "assets/processed/mad/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/mad/frames/frame_00.png", "width": 318, "height": 624, "bbox": [49, 18, 268, 607], "fg_width": 220, "fg_height": 590, "foot_y": 607, "center_x": 158.5}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/mad/frames/frame_01.png", "width": 318, "height": 624, "bbox": [40, 26, 277, 607], "fg_width": 238, "fg_height": 582, "foot_y": 607, "center_x": 158.5}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/mad/frames/frame_02.png", "width": 318, "height": 624, "bbox": [42, 30, 275, 607], "fg_width": 234, "fg_height": 578, "foot_y": 607, "center_x": 158.5}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/mad/frames/frame_03.png", "width": 318, "height": 624, "bbox": [17, 21, 301, 607], "fg_width": 285, "fg_height": 587, "foot_y": 607, "center_x": 159.0}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/mad/frames/frame_04.png", "width": 318, "height": 624, "bbox": [18, 71, 300, 607], "fg_width": 283, "fg_height": 537, "foot_y": 607, "center_x": 159.0}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/mad/frames/frame_05.png", "width": 318, "height": 624, "bbox": [18, 57, 300, 607], "fg_width": 283, "fg_height": 551, "foot_y": 607, "center_x": 159.0}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/mad/frames/frame_06.png", "width": 318, "height": 624, "bbox": [38, 58, 280, 607], "fg_width": 243, "fg_height": 550, "foot_y": 607, "center_x": 159.0}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/mad/frames/frame_07.png", "width": 318, "height": 624, "bbox": [45, 43, 272, 607], "fg_width": 228, "fg_height": 565, "foot_y": 607, "center_x": 158.5}]}, "peeking": {"id": "peeking", "title": "Peeking from Below a Horizontal Bar", "source_file": "peeking.png", "strategy": "strategy_c", "frame_count": 8, "frame_duration_ms": 140, "fps": 7.1, "loop": true, "canvas": {"width": 298, "height": 254, "dimensions": "298x254"}, "anchor": "baseline", "props": ["horizontal barrier"], "spritesheet_path": "assets/processed/peeking/spritesheet.png", "preview_gif_path": "assets/processed/peeking/preview.gif", "contact_sheet_path": "assets/processed/peeking/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/peeking/frames/frame_00.png", "width": 298, "height": 254, "bbox": [19, 112, 278, 237], "fg_width": 260, "fg_height": 126, "foot_y": 237, "center_x": 148.5}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/peeking/frames/frame_01.png", "width": 298, "height": 254, "bbox": [20, 62, 278, 236], "fg_width": 259, "fg_height": 175, "foot_y": 236, "center_x": 149.0}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/peeking/frames/frame_02.png", "width": 298, "height": 254, "bbox": [17, 20, 279, 237], "fg_width": 263, "fg_height": 218, "foot_y": 237, "center_x": 148.0}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/peeking/frames/frame_03.png", "width": 298, "height": 254, "bbox": [19, 20, 278, 237], "fg_width": 260, "fg_height": 218, "foot_y": 237, "center_x": 148.5}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/peeking/frames/frame_04.png", "width": 298, "height": 254, "bbox": [19, 18, 279, 236], "fg_width": 261, "fg_height": 219, "foot_y": 236, "center_x": 149.0}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/peeking/frames/frame_05.png", "width": 298, "height": 254, "bbox": [20, 18, 277, 236], "fg_width": 258, "fg_height": 219, "foot_y": 236, "center_x": 148.5}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/peeking/frames/frame_06.png", "width": 298, "height": 254, "bbox": [22, 32, 277, 236], "fg_width": 256, "fg_height": 205, "foot_y": 236, "center_x": 149.5}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/peeking/frames/frame_07.png", "width": 298, "height": 254, "bbox": [19, 107, 278, 236], "fg_width": 260, "fg_height": 130, "foot_y": 236, "center_x": 148.5}]}, "sleeping_loop": {"id": "sleeping_loop", "title": "Sleeping (In Chair & Bed)", "source_file": "sleeping.png", "strategy": "strategy_d", "frame_count": 7, "frame_duration_ms": 160, "fps": 6.2, "loop": true, "canvas": {"width": 410, "height": 296, "dimensions": "410x296"}, "anchor": "scene", "props": ["chair", "desk", "bed", "Zzz sleep particles"], "spritesheet_path": "assets/processed/sleeping_loop/spritesheet.png", "preview_gif_path": "assets/processed/sleeping_loop/preview.gif", "contact_sheet_path": "assets/processed/sleeping_loop/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/sleeping_loop/frames/frame_00.png", "width": 410, "height": 296, "bbox": [51, 23, 282, 269], "fg_width": 232, "fg_height": 247, "foot_y": 269, "center_x": 166.5}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/sleeping_loop/frames/frame_01.png", "width": 410, "height": 296, "bbox": [41, 25, 274, 270], "fg_width": 234, "fg_height": 246, "foot_y": 270, "center_x": 157.5}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/sleeping_loop/frames/frame_02.png", "width": 410, "height": 296, "bbox": [46, 17, 256, 276], "fg_width": 211, "fg_height": 260, "foot_y": 276, "center_x": 151.0}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/sleeping_loop/frames/frame_03.png", "width": 410, "height": 296, "bbox": [50, 17, 254, 277], "fg_width": 205, "fg_height": 261, "foot_y": 277, "center_x": 152.0}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/sleeping_loop/frames/frame_04.png", "width": 410, "height": 296, "bbox": [38, 77, 392, 262], "fg_width": 355, "fg_height": 186, "foot_y": 262, "center_x": 215.0}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/sleeping_loop/frames/frame_05.png", "width": 410, "height": 296, "bbox": [22, 86, 351, 262], "fg_width": 330, "fg_height": 177, "foot_y": 262, "center_x": 186.5}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/sleeping_loop/frames/frame_06.png", "width": 410, "height": 296, "bbox": [17, 99, 304, 264], "fg_width": 288, "fg_height": 166, "foot_y": 264, "center_x": 160.5}]}, "standing_to_sleeping": {"id": "standing_to_sleeping", "title": "Standing to Sleeping", "source_file": "sleeping.png", "strategy": "strategy_d", "frame_count": 9, "frame_duration_ms": 150, "fps": 6.7, "loop": false, "canvas": {"width": 258, "height": 462, "dimensions": "258x462"}, "anchor": "scene", "props": ["chair", "desk"], "spritesheet_path": "assets/processed/standing_to_sleeping/spritesheet.png", "preview_gif_path": "assets/processed/standing_to_sleeping/preview.gif", "contact_sheet_path": "assets/processed/standing_to_sleeping/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/standing_to_sleeping/frames/frame_00.png", "width": 258, "height": 462, "bbox": [26, 16, 187, 437], "fg_width": 162, "fg_height": 422, "foot_y": 437, "center_x": 106.5}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/standing_to_sleeping/frames/frame_01.png", "width": 258, "height": 462, "bbox": [28, 17, 192, 437], "fg_width": 165, "fg_height": 421, "foot_y": 437, "center_x": 110.0}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/standing_to_sleeping/frames/frame_02.png", "width": 258, "height": 462, "bbox": [24, 21, 201, 439], "fg_width": 178, "fg_height": 419, "foot_y": 439, "center_x": 112.5}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/standing_to_sleeping/frames/frame_03.png", "width": 258, "height": 462, "bbox": [28, 21, 209, 439], "fg_width": 182, "fg_height": 419, "foot_y": 439, "center_x": 118.5}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/standing_to_sleeping/frames/frame_04.png", "width": 258, "height": 462, "bbox": [27, 20, 215, 439], "fg_width": 189, "fg_height": 420, "foot_y": 439, "center_x": 121.0}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/standing_to_sleeping/frames/frame_05.png", "width": 258, "height": 462, "bbox": [22, 33, 224, 439], "fg_width": 203, "fg_height": 407, "foot_y": 439, "center_x": 123.0}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/standing_to_sleeping/frames/frame_06.png", "width": 258, "height": 462, "bbox": [25, 70, 240, 439], "fg_width": 216, "fg_height": 370, "foot_y": 439, "center_x": 132.5}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/standing_to_sleeping/frames/frame_07.png", "width": 258, "height": 462, "bbox": [17, 133, 240, 444], "fg_width": 224, "fg_height": 312, "foot_y": 444, "center_x": 128.5}, {"index": 8, "filename": "frame_08.png", "rel_path": "assets/processed/standing_to_sleeping/frames/frame_08.png", "width": 258, "height": 462, "bbox": [16, 187, 219, 439], "fg_width": 204, "fg_height": 253, "foot_y": 439, "center_x": 117.5}]}, "thinking": {"id": "thinking", "title": "Thinking", "source_file": "thinking.png", "strategy": "strategy_c", "frame_count": 8, "frame_duration_ms": 150, "fps": 6.7, "loop": true, "canvas": {"width": 272, "height": 652, "dimensions": "272x652"}, "anchor": "feet", "props": [], "spritesheet_path": "assets/processed/thinking/spritesheet.png", "preview_gif_path": "assets/processed/thinking/preview.gif", "contact_sheet_path": "assets/processed/thinking/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/thinking/frames/frame_00.png", "width": 272, "height": 652, "bbox": [32, 22, 240, 635], "fg_width": 209, "fg_height": 614, "foot_y": 635, "center_x": 136.0}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/thinking/frames/frame_01.png", "width": 272, "height": 652, "bbox": [31, 27, 242, 635], "fg_width": 212, "fg_height": 609, "foot_y": 635, "center_x": 136.5}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/thinking/frames/frame_02.png", "width": 272, "height": 652, "bbox": [24, 18, 248, 635], "fg_width": 225, "fg_height": 618, "foot_y": 635, "center_x": 136.0}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/thinking/frames/frame_03.png", "width": 272, "height": 652, "bbox": [29, 27, 244, 635], "fg_width": 216, "fg_height": 609, "foot_y": 635, "center_x": 136.5}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/thinking/frames/frame_04.png", "width": 272, "height": 652, "bbox": [17, 29, 254, 635], "fg_width": 238, "fg_height": 607, "foot_y": 635, "center_x": 135.5}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/thinking/frames/frame_05.png", "width": 272, "height": 652, "bbox": [22, 19, 249, 635], "fg_width": 228, "fg_height": 617, "foot_y": 635, "center_x": 135.5}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/thinking/frames/frame_06.png", "width": 272, "height": 652, "bbox": [21, 19, 252, 635], "fg_width": 232, "fg_height": 617, "foot_y": 635, "center_x": 136.5}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/thinking/frames/frame_07.png", "width": 272, "height": 652, "bbox": [29, 28, 243, 635], "fg_width": 215, "fg_height": 608, "foot_y": 635, "center_x": 136.0}]}, "tired": {"id": "tired", "title": "Tired (Nodding at Desk)", "source_file": "huncing.png", "strategy": "strategy_d", "frame_count": 8, "frame_duration_ms": 180, "fps": 5.6, "loop": true, "canvas": {"width": 296, "height": 336, "dimensions": "296x336"}, "anchor": "scene", "props": ["desk", "chair", "laptop"], "spritesheet_path": "assets/processed/tired/spritesheet.png", "preview_gif_path": "assets/processed/tired/preview.gif", "contact_sheet_path": "assets/processed/tired/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/tired/frames/frame_00.png", "width": 296, "height": 336, "bbox": [27, 16, 277, 318], "fg_width": 251, "fg_height": 303, "foot_y": 318, "center_x": 152.0}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/tired/frames/frame_01.png", "width": 296, "height": 336, "bbox": [20, 21, 269, 318], "fg_width": 250, "fg_height": 298, "foot_y": 318, "center_x": 144.5}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/tired/frames/frame_02.png", "width": 296, "height": 336, "bbox": [17, 20, 266, 318], "fg_width": 250, "fg_height": 299, "foot_y": 318, "center_x": 141.5}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/tired/frames/frame_03.png", "width": 296, "height": 336, "bbox": [18, 20, 269, 318], "fg_width": 252, "fg_height": 299, "foot_y": 318, "center_x": 143.5}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/tired/frames/frame_04.png", "width": 296, "height": 336, "bbox": [17, 24, 269, 318], "fg_width": 253, "fg_height": 295, "foot_y": 318, "center_x": 143.0}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/tired/frames/frame_05.png", "width": 296, "height": 336, "bbox": [16, 24, 271, 318], "fg_width": 256, "fg_height": 295, "foot_y": 318, "center_x": 143.5}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/tired/frames/frame_06.png", "width": 296, "height": 336, "bbox": [19, 24, 274, 318], "fg_width": 256, "fg_height": 295, "foot_y": 318, "center_x": 146.5}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/tired/frames/frame_07.png", "width": 296, "height": 336, "bbox": [16, 19, 272, 317], "fg_width": 257, "fg_height": 299, "foot_y": 317, "center_x": 144.0}]}, "turnaround": {"id": "turnaround", "title": "Turning From Front to Right and Left (360 Rotation)", "source_file": "Pixel Scientist Turnaround Sprite Sheet.png", "strategy": "strategy_c", "frame_count": 12, "frame_duration_ms": 110, "fps": 9.1, "loop": true, "canvas": {"width": 180, "height": 722, "dimensions": "180x722"}, "anchor": "pivot", "props": [], "spritesheet_path": "assets/processed/turnaround/spritesheet.png", "preview_gif_path": "assets/processed/turnaround/preview.gif", "contact_sheet_path": "assets/processed/turnaround/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/turnaround/frames/frame_00.png", "width": 180, "height": 722, "bbox": [19, 18, 161, 705], "fg_width": 143, "fg_height": 688, "foot_y": 705, "center_x": 90.0}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/turnaround/frames/frame_01.png", "width": 180, "height": 722, "bbox": [18, 19, 162, 705], "fg_width": 145, "fg_height": 687, "foot_y": 705, "center_x": 90.0}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/turnaround/frames/frame_02.png", "width": 180, "height": 722, "bbox": [19, 19, 161, 705], "fg_width": 143, "fg_height": 687, "foot_y": 705, "center_x": 90.0}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/turnaround/frames/frame_03.png", "width": 180, "height": 722, "bbox": [26, 19, 155, 705], "fg_width": 130, "fg_height": 687, "foot_y": 705, "center_x": 90.5}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/turnaround/frames/frame_04.png", "width": 180, "height": 722, "bbox": [26, 21, 154, 705], "fg_width": 129, "fg_height": 685, "foot_y": 705, "center_x": 90.0}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/turnaround/frames/frame_05.png", "width": 180, "height": 722, "bbox": [20, 20, 159, 705], "fg_width": 140, "fg_height": 686, "foot_y": 705, "center_x": 89.5}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/turnaround/frames/frame_06.png", "width": 180, "height": 722, "bbox": [21, 20, 160, 705], "fg_width": 140, "fg_height": 686, "foot_y": 705, "center_x": 90.5}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/turnaround/frames/frame_07.png", "width": 180, "height": 722, "bbox": [27, 20, 154, 705], "fg_width": 128, "fg_height": 686, "foot_y": 705, "center_x": 90.5}, {"index": 8, "filename": "frame_08.png", "rel_path": "assets/processed/turnaround/frames/frame_08.png", "width": 180, "height": 722, "bbox": [26, 19, 155, 705], "fg_width": 130, "fg_height": 687, "foot_y": 705, "center_x": 90.5}, {"index": 9, "filename": "frame_09.png", "rel_path": "assets/processed/turnaround/frames/frame_09.png", "width": 180, "height": 722, "bbox": [18, 18, 162, 705], "fg_width": 145, "fg_height": 688, "foot_y": 705, "center_x": 90.0}, {"index": 10, "filename": "frame_10.png", "rel_path": "assets/processed/turnaround/frames/frame_10.png", "width": 180, "height": 722, "bbox": [18, 17, 163, 705], "fg_width": 146, "fg_height": 689, "foot_y": 705, "center_x": 90.5}, {"index": 11, "filename": "frame_11.png", "rel_path": "assets/processed/turnaround/frames/frame_11.png", "width": 180, "height": 722, "bbox": [20, 18, 161, 705], "fg_width": 142, "fg_height": 688, "foot_y": 705, "center_x": 90.5}]}, "walking_left_to_right": {"id": "walking_left_to_right", "title": "Walking Left to Right", "source_file": "walking.png", "strategy": "strategy_b", "frame_count": 8, "frame_duration_ms": 120, "fps": 8.3, "loop": true, "canvas": {"width": 236, "height": 398, "dimensions": "236x398"}, "anchor": "feet", "props": [], "spritesheet_path": "assets/processed/walking_left_to_right/spritesheet.png", "preview_gif_path": "assets/processed/walking_left_to_right/preview.gif", "contact_sheet_path": "assets/processed/walking_left_to_right/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/walking_left_to_right/frames/frame_00.png", "width": 236, "height": 398, "bbox": [42, 19, 193, 381], "fg_width": 152, "fg_height": 363, "foot_y": 381, "center_x": 117.5}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/walking_left_to_right/frames/frame_01.png", "width": 236, "height": 398, "bbox": [24, 20, 213, 381], "fg_width": 190, "fg_height": 362, "foot_y": 381, "center_x": 118.5}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/walking_left_to_right/frames/frame_02.png", "width": 236, "height": 398, "bbox": [28, 23, 207, 381], "fg_width": 180, "fg_height": 359, "foot_y": 381, "center_x": 117.5}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/walking_left_to_right/frames/frame_03.png", "width": 236, "height": 398, "bbox": [25, 25, 212, 381], "fg_width": 188, "fg_height": 357, "foot_y": 381, "center_x": 118.5}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/walking_left_to_right/frames/frame_04.png", "width": 236, "height": 398, "bbox": [20, 22, 217, 381], "fg_width": 198, "fg_height": 360, "foot_y": 381, "center_x": 118.5}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/walking_left_to_right/frames/frame_05.png", "width": 236, "height": 398, "bbox": [20, 23, 216, 381], "fg_width": 197, "fg_height": 359, "foot_y": 381, "center_x": 118.0}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/walking_left_to_right/frames/frame_06.png", "width": 236, "height": 398, "bbox": [17, 23, 217, 381], "fg_width": 201, "fg_height": 359, "foot_y": 381, "center_x": 117.0}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/walking_left_to_right/frames/frame_07.png", "width": 236, "height": 398, "bbox": [27, 22, 209, 381], "fg_width": 183, "fg_height": 360, "foot_y": 381, "center_x": 118.0}]}, "walking_right_to_left": {"id": "walking_right_to_left", "title": "Walking Right to Left", "source_file": "walking.png", "strategy": "strategy_b", "frame_count": 8, "frame_duration_ms": 120, "fps": 8.3, "loop": true, "canvas": {"width": 232, "height": 398, "dimensions": "232x398"}, "anchor": "feet", "props": [], "spritesheet_path": "assets/processed/walking_right_to_left/spritesheet.png", "preview_gif_path": "assets/processed/walking_right_to_left/preview.gif", "contact_sheet_path": "assets/processed/walking_right_to_left/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/walking_right_to_left/frames/frame_00.png", "width": 232, "height": 398, "bbox": [28, 21, 204, 381], "fg_width": 177, "fg_height": 361, "foot_y": 381, "center_x": 116.0}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/walking_right_to_left/frames/frame_01.png", "width": 232, "height": 398, "bbox": [18, 25, 215, 381], "fg_width": 198, "fg_height": 357, "foot_y": 381, "center_x": 116.5}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/walking_right_to_left/frames/frame_02.png", "width": 232, "height": 398, "bbox": [18, 24, 215, 381], "fg_width": 198, "fg_height": 358, "foot_y": 381, "center_x": 116.5}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/walking_right_to_left/frames/frame_03.png", "width": 232, "height": 398, "bbox": [17, 22, 215, 381], "fg_width": 199, "fg_height": 360, "foot_y": 381, "center_x": 116.0}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/walking_right_to_left/frames/frame_04.png", "width": 232, "height": 398, "bbox": [20, 22, 211, 381], "fg_width": 192, "fg_height": 360, "foot_y": 381, "center_x": 115.5}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/walking_right_to_left/frames/frame_05.png", "width": 232, "height": 398, "bbox": [21, 22, 211, 381], "fg_width": 191, "fg_height": 360, "foot_y": 381, "center_x": 116.0}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/walking_right_to_left/frames/frame_06.png", "width": 232, "height": 398, "bbox": [21, 21, 211, 381], "fg_width": 191, "fg_height": 361, "foot_y": 381, "center_x": 116.0}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/walking_right_to_left/frames/frame_07.png", "width": 232, "height": 398, "bbox": [40, 18, 191, 381], "fg_width": 152, "fg_height": 364, "foot_y": 381, "center_x": 115.5}]}, "waving_hii": {"id": "waving_hii", "title": "Hand Waving / Saying Hi", "source_file": "waving_hii.png", "strategy": "strategy_c", "frame_count": 8, "frame_duration_ms": 120, "fps": 8.3, "loop": true, "canvas": {"width": 276, "height": 620, "dimensions": "276x620"}, "anchor": "feet", "props": [], "spritesheet_path": "assets/processed/waving_hii/spritesheet.png", "preview_gif_path": "assets/processed/waving_hii/preview.gif", "contact_sheet_path": "assets/processed/waving_hii/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/waving_hii/frames/frame_00.png", "width": 276, "height": 620, "bbox": [34, 18, 241, 603], "fg_width": 208, "fg_height": 586, "foot_y": 603, "center_x": 137.5}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/waving_hii/frames/frame_01.png", "width": 276, "height": 620, "bbox": [31, 18, 244, 603], "fg_width": 214, "fg_height": 586, "foot_y": 603, "center_x": 137.5}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/waving_hii/frames/frame_02.png", "width": 276, "height": 620, "bbox": [28, 18, 249, 603], "fg_width": 222, "fg_height": 586, "foot_y": 603, "center_x": 138.5}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/waving_hii/frames/frame_03.png", "width": 276, "height": 620, "bbox": [17, 18, 256, 603], "fg_width": 240, "fg_height": 586, "foot_y": 603, "center_x": 136.5}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/waving_hii/frames/frame_04.png", "width": 276, "height": 620, "bbox": [18, 18, 257, 603], "fg_width": 240, "fg_height": 586, "foot_y": 603, "center_x": 137.5}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/waving_hii/frames/frame_05.png", "width": 276, "height": 620, "bbox": [20, 18, 256, 603], "fg_width": 237, "fg_height": 586, "foot_y": 603, "center_x": 138.0}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/waving_hii/frames/frame_06.png", "width": 276, "height": 620, "bbox": [30, 18, 246, 603], "fg_width": 217, "fg_height": 586, "foot_y": 603, "center_x": 138.0}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/waving_hii/frames/frame_07.png", "width": 276, "height": 620, "bbox": [35, 18, 240, 603], "fg_width": 206, "fg_height": 586, "foot_y": 603, "center_x": 137.5}]}, "working_laptop": {"id": "working_laptop", "title": "Working on a Laptop", "source_file": "huncing.png", "strategy": "strategy_d", "frame_count": 9, "frame_duration_ms": 140, "fps": 7.1, "loop": true, "canvas": {"width": 320, "height": 378, "dimensions": "320x378"}, "anchor": "scene", "props": ["desk", "chair", "laptop"], "spritesheet_path": "assets/processed/working_laptop/spritesheet.png", "preview_gif_path": "assets/processed/working_laptop/preview.gif", "contact_sheet_path": "assets/processed/working_laptop/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/working_laptop/frames/frame_00.png", "width": 320, "height": 378, "bbox": [65, 16, 195, 356], "fg_width": 131, "fg_height": 341, "foot_y": 356, "center_x": 130.0}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/working_laptop/frames/frame_01.png", "width": 320, "height": 378, "bbox": [42, 18, 214, 356], "fg_width": 173, "fg_height": 339, "foot_y": 356, "center_x": 128.0}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/working_laptop/frames/frame_02.png", "width": 320, "height": 378, "bbox": [40, 26, 194, 355], "fg_width": 155, "fg_height": 330, "foot_y": 355, "center_x": 117.0}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/working_laptop/frames/frame_03.png", "width": 320, "height": 378, "bbox": [39, 53, 298, 357], "fg_width": 260, "fg_height": 305, "foot_y": 357, "center_x": 168.5}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/working_laptop/frames/frame_04.png", "width": 320, "height": 378, "bbox": [32, 53, 221, 357], "fg_width": 190, "fg_height": 305, "foot_y": 357, "center_x": 126.5}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/working_laptop/frames/frame_05.png", "width": 320, "height": 378, "bbox": [47, 52, 235, 355], "fg_width": 189, "fg_height": 304, "foot_y": 355, "center_x": 141.0}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/working_laptop/frames/frame_06.png", "width": 320, "height": 378, "bbox": [37, 53, 251, 356], "fg_width": 215, "fg_height": 304, "foot_y": 356, "center_x": 144.0}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/working_laptop/frames/frame_07.png", "width": 320, "height": 378, "bbox": [16, 54, 242, 357], "fg_width": 227, "fg_height": 304, "foot_y": 357, "center_x": 129.0}, {"index": 8, "filename": "frame_08.png", "rel_path": "assets/processed/working_laptop/frames/frame_08.png", "width": 320, "height": 378, "bbox": [24, 59, 302, 360], "fg_width": 279, "fg_height": 302, "foot_y": 360, "center_x": 163.0}]}, "idle": {"id": "idle", "title": "Idle (Standing Neutral)", "source_file": "blinking.png", "strategy": "static_pose", "frame_count": 1, "frame_duration_ms": 300, "fps": 3.3, "loop": true, "canvas": {"width": 290, "height": 694, "dimensions": "290x694"}, "anchor": "feet", "props": [], "spritesheet_path": "assets/processed/blinking/spritesheet.png", "preview_gif_path": "assets/processed/blinking/preview.gif", "contact_sheet_path": "assets/processed/blinking/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/blinking/frames/frame_00.png", "width": 290, "height": 694, "bbox": [21, 16, 268, 676], "fg_width": 248, "fg_height": 661, "foot_y": 676, "center_x": 144.5}]}};
   </script>
+
+  <script src="app.js"></script>
 </body>
 </html>

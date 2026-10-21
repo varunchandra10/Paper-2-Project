@@ -61,9 +61,10 @@ def run_decomposition_agent(
                 "What visual backbones, encoders, decoders, fusion modules, loss functions, "
                 "learning rate, batch size, epochs, and optimizer are used in this paper?"
             )
-            q_vec = generate_local_embedding(rag_query)
+            target_p_id = getattr(paper_doc, "paper_id", None)
+            q_vec = generate_local_embedding(rag_query, raise_on_failure=False)
             vdb = PaperVectorDB()
-            results = vdb.hybrid_search(query_text=rag_query, query_vector=q_vec, top_k=4)
+            results = vdb.hybrid_search(query_text=rag_query, query_vector=q_vec, top_k=4, paper_id=target_p_id)
 
             evidence_blocks = [f"--- Source: '{r.get('section', 'RAG')}' ---\n{r.get('content', '')}" for r in results]
             rag_context = "\n\n".join(evidence_blocks)

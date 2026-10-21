@@ -1,0 +1,161 @@
+{
+  "character": "Ms. Nerdy",
+  "animation_id": "doc_catching",
+  "title": "Catching a Falling Document",
+  "source_file": "Pixel-Art Scientist Catches Falling Paper.png",
+  "strategy": "complete_standardized",
+  "frame_count": 8,
+  "canvas_size": [
+    640,
+    740
+  ],
+  "anchor": "feet",
+  "anchor_coordinates": [
+    320,
+    700
+  ],
+  "loop": false,
+  "frame_duration_ms": 120,
+  "fps": 8.3,
+  "props": [
+    "falling document"
+  ],
+  "frames": [
+    {
+      "index": 0,
+      "filename": "frame_00.png",
+      "rel_path": "assets/processed/doc_catching/frames/frame_00.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        207,
+        200,
+        428,
+        700
+      ],
+      "fg_width": 222,
+      "fg_height": 501,
+      "foot_y": 700,
+      "center_x": 318.0
+    },
+    {
+      "index": 1,
+      "filename": "frame_01.png",
+      "rel_path": "assets/processed/doc_catching/frames/frame_01.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        187,
+        197,
+        456,
+        700
+      ],
+      "fg_width": 270,
+      "fg_height": 504,
+      "foot_y": 700,
+      "center_x": 322.0
+    },
+    {
+      "index": 2,
+      "filename": "frame_02.png",
+      "rel_path": "assets/processed/doc_catching/frames/frame_02.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        184,
+        206,
+        455,
+        700
+      ],
+      "fg_width": 272,
+      "fg_height": 495,
+      "foot_y": 700,
+      "center_x": 320.0
+    },
+    {
+      "index": 3,
+      "filename": "frame_03.png",
+      "rel_path": "assets/processed/doc_catching/frames/frame_03.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        168,
+        33,
+        442,
+        700
+      ],
+      "fg_width": 275,
+      "fg_height": 668,
+      "foot_y": 700,
+      "center_x": 305.5
+    },
+    {
+      "index": 4,
+      "filename": "frame_04.png",
+      "rel_path": "assets/processed/doc_catching/frames/frame_04.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        177,
+        113,
+        469,
+        700
+      ],
+      "fg_width": 293,
+      "fg_height": 588,
+      "foot_y": 700,
+      "center_x": 323.5
+    },
+    {
+      "index": 5,
+      "filename": "frame_05.png",
+      "rel_path": "assets/processed/doc_catching/frames/frame_05.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        180,
+        214,
+        454,
+        700
+      ],
+      "fg_width": 275,
+      "fg_height": 487,
+      "foot_y": 700,
+      "center_x": 317.5
+    },
+    {
+      "index": 6,
+      "filename": "frame_06.png",
+      "rel_path": "assets/processed/doc_catching/frames/frame_06.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        185,
+        205,
+        423,
+        700
+      ],
+      "fg_width": 239,
+      "fg_height": 496,
+      "foot_y": 700,
+      "center_x": 304.5
+    },
+    {
+      "index": 7,
+      "filename": "frame_07.png",
+      "rel_path": "assets/processed/doc_catching/frames/frame_07.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        182,
+        205,
+        420,
+        700
+      ],
+      "fg_width": 239,
+      "fg_height": 496,
+      "foot_y": 700,
+      "center_x": 301.5
+    }
+  ]
+}

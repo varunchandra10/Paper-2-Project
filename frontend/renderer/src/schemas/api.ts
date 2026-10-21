@@ -17,8 +17,8 @@ import { z } from 'zod';
 // Shared primitives
 // ---------------------------------------------------------------------------
 
-/** Accepts any string or coerces undefined/null to empty string. */
-const optStr = z.string().optional();
+/** Accepts any string, null, or undefined. */
+const optStr = z.string().nullable().optional();
 const reqStr = z.string();
 
 // ---------------------------------------------------------------------------
@@ -182,6 +182,52 @@ export const SseErrorPayloadSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// V2 Pipeline SSE event payload schemas
+// ---------------------------------------------------------------------------
+
+/**
+ * Structured payload emitted for every V2 SSE event:
+ * node_started, node_completed, refinement, retry, error,
+ * pipeline_completed, pipeline_failed.
+ *
+ * Fields map directly to emit_event() in backend/app/core/events.py.
+ */
+export const V2PipelineEventSchema = z.object({
+  event_id:  z.number().optional(),
+  job_id:    optStr,
+  paper_id:  optStr,
+  event:     reqStr,
+  node:      optStr,
+  status:    optStr,
+  progress:  z.number().optional(),
+  timestamp: optStr,
+  metadata:  z.record(z.string(), z.unknown()).optional(),
+});
+export type V2PipelineEvent = z.infer<typeof V2PipelineEventSchema>;
+
+/**
+ * Refinement metadata carried in the V2 refinement event.
+ */
+export const RefinementMetaSchema = z.object({
+  reason:          optStr,
+  adapted_fields:  z.record(z.string(), z.unknown()).optional(),
+  attempt:         z.number().optional(),
+  action:          optStr,
+});
+export type RefinementMeta = z.infer<typeof RefinementMetaSchema>;
+
+/**
+ * Retry (Reflexion repair) metadata carried in the V2 retry event.
+ */
+export const RetryMetaSchema = z.object({
+  attempt:       z.number().optional(),
+  max_retries:   z.number().optional(),
+  error_summary: optStr,
+  action:        optStr,
+});
+export type RetryMeta = z.infer<typeof RetryMetaSchema>;
+
+// ---------------------------------------------------------------------------
 // Safe parse helpers — log a warning but never crash the UI
 // ---------------------------------------------------------------------------
 
@@ -207,6 +253,76 @@ export function safeParseFallback<T>(
   return result.data;
 }
 
+// ---------------------------------------------------------------------------
+// Run Manifest schemas (Phase 10 / Phase 22 Reproducibility)
+// ---------------------------------------------------------------------------
+
+export const PaperManifestInfoSchema = z.object({
+  paper_id: reqStr,
+  paper_hash: reqStr,
+  paper_version: z.string().default('1.0.0'),
+  file_name: optStr,
+  file_size_bytes: z.number().nullable().optional(),
+});
+export type PaperManifestInfo = z.infer<typeof PaperManifestInfoSchema>;
+
+export const ModelManifestConfigSchema = z.object({
+  model: reqStr,
+  model_version: z.string().default('qwen2.5:7b-instruct-q4_K_M'),
+  provider: z.string().default('ollama'),
+  temperature: z.number().default(0.0),
+  top_p: z.number().default(0.9),
+  max_output_tokens: z.number().default(8192),
+  prompt_version: z.string().default('v2.0.0'),
+});
+export type ModelManifestConfig = z.infer<typeof ModelManifestConfigSchema>;
+
+export const RetrievalManifestConfigSchema = z.object({
+  embedding_model: z.string().default('nomic-embed-text'),
+  embedding_version: z.string().default('2.0.0'),
+  embedding_dimension: z.number().default(768),
+  chunk_size: z.number().default(500),
+  chunk_overlap: z.number().default(50),
+  retrieval_strategy: z.string().default('hybrid_rrf'),
+  top_k: z.number().default(5),
+});
+export type RetrievalManifestConfig = z.infer<typeof RetrievalManifestConfigSchema>;
+
+export const SystemManifestConfigSchema = z.object({
+  software_version: z.string().default('2.0.0'),
+  manifest_schema_version: z.string().default('1.0.0'),
+  os: reqStr,
+  platform: reqStr,
+  python_version: reqStr,
+  torch_version: reqStr,
+  git_commit: optStr,
+});
+export type SystemManifestConfig = z.infer<typeof SystemManifestConfigSchema>;
+
+export const HardwareManifestConfigSchema = z.object({
+  cpu: reqStr,
+  cpu_cores: z.number().default(1),
+  total_ram_gb: z.number().default(0),
+  gpu_available: z.boolean().default(false),
+  gpu_device: optStr,
+  gpu_vram_total_gb: z.number().nullable().optional(),
+});
+export type HardwareManifestConfig = z.infer<typeof HardwareManifestConfigSchema>;
+
+export const RunManifestSchema = z.object({
+  run_id: reqStr,
+  paper_id: reqStr,
+  timestamp: optStr,
+  paper: PaperManifestInfoSchema,
+  model_info: ModelManifestConfigSchema.optional(),
+  model_config: ModelManifestConfigSchema.optional(),
+  retrieval_config: RetrievalManifestConfigSchema,
+  system: SystemManifestConfigSchema,
+  hardware: HardwareManifestConfigSchema,
+  execution_summary: z.record(z.string(), z.any()).default({}),
+});
+export type RunManifest = z.infer<typeof RunManifestSchema>;
+
 // Typed convenience wrappers used by slices
 export const parseChatStreamDone       = (raw: unknown) => safeParseFallback(ChatStreamDoneSchema,            raw, 'ChatStreamDone');
 export const parseChatResponse         = (raw: unknown) => safeParseFallback(ChatResponseSchema,              raw, 'ChatResponse');
@@ -218,3 +334,6 @@ export const parseJobStart             = (raw: unknown) => safeParseFallback(Job
 export const parseExtractionStatus     = (raw: unknown) => safeParseFallback(ExtractionStatusSchema,          raw, 'ExtractionStatus');
 export const parsePaperReport          = (raw: unknown) => safeParseFallback(PaperReportSchema,               raw, 'PaperReport');
 export const parseSseError             = (raw: unknown) => safeParseFallback(SseErrorPayloadSchema,           raw, 'SseErrorPayload');
+export const parseV2PipelineEvent      = (raw: unknown) => safeParseFallback(V2PipelineEventSchema,           raw, 'V2PipelineEvent');
+export const parseRunManifest          = (raw: unknown) => safeParseFallback(RunManifestSchema,               raw, 'RunManifest');
+

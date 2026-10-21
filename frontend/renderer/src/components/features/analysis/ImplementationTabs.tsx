@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { parseInlineMarkdown } from '../../../utils/markdownParser';
+import { KnowledgeGraphPanel } from './KnowledgeGraphPanel';
+import { EvaluationDashboard } from './EvaluationDashboard';
 
 interface ImplementationTabsProps {
   walkthroughContent: string;
@@ -12,11 +14,11 @@ export const ImplementationTabs: React.FC<ImplementationTabsProps> = ({
   taskContent,
   isLoadingFiles,
 }) => {
-  const [activeTab, setActiveTab] = useState<'walkthrough' | 'checklist'>('walkthrough');
+  const [activeTab, setActiveTab] = useState<'walkthrough' | 'checklist' | 'knowledge-graph' | 'evaluate'>('walkthrough');
 
   return (
     <div className="flex-1 flex flex-col gap-3">
-      <div className="flex gap-2 border-b app-border pb-1.5">
+      <div className="flex flex-wrap gap-2 border-b app-border pb-1.5">
         <button
           type="button"
           onClick={() => setActiveTab('walkthrough')}
@@ -39,9 +41,33 @@ export const ImplementationTabs: React.FC<ImplementationTabsProps> = ({
         >
           Task Checklist
         </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('knowledge-graph')}
+          className={`text-[9px] font-mono font-bold px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+            activeTab === 'knowledge-graph'
+              ? 'bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--accent-border)]'
+              : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-subtle)]'
+          }`}
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+          <span>7-Tier Knowledge Graph</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('evaluate')}
+          className={`text-[9px] font-mono font-bold px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+            activeTab === 'evaluate'
+              ? 'bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--accent-border)]'
+              : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-subtle)]'
+          }`}
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+          <span>Evaluate RAG</span>
+        </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto text-left font-sans select-text scrollbar-thin max-h-[300px] flex flex-col gap-3">
+      <div className="flex-1 overflow-y-auto text-left font-sans select-text scrollbar-thin max-h-[560px] flex flex-col gap-3">
         {isLoadingFiles ? (
           <div className="flex-1 flex items-center justify-center py-6">
             <div className="w-5 h-5 rounded-full border border-[var(--accent)] border-t-transparent animate-spin" />
@@ -52,14 +78,23 @@ export const ImplementationTabs: React.FC<ImplementationTabsProps> = ({
               <p key={idx} className="my-0.5">{parseInlineMarkdown(line)}</p>
             ))}
           </div>
-        ) : (
+        ) : activeTab === 'checklist' ? (
           <div className="text-[10px] text-[var(--text-main)] leading-relaxed font-mono whitespace-pre-wrap select-text selection:bg-[var(--accent-subtle)] p-1 rounded">
             {taskContent.split('\n').map((line, idx) => (
               <p key={idx} className="my-0.5">{parseInlineMarkdown(line)}</p>
             ))}
+          </div>
+        ) : activeTab === 'knowledge-graph' ? (
+          <div className="w-full">
+            <KnowledgeGraphPanel />
+          </div>
+        ) : (
+          <div className="w-full">
+            <EvaluationDashboard />
           </div>
         )}
       </div>
     </div>
   );
 };
+

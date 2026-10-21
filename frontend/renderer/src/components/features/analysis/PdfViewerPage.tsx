@@ -1,6 +1,7 @@
 import React from 'react';
 import { usePanelStore } from '../../../store/panelStore';
 import { IconBack, IconPdf } from '../../ui/Icons';
+import { API_BASE } from '../../../config/api';
 
 export const PdfViewerPage: React.FC = () => {
   const { activePaperId, uploadedFileName, setActiveView } = usePanelStore();
@@ -11,10 +12,7 @@ export const PdfViewerPage: React.FC = () => {
 
   const getPdfUrl = () => {
     if (!activePaperId) return '';
-    const apiBase = (typeof window !== 'undefined' && (!!window.mascotAPI || window.location.protocol === 'file:'))
-      ? 'http://localhost:8000'
-      : '/api';
-    return `${apiBase}/papers/${activePaperId}/pdf#toolbar=1&navpanes=0`;
+    return `${API_BASE}/papers/${activePaperId}/pdf#toolbar=1&navpanes=0`;
   };
 
   if (!activePaperId) {

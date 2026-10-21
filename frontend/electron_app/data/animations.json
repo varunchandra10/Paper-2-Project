@@ -1,0 +1,7262 @@
+{
+  "characters": {
+    "mr_nerdy": {
+      "blinking": {
+        "id": "blinking",
+        "title": "Eye Blinking",
+        "character": "mr_nerdy",
+        "source_file": "blinking.png",
+        "strategy": "complete_standardized",
+        "frame_count": 6,
+        "frame_duration_ms": 400,
+        "fps": 2.5,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [],
+        "spritesheet_path": "assets/processed/blinking/spritesheet.png",
+        "preview_gif_path": "assets/processed/blinking/preview.gif",
+        "contact_sheet_path": "assets/processed/blinking/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/processed/blinking/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              196,
+              39,
+              444,
+              700
+            ],
+            "fg_width": 249,
+            "fg_height": 662,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/processed/blinking/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              194,
+              39,
+              445,
+              700
+            ],
+            "fg_width": 252,
+            "fg_height": 662,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/processed/blinking/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              192,
+              39,
+              446,
+              700
+            ],
+            "fg_width": 255,
+            "fg_height": 662,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/processed/blinking/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              192,
+              39,
+              448,
+              700
+            ],
+            "fg_width": 257,
+            "fg_height": 662,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/processed/blinking/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              192,
+              39,
+              447,
+              700
+            ],
+            "fg_width": 256,
+            "fg_height": 662,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/processed/blinking/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              194,
+              40,
+              445,
+              700
+            ],
+            "fg_width": 252,
+            "fg_height": 661,
+            "foot_y": 700,
+            "center_x": 320.0
+          }
+        ]
+      },
+      "waving_hii": {
+        "id": "waving_hii",
+        "title": "Hand Waving / Saying Hi",
+        "character": "mr_nerdy",
+        "source_file": "waving_hii.png",
+        "strategy": "complete_standardized",
+        "frame_count": 8,
+        "frame_duration_ms": 300,
+        "fps": 3.3,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [],
+        "spritesheet_path": "assets/processed/waving_hii/spritesheet.png",
+        "preview_gif_path": "assets/processed/waving_hii/preview.gif",
+        "contact_sheet_path": "assets/processed/waving_hii/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/processed/waving_hii/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              216,
+              114,
+              424,
+              700
+            ],
+            "fg_width": 209,
+            "fg_height": 587,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/processed/waving_hii/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              212,
+              114,
+              426,
+              700
+            ],
+            "fg_width": 215,
+            "fg_height": 587,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/processed/waving_hii/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              208,
+              114,
+              430,
+              700
+            ],
+            "fg_width": 223,
+            "fg_height": 587,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/processed/waving_hii/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              200,
+              114,
+              440,
+              700
+            ],
+            "fg_width": 241,
+            "fg_height": 587,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/processed/waving_hii/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              200,
+              114,
+              440,
+              700
+            ],
+            "fg_width": 241,
+            "fg_height": 587,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/processed/waving_hii/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              202,
+              114,
+              438,
+              700
+            ],
+            "fg_width": 237,
+            "fg_height": 587,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 6,
+            "filename": "frame_06.png",
+            "rel_path": "assets/processed/waving_hii/frames/frame_06.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              211,
+              114,
+              428,
+              700
+            ],
+            "fg_width": 218,
+            "fg_height": 587,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 7,
+            "filename": "frame_07.png",
+            "rel_path": "assets/processed/waving_hii/frames/frame_07.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              216,
+              114,
+              422,
+              700
+            ],
+            "fg_width": 207,
+            "fg_height": 587,
+            "foot_y": 700,
+            "center_x": 319.5
+          }
+        ]
+      },
+      "huncing": {
+        "id": "huncing",
+        "title": "Working on Laptop / Hunching",
+        "character": "mr_nerdy",
+        "source_file": "huncing.png",
+        "strategy": "complete_standardized",
+        "frame_count": 17,
+        "frame_duration_ms": 141,
+        "fps": 7.1,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [
+          "desk",
+          "laptop",
+          "chair"
+        ],
+        "spritesheet_path": "assets/processed/huncing/spritesheet.png",
+        "preview_gif_path": "assets/processed/huncing/preview.gif",
+        "contact_sheet_path": "assets/processed/huncing/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/processed/huncing/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              200,
+              75,
+              439,
+              693
+            ],
+            "fg_width": 240,
+            "fg_height": 619,
+            "foot_y": 693,
+            "center_x": 320.0
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/processed/huncing/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              162,
+              79,
+              477,
+              693
+            ],
+            "fg_width": 316,
+            "fg_height": 615,
+            "foot_y": 693,
+            "center_x": 320.0
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/processed/huncing/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              178,
+              93,
+              460,
+              693
+            ],
+            "fg_width": 283,
+            "fg_height": 601,
+            "foot_y": 693,
+            "center_x": 319.5
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/processed/huncing/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              82,
+              142,
+              556,
+              695
+            ],
+            "fg_width": 475,
+            "fg_height": 554,
+            "foot_y": 695,
+            "center_x": 319.5
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/processed/huncing/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              146,
+              142,
+              494,
+              697
+            ],
+            "fg_width": 349,
+            "fg_height": 556,
+            "foot_y": 697,
+            "center_x": 320.5
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/processed/huncing/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              148,
+              140,
+              492,
+              693
+            ],
+            "fg_width": 345,
+            "fg_height": 554,
+            "foot_y": 693,
+            "center_x": 320.5
+          },
+          {
+            "index": 6,
+            "filename": "frame_06.png",
+            "rel_path": "assets/processed/huncing/frames/frame_06.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              123,
+              142,
+              516,
+              695
+            ],
+            "fg_width": 394,
+            "fg_height": 554,
+            "foot_y": 695,
+            "center_x": 320.0
+          },
+          {
+            "index": 7,
+            "filename": "frame_07.png",
+            "rel_path": "assets/processed/huncing/frames/frame_07.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              114,
+              144,
+              525,
+              697
+            ],
+            "fg_width": 412,
+            "fg_height": 554,
+            "foot_y": 697,
+            "center_x": 320.0
+          },
+          {
+            "index": 8,
+            "filename": "frame_08.png",
+            "rel_path": "assets/processed/huncing/frames/frame_08.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              65,
+              151,
+              574,
+              700
+            ],
+            "fg_width": 510,
+            "fg_height": 550,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 9,
+            "filename": "frame_09.png",
+            "rel_path": "assets/processed/huncing/frames/frame_09.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              92,
+              149,
+              548,
+              700
+            ],
+            "fg_width": 457,
+            "fg_height": 552,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 10,
+            "filename": "frame_10.png",
+            "rel_path": "assets/processed/huncing/frames/frame_10.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              92,
+              156,
+              548,
+              700
+            ],
+            "fg_width": 457,
+            "fg_height": 545,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 11,
+            "filename": "frame_11.png",
+            "rel_path": "assets/processed/huncing/frames/frame_11.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              92,
+              156,
+              546,
+              700
+            ],
+            "fg_width": 455,
+            "fg_height": 545,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 12,
+            "filename": "frame_12.png",
+            "rel_path": "assets/processed/huncing/frames/frame_12.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              90,
+              154,
+              548,
+              700
+            ],
+            "fg_width": 459,
+            "fg_height": 547,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 13,
+            "filename": "frame_13.png",
+            "rel_path": "assets/processed/huncing/frames/frame_13.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              90,
+              161,
+              548,
+              700
+            ],
+            "fg_width": 459,
+            "fg_height": 540,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 14,
+            "filename": "frame_14.png",
+            "rel_path": "assets/processed/huncing/frames/frame_14.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              87,
+              163,
+              552,
+              700
+            ],
+            "fg_width": 466,
+            "fg_height": 538,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 15,
+            "filename": "frame_15.png",
+            "rel_path": "assets/processed/huncing/frames/frame_15.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              88,
+              163,
+              552,
+              700
+            ],
+            "fg_width": 465,
+            "fg_height": 538,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 16,
+            "filename": "frame_16.png",
+            "rel_path": "assets/processed/huncing/frames/frame_16.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              86,
+              154,
+              553,
+              698
+            ],
+            "fg_width": 468,
+            "fg_height": 545,
+            "foot_y": 698,
+            "center_x": 320.0
+          }
+        ]
+      },
+      "sleeping": {
+        "id": "sleeping",
+        "title": "Standing to Sleeping",
+        "character": "mr_nerdy",
+        "source_file": "sleeping.png",
+        "strategy": "complete_standardized",
+        "frame_count": 16,
+        "frame_duration_ms": 150,
+        "fps": 6.7,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [
+          "cot",
+          "bed",
+          "Zzz sleep particles"
+        ],
+        "spritesheet_path": "assets/processed/sleeping/spritesheet.png",
+        "preview_gif_path": "assets/processed/sleeping/preview.gif",
+        "contact_sheet_path": "assets/processed/sleeping/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/processed/sleeping/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              192,
+              27,
+              446,
+              689
+            ],
+            "fg_width": 255,
+            "fg_height": 663,
+            "foot_y": 689,
+            "center_x": 319.5
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/processed/sleeping/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              190,
+              29,
+              449,
+              687
+            ],
+            "fg_width": 260,
+            "fg_height": 659,
+            "foot_y": 687,
+            "center_x": 320.0
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/processed/sleeping/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              180,
+              33,
+              460,
+              692
+            ],
+            "fg_width": 281,
+            "fg_height": 660,
+            "foot_y": 692,
+            "center_x": 320.5
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/processed/sleeping/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              178,
+              33,
+              462,
+              690
+            ],
+            "fg_width": 285,
+            "fg_height": 658,
+            "foot_y": 690,
+            "center_x": 320.5
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/processed/sleeping/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              172,
+              33,
+              468,
+              690
+            ],
+            "fg_width": 297,
+            "fg_height": 658,
+            "foot_y": 690,
+            "center_x": 320.5
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/processed/sleeping/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              160,
+              54,
+              478,
+              690
+            ],
+            "fg_width": 319,
+            "fg_height": 637,
+            "foot_y": 690,
+            "center_x": 319.5
+          },
+          {
+            "index": 6,
+            "filename": "frame_06.png",
+            "rel_path": "assets/processed/sleeping/frames/frame_06.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              150,
+              112,
+              489,
+              692
+            ],
+            "fg_width": 340,
+            "fg_height": 581,
+            "foot_y": 692,
+            "center_x": 320.0
+          },
+          {
+            "index": 7,
+            "filename": "frame_07.png",
+            "rel_path": "assets/processed/sleeping/frames/frame_07.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              144,
+              209,
+              496,
+              700
+            ],
+            "fg_width": 353,
+            "fg_height": 492,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 8,
+            "filename": "frame_08.png",
+            "rel_path": "assets/processed/sleeping/frames/frame_08.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              160,
+              295,
+              479,
+              692
+            ],
+            "fg_width": 320,
+            "fg_height": 398,
+            "foot_y": 692,
+            "center_x": 320.0
+          },
+          {
+            "index": 9,
+            "filename": "frame_09.png",
+            "rel_path": "assets/processed/sleeping/frames/frame_09.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              138,
+              300,
+              502,
+              689
+            ],
+            "fg_width": 365,
+            "fg_height": 390,
+            "foot_y": 689,
+            "center_x": 320.5
+          },
+          {
+            "index": 10,
+            "filename": "frame_10.png",
+            "rel_path": "assets/processed/sleeping/frames/frame_10.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              136,
+              303,
+              503,
+              690
+            ],
+            "fg_width": 368,
+            "fg_height": 388,
+            "foot_y": 690,
+            "center_x": 320.0
+          },
+          {
+            "index": 11,
+            "filename": "frame_11.png",
+            "rel_path": "assets/processed/sleeping/frames/frame_11.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              154,
+              291,
+              485,
+              700
+            ],
+            "fg_width": 332,
+            "fg_height": 410,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 12,
+            "filename": "frame_12.png",
+            "rel_path": "assets/processed/sleeping/frames/frame_12.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              158,
+              292,
+              480,
+              700
+            ],
+            "fg_width": 323,
+            "fg_height": 409,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 13,
+            "filename": "frame_13.png",
+            "rel_path": "assets/processed/sleeping/frames/frame_13.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              42,
+              386,
+              598,
+              676
+            ],
+            "fg_width": 557,
+            "fg_height": 291,
+            "foot_y": 676,
+            "center_x": 320.5
+          },
+          {
+            "index": 14,
+            "filename": "frame_14.png",
+            "rel_path": "assets/processed/sleeping/frames/frame_14.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              60,
+              400,
+              578,
+              678
+            ],
+            "fg_width": 519,
+            "fg_height": 279,
+            "foot_y": 678,
+            "center_x": 319.5
+          },
+          {
+            "index": 15,
+            "filename": "frame_15.png",
+            "rel_path": "assets/processed/sleeping/frames/frame_15.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              93,
+              421,
+              546,
+              679
+            ],
+            "fg_width": 454,
+            "fg_height": 259,
+            "foot_y": 679,
+            "center_x": 320.0
+          }
+        ]
+      },
+      "peeking": {
+        "id": "peeking",
+        "title": "Peeking from Below Barrier",
+        "character": "mr_nerdy",
+        "source_file": "peeking.png",
+        "strategy": "complete_standardized",
+        "frame_count": 8,
+        "frame_duration_ms": 300,
+        "fps": 3.3,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [
+          "horizontal barrier"
+        ],
+        "spritesheet_path": "assets/processed/peeking/spritesheet.png",
+        "preview_gif_path": "assets/processed/peeking/preview.gif",
+        "contact_sheet_path": "assets/processed/peeking/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/processed/peeking/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              194,
+              574,
+              446,
+              700
+            ],
+            "fg_width": 253,
+            "fg_height": 127,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/processed/peeking/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              185,
+              525,
+              454,
+              700
+            ],
+            "fg_width": 270,
+            "fg_height": 176,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/processed/peeking/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              188,
+              481,
+              450,
+              700
+            ],
+            "fg_width": 263,
+            "fg_height": 220,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/processed/peeking/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              190,
+              481,
+              449,
+              700
+            ],
+            "fg_width": 260,
+            "fg_height": 220,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/processed/peeking/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              189,
+              482,
+              450,
+              700
+            ],
+            "fg_width": 262,
+            "fg_height": 219,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/processed/peeking/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              190,
+              482,
+              448,
+              700
+            ],
+            "fg_width": 259,
+            "fg_height": 219,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 6,
+            "filename": "frame_06.png",
+            "rel_path": "assets/processed/peeking/frames/frame_06.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              184,
+              495,
+              454,
+              700
+            ],
+            "fg_width": 271,
+            "fg_height": 206,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 7,
+            "filename": "frame_07.png",
+            "rel_path": "assets/processed/peeking/frames/frame_07.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              194,
+              571,
+              445,
+              700
+            ],
+            "fg_width": 252,
+            "fg_height": 130,
+            "foot_y": 700,
+            "center_x": 320.0
+          }
+        ]
+      },
+      "thinking": {
+        "id": "thinking",
+        "title": "Thinking",
+        "character": "mr_nerdy",
+        "source_file": "thinking.png",
+        "strategy": "complete_standardized",
+        "frame_count": 8,
+        "frame_duration_ms": 300,
+        "fps": 3.3,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [],
+        "spritesheet_path": "assets/processed/thinking/spritesheet.png",
+        "preview_gif_path": "assets/processed/thinking/preview.gif",
+        "contact_sheet_path": "assets/processed/thinking/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/processed/thinking/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              215,
+              85,
+              424,
+              700
+            ],
+            "fg_width": 210,
+            "fg_height": 616,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/processed/thinking/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              214,
+              90,
+              426,
+              700
+            ],
+            "fg_width": 213,
+            "fg_height": 611,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/processed/thinking/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              207,
+              82,
+              432,
+              700
+            ],
+            "fg_width": 226,
+            "fg_height": 619,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/processed/thinking/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              211,
+              91,
+              428,
+              700
+            ],
+            "fg_width": 218,
+            "fg_height": 610,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/processed/thinking/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              201,
+              93,
+              438,
+              700
+            ],
+            "fg_width": 238,
+            "fg_height": 608,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/processed/thinking/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              206,
+              83,
+              434,
+              700
+            ],
+            "fg_width": 229,
+            "fg_height": 618,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 6,
+            "filename": "frame_06.png",
+            "rel_path": "assets/processed/thinking/frames/frame_06.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              203,
+              83,
+              436,
+              700
+            ],
+            "fg_width": 234,
+            "fg_height": 618,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 7,
+            "filename": "frame_07.png",
+            "rel_path": "assets/processed/thinking/frames/frame_07.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              212,
+              92,
+              426,
+              700
+            ],
+            "fg_width": 215,
+            "fg_height": 609,
+            "foot_y": 700,
+            "center_x": 319.5
+          }
+        ]
+      },
+      "doc_catching": {
+        "id": "doc_catching",
+        "title": "Catching a Falling Document",
+        "character": "mr_nerdy",
+        "source_file": "doc_catching.png",
+        "strategy": "complete_standardized",
+        "frame_count": 9,
+        "frame_duration_ms": 267,
+        "fps": 3.7,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [
+          "falling document"
+        ],
+        "spritesheet_path": "assets/processed/doc_catching/spritesheet.png",
+        "preview_gif_path": "assets/processed/doc_catching/preview.gif",
+        "contact_sheet_path": "assets/processed/doc_catching/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/processed/doc_catching/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              210,
+              208,
+              429,
+              699
+            ],
+            "fg_width": 220,
+            "fg_height": 492,
+            "foot_y": 699,
+            "center_x": 320.0
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/processed/doc_catching/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              199,
+              209,
+              440,
+              700
+            ],
+            "fg_width": 242,
+            "fg_height": 492,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/processed/doc_catching/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              202,
+              215,
+              436,
+              700
+            ],
+            "fg_width": 235,
+            "fg_height": 486,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/processed/doc_catching/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              204,
+              52,
+              435,
+              700
+            ],
+            "fg_width": 232,
+            "fg_height": 649,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/processed/doc_catching/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              199,
+              104,
+              440,
+              699
+            ],
+            "fg_width": 242,
+            "fg_height": 596,
+            "foot_y": 699,
+            "center_x": 320.0
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/processed/doc_catching/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              200,
+              24,
+              440,
+              700
+            ],
+            "fg_width": 241,
+            "fg_height": 677,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 6,
+            "filename": "frame_06.png",
+            "rel_path": "assets/processed/doc_catching/frames/frame_06.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              200,
+              203,
+              440,
+              699
+            ],
+            "fg_width": 241,
+            "fg_height": 497,
+            "foot_y": 699,
+            "center_x": 320.5
+          },
+          {
+            "index": 7,
+            "filename": "frame_07.png",
+            "rel_path": "assets/processed/doc_catching/frames/frame_07.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              205,
+              209,
+              434,
+              700
+            ],
+            "fg_width": 230,
+            "fg_height": 492,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 8,
+            "filename": "frame_08.png",
+            "rel_path": "assets/processed/doc_catching/frames/frame_08.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              227,
+              213,
+              412,
+              700
+            ],
+            "fg_width": 186,
+            "fg_height": 488,
+            "foot_y": 700,
+            "center_x": 320.0
+          }
+        ]
+      },
+      "confused": {
+        "id": "confused",
+        "title": "Confused",
+        "character": "mr_nerdy",
+        "source_file": "confused.png",
+        "strategy": "complete_standardized",
+        "frame_count": 8,
+        "frame_duration_ms": 300,
+        "fps": 3.3,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [
+          "confusion marks"
+        ],
+        "spritesheet_path": "assets/processed/confused/spritesheet.png",
+        "preview_gif_path": "assets/processed/confused/preview.gif",
+        "contact_sheet_path": "assets/processed/confused/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/processed/confused/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              208,
+              85,
+              430,
+              697
+            ],
+            "fg_width": 223,
+            "fg_height": 613,
+            "foot_y": 697,
+            "center_x": 319.5
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/processed/confused/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              204,
+              96,
+              435,
+              700
+            ],
+            "fg_width": 232,
+            "fg_height": 605,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/processed/confused/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              198,
+              93,
+              440,
+              699
+            ],
+            "fg_width": 243,
+            "fg_height": 607,
+            "foot_y": 699,
+            "center_x": 319.5
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/processed/confused/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              202,
+              98,
+              436,
+              700
+            ],
+            "fg_width": 235,
+            "fg_height": 603,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/processed/confused/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              194,
+              85,
+              445,
+              698
+            ],
+            "fg_width": 252,
+            "fg_height": 614,
+            "foot_y": 698,
+            "center_x": 320.0
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/processed/confused/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              184,
+              100,
+              454,
+              700
+            ],
+            "fg_width": 271,
+            "fg_height": 601,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 6,
+            "filename": "frame_06.png",
+            "rel_path": "assets/processed/confused/frames/frame_06.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              189,
+              85,
+              450,
+              698
+            ],
+            "fg_width": 262,
+            "fg_height": 614,
+            "foot_y": 698,
+            "center_x": 320.0
+          },
+          {
+            "index": 7,
+            "filename": "frame_07.png",
+            "rel_path": "assets/processed/confused/frames/frame_07.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              195,
+              84,
+              444,
+              698
+            ],
+            "fg_width": 250,
+            "fg_height": 615,
+            "foot_y": 698,
+            "center_x": 320.0
+          }
+        ]
+      },
+      "excited": {
+        "id": "excited",
+        "title": "Excited",
+        "character": "mr_nerdy",
+        "source_file": "excited.png",
+        "strategy": "complete_standardized",
+        "frame_count": 8,
+        "frame_duration_ms": 300,
+        "fps": 3.3,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [],
+        "spritesheet_path": "assets/processed/excited/spritesheet.png",
+        "preview_gif_path": "assets/processed/excited/preview.gif",
+        "contact_sheet_path": "assets/processed/excited/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/processed/excited/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              214,
+              130,
+              426,
+              700
+            ],
+            "fg_width": 213,
+            "fg_height": 571,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/processed/excited/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              207,
+              127,
+              432,
+              700
+            ],
+            "fg_width": 226,
+            "fg_height": 574,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/processed/excited/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              186,
+              132,
+              452,
+              700
+            ],
+            "fg_width": 267,
+            "fg_height": 569,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/processed/excited/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              184,
+              86,
+              455,
+              691
+            ],
+            "fg_width": 272,
+            "fg_height": 606,
+            "foot_y": 691,
+            "center_x": 320.0
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/processed/excited/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              184,
+              122,
+              455,
+              700
+            ],
+            "fg_width": 272,
+            "fg_height": 579,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/processed/excited/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              184,
+              141,
+              454,
+              700
+            ],
+            "fg_width": 271,
+            "fg_height": 560,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 6,
+            "filename": "frame_06.png",
+            "rel_path": "assets/processed/excited/frames/frame_06.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              184,
+              130,
+              454,
+              700
+            ],
+            "fg_width": 271,
+            "fg_height": 571,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 7,
+            "filename": "frame_07.png",
+            "rel_path": "assets/processed/excited/frames/frame_07.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              214,
+              130,
+              425,
+              700
+            ],
+            "fg_width": 212,
+            "fg_height": 571,
+            "foot_y": 700,
+            "center_x": 320.0
+          }
+        ]
+      },
+      "mad": {
+        "id": "mad",
+        "title": "Angry",
+        "character": "mr_nerdy",
+        "source_file": "mad.png",
+        "strategy": "complete_standardized",
+        "frame_count": 8,
+        "frame_duration_ms": 300,
+        "fps": 3.3,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [
+          "anger steam"
+        ],
+        "spritesheet_path": "assets/processed/mad/spritesheet.png",
+        "preview_gif_path": "assets/processed/mad/preview.gif",
+        "contact_sheet_path": "assets/processed/mad/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/processed/mad/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              196,
+              110,
+              442,
+              700
+            ],
+            "fg_width": 247,
+            "fg_height": 591,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/processed/mad/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              202,
+              118,
+              436,
+              700
+            ],
+            "fg_width": 235,
+            "fg_height": 583,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/processed/mad/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              185,
+              122,
+              454,
+              700
+            ],
+            "fg_width": 270,
+            "fg_height": 579,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/processed/mad/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              184,
+              112,
+              455,
+              700
+            ],
+            "fg_width": 272,
+            "fg_height": 589,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/processed/mad/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              184,
+              163,
+              455,
+              700
+            ],
+            "fg_width": 272,
+            "fg_height": 538,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/processed/mad/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              184,
+              149,
+              454,
+              700
+            ],
+            "fg_width": 271,
+            "fg_height": 552,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 6,
+            "filename": "frame_06.png",
+            "rel_path": "assets/processed/mad/frames/frame_06.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              184,
+              150,
+              454,
+              700
+            ],
+            "fg_width": 271,
+            "fg_height": 551,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 7,
+            "filename": "frame_07.png",
+            "rel_path": "assets/processed/mad/frames/frame_07.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              196,
+              135,
+              443,
+              700
+            ],
+            "fg_width": 248,
+            "fg_height": 566,
+            "foot_y": 700,
+            "center_x": 320.0
+          }
+        ]
+      },
+      "turnaround": {
+        "id": "turnaround",
+        "title": "Turning: Front to Right and Left",
+        "character": "mr_nerdy",
+        "source_file": "Pixel Scientist Turnaround Sprite Sheet.png",
+        "strategy": "complete_standardized",
+        "frame_count": 12,
+        "frame_duration_ms": 200,
+        "fps": 5.0,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [],
+        "spritesheet_path": "assets/processed/turnaround/spritesheet.png",
+        "preview_gif_path": "assets/processed/turnaround/preview.gif",
+        "contact_sheet_path": "assets/processed/turnaround/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/processed/turnaround/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              256,
+              11,
+              383,
+              699
+            ],
+            "fg_width": 128,
+            "fg_height": 689,
+            "foot_y": 699,
+            "center_x": 320.0
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/processed/turnaround/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              230,
+              11,
+              410,
+              699
+            ],
+            "fg_width": 181,
+            "fg_height": 689,
+            "foot_y": 699,
+            "center_x": 320.5
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/processed/turnaround/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              230,
+              12,
+              410,
+              699
+            ],
+            "fg_width": 181,
+            "fg_height": 688,
+            "foot_y": 699,
+            "center_x": 320.5
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/processed/turnaround/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              230,
+              13,
+              410,
+              699
+            ],
+            "fg_width": 181,
+            "fg_height": 687,
+            "foot_y": 699,
+            "center_x": 320.5
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/processed/turnaround/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              240,
+              14,
+              398,
+              699
+            ],
+            "fg_width": 159,
+            "fg_height": 686,
+            "foot_y": 699,
+            "center_x": 319.5
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/processed/turnaround/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              250,
+              13,
+              389,
+              699
+            ],
+            "fg_width": 140,
+            "fg_height": 687,
+            "foot_y": 699,
+            "center_x": 320.0
+          },
+          {
+            "index": 6,
+            "filename": "frame_06.png",
+            "rel_path": "assets/processed/turnaround/frames/frame_06.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              249,
+              13,
+              390,
+              699
+            ],
+            "fg_width": 142,
+            "fg_height": 687,
+            "foot_y": 699,
+            "center_x": 320.0
+          },
+          {
+            "index": 7,
+            "filename": "frame_07.png",
+            "rel_path": "assets/processed/turnaround/frames/frame_07.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              238,
+              14,
+              402,
+              699
+            ],
+            "fg_width": 165,
+            "fg_height": 686,
+            "foot_y": 699,
+            "center_x": 320.5
+          },
+          {
+            "index": 8,
+            "filename": "frame_08.png",
+            "rel_path": "assets/processed/turnaround/frames/frame_08.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              230,
+              13,
+              410,
+              700
+            ],
+            "fg_width": 181,
+            "fg_height": 688,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 9,
+            "filename": "frame_09.png",
+            "rel_path": "assets/processed/turnaround/frames/frame_09.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              230,
+              12,
+              410,
+              699
+            ],
+            "fg_width": 181,
+            "fg_height": 688,
+            "foot_y": 699,
+            "center_x": 320.5
+          },
+          {
+            "index": 10,
+            "filename": "frame_10.png",
+            "rel_path": "assets/processed/turnaround/frames/frame_10.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              230,
+              11,
+              410,
+              699
+            ],
+            "fg_width": 181,
+            "fg_height": 689,
+            "foot_y": 699,
+            "center_x": 320.5
+          },
+          {
+            "index": 11,
+            "filename": "frame_11.png",
+            "rel_path": "assets/processed/turnaround/frames/frame_11.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              258,
+              11,
+              380,
+              699
+            ],
+            "fg_width": 123,
+            "fg_height": 689,
+            "foot_y": 699,
+            "center_x": 319.5
+          }
+        ]
+      },
+      "walking": {
+        "id": "walking",
+        "title": "Walking",
+        "character": "mr_nerdy",
+        "source_file": "walking.png",
+        "strategy": "complete_standardized",
+        "frame_count": 16,
+        "frame_duration_ms": 150,
+        "fps": 6.7,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [],
+        "spritesheet_path": "assets/processed/walking/spritesheet.png",
+        "preview_gif_path": "assets/processed/walking/preview.gif",
+        "contact_sheet_path": "assets/processed/walking/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/processed/walking/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              181,
+              40,
+              458,
+              700
+            ],
+            "fg_width": 278,
+            "fg_height": 661,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/processed/walking/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              146,
+              40,
+              494,
+              698
+            ],
+            "fg_width": 349,
+            "fg_height": 659,
+            "foot_y": 698,
+            "center_x": 320.5
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/processed/walking/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              156,
+              40,
+              484,
+              693
+            ],
+            "fg_width": 329,
+            "fg_height": 654,
+            "foot_y": 693,
+            "center_x": 320.5
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/processed/walking/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              150,
+              40,
+              490,
+              689
+            ],
+            "fg_width": 341,
+            "fg_height": 650,
+            "foot_y": 689,
+            "center_x": 320.5
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/processed/walking/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              139,
+              40,
+              500,
+              695
+            ],
+            "fg_width": 362,
+            "fg_height": 656,
+            "foot_y": 695,
+            "center_x": 320.0
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/processed/walking/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              140,
+              40,
+              499,
+              693
+            ],
+            "fg_width": 360,
+            "fg_height": 654,
+            "foot_y": 693,
+            "center_x": 320.0
+          },
+          {
+            "index": 6,
+            "filename": "frame_06.png",
+            "rel_path": "assets/processed/walking/frames/frame_06.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              137,
+              40,
+              502,
+              693
+            ],
+            "fg_width": 366,
+            "fg_height": 654,
+            "foot_y": 693,
+            "center_x": 320.0
+          },
+          {
+            "index": 7,
+            "filename": "frame_07.png",
+            "rel_path": "assets/processed/walking/frames/frame_07.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              154,
+              40,
+              486,
+              693
+            ],
+            "fg_width": 333,
+            "fg_height": 654,
+            "foot_y": 693,
+            "center_x": 320.5
+          },
+          {
+            "index": 8,
+            "filename": "frame_08.png",
+            "rel_path": "assets/processed/walking/frames/frame_08.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              158,
+              40,
+              480,
+              695
+            ],
+            "fg_width": 323,
+            "fg_height": 656,
+            "foot_y": 695,
+            "center_x": 319.5
+          },
+          {
+            "index": 9,
+            "filename": "frame_09.png",
+            "rel_path": "assets/processed/walking/frames/frame_09.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              140,
+              41,
+              499,
+              691
+            ],
+            "fg_width": 360,
+            "fg_height": 651,
+            "foot_y": 691,
+            "center_x": 320.0
+          },
+          {
+            "index": 10,
+            "filename": "frame_10.png",
+            "rel_path": "assets/processed/walking/frames/frame_10.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              140,
+              40,
+              500,
+              691
+            ],
+            "fg_width": 361,
+            "fg_height": 652,
+            "foot_y": 691,
+            "center_x": 320.5
+          },
+          {
+            "index": 11,
+            "filename": "frame_11.png",
+            "rel_path": "assets/processed/walking/frames/frame_11.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              138,
+              40,
+              501,
+              696
+            ],
+            "fg_width": 364,
+            "fg_height": 657,
+            "foot_y": 696,
+            "center_x": 320.0
+          },
+          {
+            "index": 12,
+            "filename": "frame_12.png",
+            "rel_path": "assets/processed/walking/frames/frame_12.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              144,
+              40,
+              494,
+              693
+            ],
+            "fg_width": 351,
+            "fg_height": 654,
+            "foot_y": 693,
+            "center_x": 319.5
+          },
+          {
+            "index": 13,
+            "filename": "frame_13.png",
+            "rel_path": "assets/processed/walking/frames/frame_13.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              146,
+              40,
+              492,
+              695
+            ],
+            "fg_width": 347,
+            "fg_height": 656,
+            "foot_y": 695,
+            "center_x": 319.5
+          },
+          {
+            "index": 14,
+            "filename": "frame_14.png",
+            "rel_path": "assets/processed/walking/frames/frame_14.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              146,
+              40,
+              494,
+              695
+            ],
+            "fg_width": 349,
+            "fg_height": 656,
+            "foot_y": 695,
+            "center_x": 320.5
+          },
+          {
+            "index": 15,
+            "filename": "frame_15.png",
+            "rel_path": "assets/processed/walking/frames/frame_15.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              181,
+              38,
+              458,
+              700
+            ],
+            "fg_width": 278,
+            "fg_height": 663,
+            "foot_y": 700,
+            "center_x": 320.0
+          }
+        ]
+      }
+    },
+    "ms_nerdy": {
+      "blinking": {
+        "id": "blinking",
+        "title": "Eye Blinking",
+        "character": "ms_nerdy",
+        "source_file": "Pixel-Art Scientist Blink Animation Sprite Sheet.png",
+        "strategy": "complete_standardized",
+        "frame_count": 6,
+        "frame_duration_ms": 400,
+        "fps": 2.5,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [],
+        "spritesheet_path": "assets/ms_processed/blinking/spritesheet.png",
+        "preview_gif_path": "assets/ms_processed/blinking/preview.gif",
+        "contact_sheet_path": "assets/ms_processed/blinking/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/ms_processed/blinking/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              167,
+              9,
+              472,
+              700
+            ],
+            "fg_width": 306,
+            "fg_height": 692,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/ms_processed/blinking/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              166,
+              9,
+              474,
+              700
+            ],
+            "fg_width": 309,
+            "fg_height": 692,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/ms_processed/blinking/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              166,
+              9,
+              474,
+              700
+            ],
+            "fg_width": 309,
+            "fg_height": 692,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/ms_processed/blinking/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              166,
+              9,
+              474,
+              700
+            ],
+            "fg_width": 309,
+            "fg_height": 692,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/ms_processed/blinking/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              165,
+              9,
+              474,
+              700
+            ],
+            "fg_width": 310,
+            "fg_height": 692,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/ms_processed/blinking/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              166,
+              9,
+              472,
+              700
+            ],
+            "fg_width": 307,
+            "fg_height": 692,
+            "foot_y": 700,
+            "center_x": 319.5
+          }
+        ]
+      },
+      "waving_hii": {
+        "id": "waving_hii",
+        "title": "Hand Waving / Saying Hi",
+        "character": "ms_nerdy",
+        "source_file": "Pixel Art Doctor Waving Sprite Sheet.png",
+        "strategy": "complete_standardized",
+        "frame_count": 8,
+        "frame_duration_ms": 300,
+        "fps": 3.3,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [],
+        "spritesheet_path": "assets/ms_processed/waving_hii/spritesheet.png",
+        "preview_gif_path": "assets/ms_processed/waving_hii/preview.gif",
+        "contact_sheet_path": "assets/ms_processed/waving_hii/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/ms_processed/waving_hii/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              193,
+              100,
+              446,
+              699
+            ],
+            "fg_width": 254,
+            "fg_height": 600,
+            "foot_y": 699,
+            "center_x": 320.0
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/ms_processed/waving_hii/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              194,
+              100,
+              446,
+              699
+            ],
+            "fg_width": 253,
+            "fg_height": 600,
+            "foot_y": 699,
+            "center_x": 320.5
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/ms_processed/waving_hii/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              190,
+              104,
+              449,
+              700
+            ],
+            "fg_width": 260,
+            "fg_height": 597,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/ms_processed/waving_hii/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              187,
+              103,
+              452,
+              700
+            ],
+            "fg_width": 266,
+            "fg_height": 598,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/ms_processed/waving_hii/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              184,
+              104,
+              456,
+              700
+            ],
+            "fg_width": 273,
+            "fg_height": 597,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/ms_processed/waving_hii/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              190,
+              103,
+              448,
+              700
+            ],
+            "fg_width": 259,
+            "fg_height": 598,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 6,
+            "filename": "frame_06.png",
+            "rel_path": "assets/ms_processed/waving_hii/frames/frame_06.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              196,
+              104,
+              442,
+              700
+            ],
+            "fg_width": 247,
+            "fg_height": 597,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 7,
+            "filename": "frame_07.png",
+            "rel_path": "assets/ms_processed/waving_hii/frames/frame_07.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              194,
+              104,
+              444,
+              700
+            ],
+            "fg_width": 251,
+            "fg_height": 597,
+            "foot_y": 700,
+            "center_x": 319.5
+          }
+        ]
+      },
+      "huncing": {
+        "id": "huncing",
+        "title": "Working on Laptop / Hunching",
+        "character": "ms_nerdy",
+        "source_file": "Pixel-Art Workday Animation Spritesheet.png",
+        "strategy": "complete_standardized",
+        "frame_count": 17,
+        "frame_duration_ms": 141,
+        "fps": 7.1,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [
+          "desk",
+          "chair",
+          "laptop"
+        ],
+        "spritesheet_path": "assets/ms_processed/huncing/spritesheet.png",
+        "preview_gif_path": "assets/ms_processed/huncing/preview.gif",
+        "contact_sheet_path": "assets/ms_processed/huncing/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/ms_processed/huncing/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              158,
+              40,
+              480,
+              700
+            ],
+            "fg_width": 323,
+            "fg_height": 661,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/ms_processed/huncing/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              168,
+              40,
+              470,
+              698
+            ],
+            "fg_width": 303,
+            "fg_height": 659,
+            "foot_y": 698,
+            "center_x": 319.5
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/ms_processed/huncing/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              164,
+              49,
+              474,
+              696
+            ],
+            "fg_width": 311,
+            "fg_height": 648,
+            "foot_y": 696,
+            "center_x": 319.5
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/ms_processed/huncing/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              151,
+              62,
+              488,
+              696
+            ],
+            "fg_width": 338,
+            "fg_height": 635,
+            "foot_y": 696,
+            "center_x": 320.0
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/ms_processed/huncing/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              105,
+              91,
+              534,
+              698
+            ],
+            "fg_width": 430,
+            "fg_height": 608,
+            "foot_y": 698,
+            "center_x": 320.0
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/ms_processed/huncing/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              118,
+              77,
+              520,
+              698
+            ],
+            "fg_width": 403,
+            "fg_height": 622,
+            "foot_y": 698,
+            "center_x": 319.5
+          },
+          {
+            "index": 6,
+            "filename": "frame_06.png",
+            "rel_path": "assets/ms_processed/huncing/frames/frame_06.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              130,
+              97,
+              509,
+              698
+            ],
+            "fg_width": 380,
+            "fg_height": 602,
+            "foot_y": 698,
+            "center_x": 320.0
+          },
+          {
+            "index": 7,
+            "filename": "frame_07.png",
+            "rel_path": "assets/ms_processed/huncing/frames/frame_07.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              139,
+              101,
+              500,
+              698
+            ],
+            "fg_width": 362,
+            "fg_height": 598,
+            "foot_y": 698,
+            "center_x": 320.0
+          },
+          {
+            "index": 8,
+            "filename": "frame_08.png",
+            "rel_path": "assets/ms_processed/huncing/frames/frame_08.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              153,
+              66,
+              486,
+              700
+            ],
+            "fg_width": 334,
+            "fg_height": 635,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 9,
+            "filename": "frame_09.png",
+            "rel_path": "assets/ms_processed/huncing/frames/frame_09.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              146,
+              124,
+              492,
+              700
+            ],
+            "fg_width": 347,
+            "fg_height": 577,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 10,
+            "filename": "frame_10.png",
+            "rel_path": "assets/ms_processed/huncing/frames/frame_10.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              56,
+              124,
+              584,
+              700
+            ],
+            "fg_width": 529,
+            "fg_height": 577,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 11,
+            "filename": "frame_11.png",
+            "rel_path": "assets/ms_processed/huncing/frames/frame_11.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              79,
+              126,
+              560,
+              700
+            ],
+            "fg_width": 482,
+            "fg_height": 575,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 12,
+            "filename": "frame_12.png",
+            "rel_path": "assets/ms_processed/huncing/frames/frame_12.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              80,
+              126,
+              558,
+              700
+            ],
+            "fg_width": 479,
+            "fg_height": 575,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 13,
+            "filename": "frame_13.png",
+            "rel_path": "assets/ms_processed/huncing/frames/frame_13.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              85,
+              124,
+              554,
+              700
+            ],
+            "fg_width": 470,
+            "fg_height": 577,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 14,
+            "filename": "frame_14.png",
+            "rel_path": "assets/ms_processed/huncing/frames/frame_14.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              79,
+              130,
+              560,
+              700
+            ],
+            "fg_width": 482,
+            "fg_height": 571,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 15,
+            "filename": "frame_15.png",
+            "rel_path": "assets/ms_processed/huncing/frames/frame_15.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              76,
+              130,
+              564,
+              700
+            ],
+            "fg_width": 489,
+            "fg_height": 571,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 16,
+            "filename": "frame_16.png",
+            "rel_path": "assets/ms_processed/huncing/frames/frame_16.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              48,
+              130,
+              591,
+              700
+            ],
+            "fg_width": 544,
+            "fg_height": 571,
+            "foot_y": 700,
+            "center_x": 320.0
+          }
+        ]
+      },
+      "sleeping": {
+        "id": "sleeping",
+        "title": "Standing to Sleeping",
+        "character": "ms_nerdy",
+        "source_file": "Drowsy Scientist Sprite Sheet.png",
+        "strategy": "complete_standardized",
+        "frame_count": 8,
+        "frame_duration_ms": 300,
+        "fps": 3.3,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [
+          "bed",
+          "cot",
+          "blanket",
+          "Zzz sleep particles"
+        ],
+        "spritesheet_path": "assets/ms_processed/sleeping/spritesheet.png",
+        "preview_gif_path": "assets/ms_processed/sleeping/preview.gif",
+        "contact_sheet_path": "assets/ms_processed/sleeping/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/ms_processed/sleeping/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              210,
+              168,
+              430,
+              693
+            ],
+            "fg_width": 221,
+            "fg_height": 526,
+            "foot_y": 693,
+            "center_x": 320.5
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/ms_processed/sleeping/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              116,
+              172,
+              524,
+              693
+            ],
+            "fg_width": 409,
+            "fg_height": 522,
+            "foot_y": 693,
+            "center_x": 320.5
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/ms_processed/sleeping/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              209,
+              172,
+              430,
+              696
+            ],
+            "fg_width": 222,
+            "fg_height": 525,
+            "foot_y": 696,
+            "center_x": 320.0
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/ms_processed/sleeping/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              212,
+              208,
+              428,
+              697
+            ],
+            "fg_width": 217,
+            "fg_height": 490,
+            "foot_y": 697,
+            "center_x": 320.5
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/ms_processed/sleeping/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              210,
+              301,
+              429,
+              700
+            ],
+            "fg_width": 220,
+            "fg_height": 400,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/ms_processed/sleeping/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              208,
+              357,
+              431,
+              699
+            ],
+            "fg_width": 224,
+            "fg_height": 343,
+            "foot_y": 699,
+            "center_x": 320.0
+          },
+          {
+            "index": 6,
+            "filename": "frame_06.png",
+            "rel_path": "assets/ms_processed/sleeping/frames/frame_06.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              170,
+              476,
+              468,
+              696
+            ],
+            "fg_width": 299,
+            "fg_height": 221,
+            "foot_y": 696,
+            "center_x": 319.5
+          },
+          {
+            "index": 7,
+            "filename": "frame_07.png",
+            "rel_path": "assets/ms_processed/sleeping/frames/frame_07.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              156,
+              452,
+              482,
+              691
+            ],
+            "fg_width": 327,
+            "fg_height": 240,
+            "foot_y": 691,
+            "center_x": 319.5
+          }
+        ]
+      },
+      "peeking": {
+        "id": "peeking",
+        "title": "Peeking from Below Barrier",
+        "character": "ms_nerdy",
+        "source_file": "Pixel-Art Peeking Woman Expressions Sprite Sheet.png",
+        "strategy": "complete_standardized",
+        "frame_count": 8,
+        "frame_duration_ms": 300,
+        "fps": 3.3,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [
+          "horizontal barrier"
+        ],
+        "spritesheet_path": "assets/ms_processed/peeking/spritesheet.png",
+        "preview_gif_path": "assets/ms_processed/peeking/preview.gif",
+        "contact_sheet_path": "assets/ms_processed/peeking/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/ms_processed/peeking/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              186,
+              563,
+              454,
+              695
+            ],
+            "fg_width": 269,
+            "fg_height": 133,
+            "foot_y": 695,
+            "center_x": 320.5
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/ms_processed/peeking/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              185,
+              522,
+              454,
+              698
+            ],
+            "fg_width": 270,
+            "fg_height": 177,
+            "foot_y": 698,
+            "center_x": 320.0
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/ms_processed/peeking/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              184,
+              486,
+              455,
+              697
+            ],
+            "fg_width": 272,
+            "fg_height": 212,
+            "foot_y": 697,
+            "center_x": 320.0
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/ms_processed/peeking/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              186,
+              489,
+              454,
+              697
+            ],
+            "fg_width": 269,
+            "fg_height": 209,
+            "foot_y": 697,
+            "center_x": 320.5
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/ms_processed/peeking/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              184,
+              484,
+              454,
+              697
+            ],
+            "fg_width": 271,
+            "fg_height": 214,
+            "foot_y": 697,
+            "center_x": 319.5
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/ms_processed/peeking/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              184,
+              492,
+              456,
+              697
+            ],
+            "fg_width": 273,
+            "fg_height": 206,
+            "foot_y": 697,
+            "center_x": 320.5
+          },
+          {
+            "index": 6,
+            "filename": "frame_06.png",
+            "rel_path": "assets/ms_processed/peeking/frames/frame_06.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              182,
+              484,
+              456,
+              697
+            ],
+            "fg_width": 275,
+            "fg_height": 214,
+            "foot_y": 697,
+            "center_x": 319.5
+          },
+          {
+            "index": 7,
+            "filename": "frame_07.png",
+            "rel_path": "assets/ms_processed/peeking/frames/frame_07.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              190,
+              550,
+              450,
+              700
+            ],
+            "fg_width": 261,
+            "fg_height": 151,
+            "foot_y": 700,
+            "center_x": 320.5
+          }
+        ]
+      },
+      "thinking": {
+        "id": "thinking",
+        "title": "Thinking",
+        "character": "ms_nerdy",
+        "source_file": "Eight-Frame Thinking Scientist Sprite Sheet.png",
+        "strategy": "complete_standardized",
+        "frame_count": 8,
+        "frame_duration_ms": 300,
+        "fps": 3.3,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [],
+        "spritesheet_path": "assets/ms_processed/thinking/spritesheet.png",
+        "preview_gif_path": "assets/ms_processed/thinking/preview.gif",
+        "contact_sheet_path": "assets/ms_processed/thinking/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/ms_processed/thinking/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              195,
+              84,
+              444,
+              700
+            ],
+            "fg_width": 250,
+            "fg_height": 617,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/ms_processed/thinking/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              192,
+              84,
+              448,
+              700
+            ],
+            "fg_width": 257,
+            "fg_height": 617,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/ms_processed/thinking/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              186,
+              84,
+              452,
+              700
+            ],
+            "fg_width": 267,
+            "fg_height": 617,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/ms_processed/thinking/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              189,
+              85,
+              450,
+              700
+            ],
+            "fg_width": 262,
+            "fg_height": 616,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/ms_processed/thinking/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              189,
+              92,
+              450,
+              698
+            ],
+            "fg_width": 262,
+            "fg_height": 607,
+            "foot_y": 698,
+            "center_x": 320.0
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/ms_processed/thinking/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              192,
+              91,
+              448,
+              698
+            ],
+            "fg_width": 257,
+            "fg_height": 608,
+            "foot_y": 698,
+            "center_x": 320.5
+          },
+          {
+            "index": 6,
+            "filename": "frame_06.png",
+            "rel_path": "assets/ms_processed/thinking/frames/frame_06.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              188,
+              91,
+              450,
+              698
+            ],
+            "fg_width": 263,
+            "fg_height": 608,
+            "foot_y": 698,
+            "center_x": 319.5
+          },
+          {
+            "index": 7,
+            "filename": "frame_07.png",
+            "rel_path": "assets/ms_processed/thinking/frames/frame_07.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              194,
+              93,
+              446,
+              699
+            ],
+            "fg_width": 253,
+            "fg_height": 607,
+            "foot_y": 699,
+            "center_x": 320.5
+          }
+        ]
+      },
+      "doc_catching": {
+        "id": "doc_catching",
+        "title": "Catching a Falling Document",
+        "character": "ms_nerdy",
+        "source_file": "Pixel-Art Scientist Catches Falling Paper.png",
+        "strategy": "complete_standardized",
+        "frame_count": 9,
+        "frame_duration_ms": 267,
+        "fps": 3.7,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [
+          "falling document"
+        ],
+        "spritesheet_path": "assets/ms_processed/doc_catching/spritesheet.png",
+        "preview_gif_path": "assets/ms_processed/doc_catching/preview.gif",
+        "contact_sheet_path": "assets/ms_processed/doc_catching/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/ms_processed/doc_catching/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              209,
+              198,
+              430,
+              698
+            ],
+            "fg_width": 222,
+            "fg_height": 501,
+            "foot_y": 698,
+            "center_x": 320.0
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/ms_processed/doc_catching/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              185,
+              195,
+              454,
+              698
+            ],
+            "fg_width": 270,
+            "fg_height": 504,
+            "foot_y": 698,
+            "center_x": 320.0
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/ms_processed/doc_catching/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              194,
+              205,
+              446,
+              699
+            ],
+            "fg_width": 253,
+            "fg_height": 495,
+            "foot_y": 699,
+            "center_x": 320.5
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/ms_processed/doc_catching/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              200,
+              31,
+              440,
+              698
+            ],
+            "fg_width": 241,
+            "fg_height": 668,
+            "foot_y": 698,
+            "center_x": 320.5
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/ms_processed/doc_catching/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              216,
+              184,
+              422,
+              699
+            ],
+            "fg_width": 207,
+            "fg_height": 516,
+            "foot_y": 699,
+            "center_x": 319.5
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/ms_processed/doc_catching/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              242,
+              112,
+              397,
+              696
+            ],
+            "fg_width": 156,
+            "fg_height": 585,
+            "foot_y": 696,
+            "center_x": 320.0
+          },
+          {
+            "index": 6,
+            "filename": "frame_06.png",
+            "rel_path": "assets/ms_processed/doc_catching/frames/frame_06.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              191,
+              213,
+              448,
+              699
+            ],
+            "fg_width": 258,
+            "fg_height": 487,
+            "foot_y": 699,
+            "center_x": 320.0
+          },
+          {
+            "index": 7,
+            "filename": "frame_07.png",
+            "rel_path": "assets/ms_processed/doc_catching/frames/frame_07.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              200,
+              205,
+              438,
+              700
+            ],
+            "fg_width": 239,
+            "fg_height": 496,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 8,
+            "filename": "frame_08.png",
+            "rel_path": "assets/ms_processed/doc_catching/frames/frame_08.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              200,
+              205,
+              438,
+              700
+            ],
+            "fg_width": 239,
+            "fg_height": 496,
+            "foot_y": 700,
+            "center_x": 319.5
+          }
+        ]
+      },
+      "confused": {
+        "id": "confused",
+        "title": "Confused",
+        "character": "ms_nerdy",
+        "source_file": "Confused Scientist Sprite Animation.png",
+        "strategy": "complete_standardized",
+        "frame_count": 8,
+        "frame_duration_ms": 300,
+        "fps": 3.3,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [
+          "confusion marks"
+        ],
+        "spritesheet_path": "assets/ms_processed/confused/spritesheet.png",
+        "preview_gif_path": "assets/ms_processed/confused/preview.gif",
+        "contact_sheet_path": "assets/ms_processed/confused/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/ms_processed/confused/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              192,
+              72,
+              447,
+              697
+            ],
+            "fg_width": 256,
+            "fg_height": 626,
+            "foot_y": 697,
+            "center_x": 320.0
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/ms_processed/confused/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              192,
+              108,
+              447,
+              699
+            ],
+            "fg_width": 256,
+            "fg_height": 592,
+            "foot_y": 699,
+            "center_x": 320.0
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/ms_processed/confused/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              190,
+              73,
+              448,
+              700
+            ],
+            "fg_width": 259,
+            "fg_height": 628,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/ms_processed/confused/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              180,
+              46,
+              460,
+              700
+            ],
+            "fg_width": 281,
+            "fg_height": 655,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/ms_processed/confused/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              189,
+              52,
+              450,
+              700
+            ],
+            "fg_width": 262,
+            "fg_height": 649,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/ms_processed/confused/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              183,
+              83,
+              456,
+              700
+            ],
+            "fg_width": 274,
+            "fg_height": 618,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 6,
+            "filename": "frame_06.png",
+            "rel_path": "assets/ms_processed/confused/frames/frame_06.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              178,
+              62,
+              462,
+              700
+            ],
+            "fg_width": 285,
+            "fg_height": 639,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 7,
+            "filename": "frame_07.png",
+            "rel_path": "assets/ms_processed/confused/frames/frame_07.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              189,
+              97,
+              450,
+              699
+            ],
+            "fg_width": 262,
+            "fg_height": 603,
+            "foot_y": 699,
+            "center_x": 320.0
+          }
+        ]
+      },
+      "excited": {
+        "id": "excited",
+        "title": "Excited",
+        "character": "ms_nerdy",
+        "source_file": "Eight-Frame Pixel Art Scientist Cheer Sprite Sheet.png",
+        "strategy": "complete_standardized",
+        "frame_count": 8,
+        "frame_duration_ms": 300,
+        "fps": 3.3,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [
+          "cheer sparkles"
+        ],
+        "spritesheet_path": "assets/ms_processed/excited/spritesheet.png",
+        "preview_gif_path": "assets/ms_processed/excited/preview.gif",
+        "contact_sheet_path": "assets/ms_processed/excited/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/ms_processed/excited/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              197,
+              99,
+              442,
+              700
+            ],
+            "fg_width": 246,
+            "fg_height": 602,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/ms_processed/excited/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              194,
+              103,
+              445,
+              700
+            ],
+            "fg_width": 252,
+            "fg_height": 598,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/ms_processed/excited/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              194,
+              80,
+              446,
+              700
+            ],
+            "fg_width": 253,
+            "fg_height": 621,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/ms_processed/excited/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              174,
+              44,
+              464,
+              668
+            ],
+            "fg_width": 291,
+            "fg_height": 625,
+            "foot_y": 668,
+            "center_x": 319.5
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/ms_processed/excited/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              169,
+              51,
+              470,
+              672
+            ],
+            "fg_width": 302,
+            "fg_height": 622,
+            "foot_y": 672,
+            "center_x": 320.0
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/ms_processed/excited/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              185,
+              77,
+              454,
+              700
+            ],
+            "fg_width": 270,
+            "fg_height": 624,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 6,
+            "filename": "frame_06.png",
+            "rel_path": "assets/ms_processed/excited/frames/frame_06.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              186,
+              106,
+              453,
+              700
+            ],
+            "fg_width": 268,
+            "fg_height": 595,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 7,
+            "filename": "frame_07.png",
+            "rel_path": "assets/ms_processed/excited/frames/frame_07.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              196,
+              100,
+              444,
+              700
+            ],
+            "fg_width": 249,
+            "fg_height": 601,
+            "foot_y": 700,
+            "center_x": 320.5
+          }
+        ]
+      },
+      "mad": {
+        "id": "mad",
+        "title": "Angry",
+        "character": "ms_nerdy",
+        "source_file": "Eight-Frame Angry Scientist Animation Strip.png",
+        "strategy": "complete_standardized",
+        "frame_count": 8,
+        "frame_duration_ms": 300,
+        "fps": 3.3,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [
+          "anger steam"
+        ],
+        "spritesheet_path": "assets/ms_processed/mad/spritesheet.png",
+        "preview_gif_path": "assets/ms_processed/mad/preview.gif",
+        "contact_sheet_path": "assets/ms_processed/mad/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/ms_processed/mad/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              193,
+              89,
+              446,
+              697
+            ],
+            "fg_width": 254,
+            "fg_height": 609,
+            "foot_y": 697,
+            "center_x": 320.0
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/ms_processed/mad/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              192,
+              92,
+              448,
+              697
+            ],
+            "fg_width": 257,
+            "fg_height": 606,
+            "foot_y": 697,
+            "center_x": 320.5
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/ms_processed/mad/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              184,
+              101,
+              456,
+              697
+            ],
+            "fg_width": 273,
+            "fg_height": 597,
+            "foot_y": 697,
+            "center_x": 320.5
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/ms_processed/mad/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              184,
+              86,
+              456,
+              697
+            ],
+            "fg_width": 273,
+            "fg_height": 612,
+            "foot_y": 697,
+            "center_x": 320.5
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/ms_processed/mad/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              168,
+              64,
+              472,
+              697
+            ],
+            "fg_width": 305,
+            "fg_height": 634,
+            "foot_y": 697,
+            "center_x": 320.5
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/ms_processed/mad/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              184,
+              98,
+              454,
+              697
+            ],
+            "fg_width": 271,
+            "fg_height": 600,
+            "foot_y": 697,
+            "center_x": 319.5
+          },
+          {
+            "index": 6,
+            "filename": "frame_06.png",
+            "rel_path": "assets/ms_processed/mad/frames/frame_06.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              187,
+              91,
+              452,
+              700
+            ],
+            "fg_width": 266,
+            "fg_height": 610,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 7,
+            "filename": "frame_07.png",
+            "rel_path": "assets/ms_processed/mad/frames/frame_07.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              192,
+              89,
+              447,
+              700
+            ],
+            "fg_width": 256,
+            "fg_height": 612,
+            "foot_y": 700,
+            "center_x": 320.0
+          }
+        ]
+      },
+      "turnaround": {
+        "id": "turnaround",
+        "title": "Turning: Front to Right and Left",
+        "character": "ms_nerdy",
+        "source_file": "Pixel-Art Scientist Character Turnaround.png",
+        "strategy": "complete_standardized",
+        "frame_count": 13,
+        "frame_duration_ms": 185,
+        "fps": 5.4,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [],
+        "spritesheet_path": "assets/ms_processed/turnaround/spritesheet.png",
+        "preview_gif_path": "assets/ms_processed/turnaround/preview.gif",
+        "contact_sheet_path": "assets/ms_processed/turnaround/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/ms_processed/turnaround/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              178,
+              45,
+              461,
+              698
+            ],
+            "fg_width": 284,
+            "fg_height": 654,
+            "foot_y": 698,
+            "center_x": 320.0
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/ms_processed/turnaround/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              188,
+              45,
+              450,
+              700
+            ],
+            "fg_width": 263,
+            "fg_height": 656,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/ms_processed/turnaround/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              184,
+              45,
+              454,
+              700
+            ],
+            "fg_width": 271,
+            "fg_height": 656,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/ms_processed/turnaround/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              186,
+              45,
+              454,
+              700
+            ],
+            "fg_width": 269,
+            "fg_height": 656,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/ms_processed/turnaround/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              190,
+              41,
+              450,
+              693
+            ],
+            "fg_width": 261,
+            "fg_height": 653,
+            "foot_y": 693,
+            "center_x": 320.5
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/ms_processed/turnaround/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              194,
+              41,
+              446,
+              697
+            ],
+            "fg_width": 253,
+            "fg_height": 657,
+            "foot_y": 697,
+            "center_x": 320.5
+          },
+          {
+            "index": 6,
+            "filename": "frame_06.png",
+            "rel_path": "assets/ms_processed/turnaround/frames/frame_06.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              184,
+              41,
+              455,
+              697
+            ],
+            "fg_width": 272,
+            "fg_height": 657,
+            "foot_y": 697,
+            "center_x": 320.0
+          },
+          {
+            "index": 7,
+            "filename": "frame_07.png",
+            "rel_path": "assets/ms_processed/turnaround/frames/frame_07.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              192,
+              41,
+              448,
+              695
+            ],
+            "fg_width": 257,
+            "fg_height": 655,
+            "foot_y": 695,
+            "center_x": 320.5
+          },
+          {
+            "index": 8,
+            "filename": "frame_08.png",
+            "rel_path": "assets/ms_processed/turnaround/frames/frame_08.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              190,
+              35,
+              450,
+              695
+            ],
+            "fg_width": 261,
+            "fg_height": 661,
+            "foot_y": 695,
+            "center_x": 320.5
+          },
+          {
+            "index": 9,
+            "filename": "frame_09.png",
+            "rel_path": "assets/ms_processed/turnaround/frames/frame_09.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              186,
+              41,
+              452,
+              700
+            ],
+            "fg_width": 267,
+            "fg_height": 660,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 10,
+            "filename": "frame_10.png",
+            "rel_path": "assets/ms_processed/turnaround/frames/frame_10.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              188,
+              45,
+              450,
+              700
+            ],
+            "fg_width": 263,
+            "fg_height": 656,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 11,
+            "filename": "frame_11.png",
+            "rel_path": "assets/ms_processed/turnaround/frames/frame_11.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              190,
+              45,
+              450,
+              700
+            ],
+            "fg_width": 261,
+            "fg_height": 656,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 12,
+            "filename": "frame_12.png",
+            "rel_path": "assets/ms_processed/turnaround/frames/frame_12.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              181,
+              45,
+              458,
+              700
+            ],
+            "fg_width": 278,
+            "fg_height": 656,
+            "foot_y": 700,
+            "center_x": 320.0
+          }
+        ]
+      },
+      "walking": {
+        "id": "walking",
+        "title": "Walking",
+        "character": "ms_nerdy",
+        "source_file": "Scientist Walk Cycle Sprite Sheet.png",
+        "strategy": "complete_standardized",
+        "frame_count": 26,
+        "frame_duration_ms": 92,
+        "fps": 10.9,
+        "loop": false,
+        "canvas": {
+          "width": 640,
+          "height": 740,
+          "dimensions": "640x740"
+        },
+        "anchor": "feet",
+        "props": [],
+        "spritesheet_path": "assets/ms_processed/walking/spritesheet.png",
+        "preview_gif_path": "assets/ms_processed/walking/preview.gif",
+        "contact_sheet_path": "assets/ms_processed/walking/contact_sheet.png",
+        "frames": [
+          {
+            "index": 0,
+            "filename": "frame_00.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_00.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              182,
+              42,
+              458,
+              700
+            ],
+            "fg_width": 277,
+            "fg_height": 659,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 1,
+            "filename": "frame_01.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_01.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              166,
+              42,
+              473,
+              700
+            ],
+            "fg_width": 308,
+            "fg_height": 659,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 2,
+            "filename": "frame_02.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_02.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              175,
+              44,
+              464,
+              700
+            ],
+            "fg_width": 290,
+            "fg_height": 657,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 3,
+            "filename": "frame_03.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_03.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              150,
+              44,
+              488,
+              698
+            ],
+            "fg_width": 339,
+            "fg_height": 655,
+            "foot_y": 698,
+            "center_x": 319.5
+          },
+          {
+            "index": 4,
+            "filename": "frame_04.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_04.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              166,
+              44,
+              473,
+              698
+            ],
+            "fg_width": 308,
+            "fg_height": 655,
+            "foot_y": 698,
+            "center_x": 320.0
+          },
+          {
+            "index": 5,
+            "filename": "frame_05.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_05.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              150,
+              42,
+              490,
+              687
+            ],
+            "fg_width": 341,
+            "fg_height": 646,
+            "foot_y": 687,
+            "center_x": 320.5
+          },
+          {
+            "index": 6,
+            "filename": "frame_06.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_06.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              167,
+              44,
+              472,
+              698
+            ],
+            "fg_width": 306,
+            "fg_height": 655,
+            "foot_y": 698,
+            "center_x": 320.0
+          },
+          {
+            "index": 7,
+            "filename": "frame_07.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_07.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              140,
+              42,
+              498,
+              698
+            ],
+            "fg_width": 359,
+            "fg_height": 657,
+            "foot_y": 698,
+            "center_x": 319.5
+          },
+          {
+            "index": 8,
+            "filename": "frame_08.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_08.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              152,
+              42,
+              486,
+              698
+            ],
+            "fg_width": 335,
+            "fg_height": 657,
+            "foot_y": 698,
+            "center_x": 319.5
+          },
+          {
+            "index": 9,
+            "filename": "frame_09.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_09.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              178,
+              42,
+              462,
+              698
+            ],
+            "fg_width": 285,
+            "fg_height": 657,
+            "foot_y": 698,
+            "center_x": 320.5
+          },
+          {
+            "index": 10,
+            "filename": "frame_10.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_10.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              156,
+              42,
+              483,
+              698
+            ],
+            "fg_width": 328,
+            "fg_height": 657,
+            "foot_y": 698,
+            "center_x": 320.0
+          },
+          {
+            "index": 11,
+            "filename": "frame_11.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_11.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              146,
+              42,
+              494,
+              698
+            ],
+            "fg_width": 349,
+            "fg_height": 657,
+            "foot_y": 698,
+            "center_x": 320.5
+          },
+          {
+            "index": 12,
+            "filename": "frame_12.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_12.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              122,
+              42,
+              517,
+              698
+            ],
+            "fg_width": 396,
+            "fg_height": 657,
+            "foot_y": 698,
+            "center_x": 320.0
+          },
+          {
+            "index": 13,
+            "filename": "frame_13.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_13.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              154,
+              47,
+              484,
+              700
+            ],
+            "fg_width": 331,
+            "fg_height": 654,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 14,
+            "filename": "frame_14.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_14.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              157,
+              47,
+              482,
+              700
+            ],
+            "fg_width": 326,
+            "fg_height": 654,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 15,
+            "filename": "frame_15.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_15.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              148,
+              47,
+              492,
+              700
+            ],
+            "fg_width": 345,
+            "fg_height": 654,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 16,
+            "filename": "frame_16.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_16.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              157,
+              47,
+              482,
+              700
+            ],
+            "fg_width": 326,
+            "fg_height": 654,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 17,
+            "filename": "frame_17.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_17.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              156,
+              49,
+              484,
+              700
+            ],
+            "fg_width": 329,
+            "fg_height": 652,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 18,
+            "filename": "frame_18.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_18.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              150,
+              47,
+              490,
+              700
+            ],
+            "fg_width": 341,
+            "fg_height": 654,
+            "foot_y": 700,
+            "center_x": 320.5
+          },
+          {
+            "index": 19,
+            "filename": "frame_19.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_19.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              154,
+              47,
+              485,
+              700
+            ],
+            "fg_width": 332,
+            "fg_height": 654,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 20,
+            "filename": "frame_20.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_20.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              174,
+              45,
+              464,
+              700
+            ],
+            "fg_width": 291,
+            "fg_height": 656,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 21,
+            "filename": "frame_21.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_21.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              148,
+              45,
+              490,
+              700
+            ],
+            "fg_width": 343,
+            "fg_height": 656,
+            "foot_y": 700,
+            "center_x": 319.5
+          },
+          {
+            "index": 22,
+            "filename": "frame_22.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_22.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              159,
+              45,
+              480,
+              700
+            ],
+            "fg_width": 322,
+            "fg_height": 656,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 23,
+            "filename": "frame_23.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_23.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              167,
+              47,
+              472,
+              700
+            ],
+            "fg_width": 306,
+            "fg_height": 654,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 24,
+            "filename": "frame_24.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_24.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              165,
+              45,
+              474,
+              700
+            ],
+            "fg_width": 310,
+            "fg_height": 656,
+            "foot_y": 700,
+            "center_x": 320.0
+          },
+          {
+            "index": 25,
+            "filename": "frame_25.png",
+            "rel_path": "assets/ms_processed/walking/frames/frame_25.png",
+            "width": 640,
+            "height": 740,
+            "bbox": [
+              150,
+              47,
+              488,
+              700
+            ],
+            "fg_width": 339,
+            "fg_height": 654,
+            "foot_y": 700,
+            "center_x": 319.5
+          }
+        ]
+      }
+    }
+  },
+  "blinking": {
+    "id": "blinking",
+    "title": "Eye Blinking",
+    "character": "mr_nerdy",
+    "source_file": "blinking.png",
+    "strategy": "complete_standardized",
+    "frame_count": 6,
+    "frame_duration_ms": 400,
+    "fps": 2.5,
+    "loop": false,
+    "canvas": {
+      "width": 640,
+      "height": 740,
+      "dimensions": "640x740"
+    },
+    "anchor": "feet",
+    "props": [],
+    "spritesheet_path": "assets/processed/blinking/spritesheet.png",
+    "preview_gif_path": "assets/processed/blinking/preview.gif",
+    "contact_sheet_path": "assets/processed/blinking/contact_sheet.png",
+    "frames": [
+      {
+        "index": 0,
+        "filename": "frame_00.png",
+        "rel_path": "assets/processed/blinking/frames/frame_00.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          196,
+          39,
+          444,
+          700
+        ],
+        "fg_width": 249,
+        "fg_height": 662,
+        "foot_y": 700,
+        "center_x": 320.5
+      },
+      {
+        "index": 1,
+        "filename": "frame_01.png",
+        "rel_path": "assets/processed/blinking/frames/frame_01.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          194,
+          39,
+          445,
+          700
+        ],
+        "fg_width": 252,
+        "fg_height": 662,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 2,
+        "filename": "frame_02.png",
+        "rel_path": "assets/processed/blinking/frames/frame_02.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          192,
+          39,
+          446,
+          700
+        ],
+        "fg_width": 255,
+        "fg_height": 662,
+        "foot_y": 700,
+        "center_x": 319.5
+      },
+      {
+        "index": 3,
+        "filename": "frame_03.png",
+        "rel_path": "assets/processed/blinking/frames/frame_03.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          192,
+          39,
+          448,
+          700
+        ],
+        "fg_width": 257,
+        "fg_height": 662,
+        "foot_y": 700,
+        "center_x": 320.5
+      },
+      {
+        "index": 4,
+        "filename": "frame_04.png",
+        "rel_path": "assets/processed/blinking/frames/frame_04.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          192,
+          39,
+          447,
+          700
+        ],
+        "fg_width": 256,
+        "fg_height": 662,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 5,
+        "filename": "frame_05.png",
+        "rel_path": "assets/processed/blinking/frames/frame_05.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          194,
+          40,
+          445,
+          700
+        ],
+        "fg_width": 252,
+        "fg_height": 661,
+        "foot_y": 700,
+        "center_x": 320.0
+      }
+    ]
+  },
+  "waving_hii": {
+    "id": "waving_hii",
+    "title": "Hand Waving / Saying Hi",
+    "character": "mr_nerdy",
+    "source_file": "waving_hii.png",
+    "strategy": "complete_standardized",
+    "frame_count": 8,
+    "frame_duration_ms": 300,
+    "fps": 3.3,
+    "loop": false,
+    "canvas": {
+      "width": 640,
+      "height": 740,
+      "dimensions": "640x740"
+    },
+    "anchor": "feet",
+    "props": [],
+    "spritesheet_path": "assets/processed/waving_hii/spritesheet.png",
+    "preview_gif_path": "assets/processed/waving_hii/preview.gif",
+    "contact_sheet_path": "assets/processed/waving_hii/contact_sheet.png",
+    "frames": [
+      {
+        "index": 0,
+        "filename": "frame_00.png",
+        "rel_path": "assets/processed/waving_hii/frames/frame_00.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          216,
+          114,
+          424,
+          700
+        ],
+        "fg_width": 209,
+        "fg_height": 587,
+        "foot_y": 700,
+        "center_x": 320.5
+      },
+      {
+        "index": 1,
+        "filename": "frame_01.png",
+        "rel_path": "assets/processed/waving_hii/frames/frame_01.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          212,
+          114,
+          426,
+          700
+        ],
+        "fg_width": 215,
+        "fg_height": 587,
+        "foot_y": 700,
+        "center_x": 319.5
+      },
+      {
+        "index": 2,
+        "filename": "frame_02.png",
+        "rel_path": "assets/processed/waving_hii/frames/frame_02.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          208,
+          114,
+          430,
+          700
+        ],
+        "fg_width": 223,
+        "fg_height": 587,
+        "foot_y": 700,
+        "center_x": 319.5
+      },
+      {
+        "index": 3,
+        "filename": "frame_03.png",
+        "rel_path": "assets/processed/waving_hii/frames/frame_03.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          200,
+          114,
+          440,
+          700
+        ],
+        "fg_width": 241,
+        "fg_height": 587,
+        "foot_y": 700,
+        "center_x": 320.5
+      },
+      {
+        "index": 4,
+        "filename": "frame_04.png",
+        "rel_path": "assets/processed/waving_hii/frames/frame_04.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          200,
+          114,
+          440,
+          700
+        ],
+        "fg_width": 241,
+        "fg_height": 587,
+        "foot_y": 700,
+        "center_x": 320.5
+      },
+      {
+        "index": 5,
+        "filename": "frame_05.png",
+        "rel_path": "assets/processed/waving_hii/frames/frame_05.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          202,
+          114,
+          438,
+          700
+        ],
+        "fg_width": 237,
+        "fg_height": 587,
+        "foot_y": 700,
+        "center_x": 320.5
+      },
+      {
+        "index": 6,
+        "filename": "frame_06.png",
+        "rel_path": "assets/processed/waving_hii/frames/frame_06.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          211,
+          114,
+          428,
+          700
+        ],
+        "fg_width": 218,
+        "fg_height": 587,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 7,
+        "filename": "frame_07.png",
+        "rel_path": "assets/processed/waving_hii/frames/frame_07.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          216,
+          114,
+          422,
+          700
+        ],
+        "fg_width": 207,
+        "fg_height": 587,
+        "foot_y": 700,
+        "center_x": 319.5
+      }
+    ]
+  },
+  "huncing": {
+    "id": "huncing",
+    "title": "Working on Laptop / Hunching",
+    "character": "mr_nerdy",
+    "source_file": "huncing.png",
+    "strategy": "complete_standardized",
+    "frame_count": 17,
+    "frame_duration_ms": 141,
+    "fps": 7.1,
+    "loop": false,
+    "canvas": {
+      "width": 640,
+      "height": 740,
+      "dimensions": "640x740"
+    },
+    "anchor": "feet",
+    "props": [
+      "desk",
+      "laptop",
+      "chair"
+    ],
+    "spritesheet_path": "assets/processed/huncing/spritesheet.png",
+    "preview_gif_path": "assets/processed/huncing/preview.gif",
+    "contact_sheet_path": "assets/processed/huncing/contact_sheet.png",
+    "frames": [
+      {
+        "index": 0,
+        "filename": "frame_00.png",
+        "rel_path": "assets/processed/huncing/frames/frame_00.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          200,
+          75,
+          439,
+          693
+        ],
+        "fg_width": 240,
+        "fg_height": 619,
+        "foot_y": 693,
+        "center_x": 320.0
+      },
+      {
+        "index": 1,
+        "filename": "frame_01.png",
+        "rel_path": "assets/processed/huncing/frames/frame_01.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          162,
+          79,
+          477,
+          693
+        ],
+        "fg_width": 316,
+        "fg_height": 615,
+        "foot_y": 693,
+        "center_x": 320.0
+      },
+      {
+        "index": 2,
+        "filename": "frame_02.png",
+        "rel_path": "assets/processed/huncing/frames/frame_02.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          178,
+          93,
+          460,
+          693
+        ],
+        "fg_width": 283,
+        "fg_height": 601,
+        "foot_y": 693,
+        "center_x": 319.5
+      },
+      {
+        "index": 3,
+        "filename": "frame_03.png",
+        "rel_path": "assets/processed/huncing/frames/frame_03.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          82,
+          142,
+          556,
+          695
+        ],
+        "fg_width": 475,
+        "fg_height": 554,
+        "foot_y": 695,
+        "center_x": 319.5
+      },
+      {
+        "index": 4,
+        "filename": "frame_04.png",
+        "rel_path": "assets/processed/huncing/frames/frame_04.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          146,
+          142,
+          494,
+          697
+        ],
+        "fg_width": 349,
+        "fg_height": 556,
+        "foot_y": 697,
+        "center_x": 320.5
+      },
+      {
+        "index": 5,
+        "filename": "frame_05.png",
+        "rel_path": "assets/processed/huncing/frames/frame_05.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          148,
+          140,
+          492,
+          693
+        ],
+        "fg_width": 345,
+        "fg_height": 554,
+        "foot_y": 693,
+        "center_x": 320.5
+      },
+      {
+        "index": 6,
+        "filename": "frame_06.png",
+        "rel_path": "assets/processed/huncing/frames/frame_06.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          123,
+          142,
+          516,
+          695
+        ],
+        "fg_width": 394,
+        "fg_height": 554,
+        "foot_y": 695,
+        "center_x": 320.0
+      },
+      {
+        "index": 7,
+        "filename": "frame_07.png",
+        "rel_path": "assets/processed/huncing/frames/frame_07.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          114,
+          144,
+          525,
+          697
+        ],
+        "fg_width": 412,
+        "fg_height": 554,
+        "foot_y": 697,
+        "center_x": 320.0
+      },
+      {
+        "index": 8,
+        "filename": "frame_08.png",
+        "rel_path": "assets/processed/huncing/frames/frame_08.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          65,
+          151,
+          574,
+          700
+        ],
+        "fg_width": 510,
+        "fg_height": 550,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 9,
+        "filename": "frame_09.png",
+        "rel_path": "assets/processed/huncing/frames/frame_09.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          92,
+          149,
+          548,
+          700
+        ],
+        "fg_width": 457,
+        "fg_height": 552,
+        "foot_y": 700,
+        "center_x": 320.5
+      },
+      {
+        "index": 10,
+        "filename": "frame_10.png",
+        "rel_path": "assets/processed/huncing/frames/frame_10.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          92,
+          156,
+          548,
+          700
+        ],
+        "fg_width": 457,
+        "fg_height": 545,
+        "foot_y": 700,
+        "center_x": 320.5
+      },
+      {
+        "index": 11,
+        "filename": "frame_11.png",
+        "rel_path": "assets/processed/huncing/frames/frame_11.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          92,
+          156,
+          546,
+          700
+        ],
+        "fg_width": 455,
+        "fg_height": 545,
+        "foot_y": 700,
+        "center_x": 319.5
+      },
+      {
+        "index": 12,
+        "filename": "frame_12.png",
+        "rel_path": "assets/processed/huncing/frames/frame_12.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          90,
+          154,
+          548,
+          700
+        ],
+        "fg_width": 459,
+        "fg_height": 547,
+        "foot_y": 700,
+        "center_x": 319.5
+      },
+      {
+        "index": 13,
+        "filename": "frame_13.png",
+        "rel_path": "assets/processed/huncing/frames/frame_13.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          90,
+          161,
+          548,
+          700
+        ],
+        "fg_width": 459,
+        "fg_height": 540,
+        "foot_y": 700,
+        "center_x": 319.5
+      },
+      {
+        "index": 14,
+        "filename": "frame_14.png",
+        "rel_path": "assets/processed/huncing/frames/frame_14.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          87,
+          163,
+          552,
+          700
+        ],
+        "fg_width": 466,
+        "fg_height": 538,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 15,
+        "filename": "frame_15.png",
+        "rel_path": "assets/processed/huncing/frames/frame_15.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          88,
+          163,
+          552,
+          700
+        ],
+        "fg_width": 465,
+        "fg_height": 538,
+        "foot_y": 700,
+        "center_x": 320.5
+      },
+      {
+        "index": 16,
+        "filename": "frame_16.png",
+        "rel_path": "assets/processed/huncing/frames/frame_16.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          86,
+          154,
+          553,
+          698
+        ],
+        "fg_width": 468,
+        "fg_height": 545,
+        "foot_y": 698,
+        "center_x": 320.0
+      }
+    ]
+  },
+  "sleeping": {
+    "id": "sleeping",
+    "title": "Standing to Sleeping",
+    "character": "mr_nerdy",
+    "source_file": "sleeping.png",
+    "strategy": "complete_standardized",
+    "frame_count": 16,
+    "frame_duration_ms": 150,
+    "fps": 6.7,
+    "loop": false,
+    "canvas": {
+      "width": 640,
+      "height": 740,
+      "dimensions": "640x740"
+    },
+    "anchor": "feet",
+    "props": [
+      "cot",
+      "bed",
+      "Zzz sleep particles"
+    ],
+    "spritesheet_path": "assets/processed/sleeping/spritesheet.png",
+    "preview_gif_path": "assets/processed/sleeping/preview.gif",
+    "contact_sheet_path": "assets/processed/sleeping/contact_sheet.png",
+    "frames": [
+      {
+        "index": 0,
+        "filename": "frame_00.png",
+        "rel_path": "assets/processed/sleeping/frames/frame_00.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          192,
+          27,
+          446,
+          689
+        ],
+        "fg_width": 255,
+        "fg_height": 663,
+        "foot_y": 689,
+        "center_x": 319.5
+      },
+      {
+        "index": 1,
+        "filename": "frame_01.png",
+        "rel_path": "assets/processed/sleeping/frames/frame_01.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          190,
+          29,
+          449,
+          687
+        ],
+        "fg_width": 260,
+        "fg_height": 659,
+        "foot_y": 687,
+        "center_x": 320.0
+      },
+      {
+        "index": 2,
+        "filename": "frame_02.png",
+        "rel_path": "assets/processed/sleeping/frames/frame_02.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          180,
+          33,
+          460,
+          692
+        ],
+        "fg_width": 281,
+        "fg_height": 660,
+        "foot_y": 692,
+        "center_x": 320.5
+      },
+      {
+        "index": 3,
+        "filename": "frame_03.png",
+        "rel_path": "assets/processed/sleeping/frames/frame_03.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          178,
+          33,
+          462,
+          690
+        ],
+        "fg_width": 285,
+        "fg_height": 658,
+        "foot_y": 690,
+        "center_x": 320.5
+      },
+      {
+        "index": 4,
+        "filename": "frame_04.png",
+        "rel_path": "assets/processed/sleeping/frames/frame_04.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          172,
+          33,
+          468,
+          690
+        ],
+        "fg_width": 297,
+        "fg_height": 658,
+        "foot_y": 690,
+        "center_x": 320.5
+      },
+      {
+        "index": 5,
+        "filename": "frame_05.png",
+        "rel_path": "assets/processed/sleeping/frames/frame_05.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          160,
+          54,
+          478,
+          690
+        ],
+        "fg_width": 319,
+        "fg_height": 637,
+        "foot_y": 690,
+        "center_x": 319.5
+      },
+      {
+        "index": 6,
+        "filename": "frame_06.png",
+        "rel_path": "assets/processed/sleeping/frames/frame_06.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          150,
+          112,
+          489,
+          692
+        ],
+        "fg_width": 340,
+        "fg_height": 581,
+        "foot_y": 692,
+        "center_x": 320.0
+      },
+      {
+        "index": 7,
+        "filename": "frame_07.png",
+        "rel_path": "assets/processed/sleeping/frames/frame_07.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          144,
+          209,
+          496,
+          700
+        ],
+        "fg_width": 353,
+        "fg_height": 492,
+        "foot_y": 700,
+        "center_x": 320.5
+      },
+      {
+        "index": 8,
+        "filename": "frame_08.png",
+        "rel_path": "assets/processed/sleeping/frames/frame_08.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          160,
+          295,
+          479,
+          692
+        ],
+        "fg_width": 320,
+        "fg_height": 398,
+        "foot_y": 692,
+        "center_x": 320.0
+      },
+      {
+        "index": 9,
+        "filename": "frame_09.png",
+        "rel_path": "assets/processed/sleeping/frames/frame_09.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          138,
+          300,
+          502,
+          689
+        ],
+        "fg_width": 365,
+        "fg_height": 390,
+        "foot_y": 689,
+        "center_x": 320.5
+      },
+      {
+        "index": 10,
+        "filename": "frame_10.png",
+        "rel_path": "assets/processed/sleeping/frames/frame_10.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          136,
+          303,
+          503,
+          690
+        ],
+        "fg_width": 368,
+        "fg_height": 388,
+        "foot_y": 690,
+        "center_x": 320.0
+      },
+      {
+        "index": 11,
+        "filename": "frame_11.png",
+        "rel_path": "assets/processed/sleeping/frames/frame_11.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          154,
+          291,
+          485,
+          700
+        ],
+        "fg_width": 332,
+        "fg_height": 410,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 12,
+        "filename": "frame_12.png",
+        "rel_path": "assets/processed/sleeping/frames/frame_12.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          158,
+          292,
+          480,
+          700
+        ],
+        "fg_width": 323,
+        "fg_height": 409,
+        "foot_y": 700,
+        "center_x": 319.5
+      },
+      {
+        "index": 13,
+        "filename": "frame_13.png",
+        "rel_path": "assets/processed/sleeping/frames/frame_13.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          42,
+          386,
+          598,
+          676
+        ],
+        "fg_width": 557,
+        "fg_height": 291,
+        "foot_y": 676,
+        "center_x": 320.5
+      },
+      {
+        "index": 14,
+        "filename": "frame_14.png",
+        "rel_path": "assets/processed/sleeping/frames/frame_14.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          60,
+          400,
+          578,
+          678
+        ],
+        "fg_width": 519,
+        "fg_height": 279,
+        "foot_y": 678,
+        "center_x": 319.5
+      },
+      {
+        "index": 15,
+        "filename": "frame_15.png",
+        "rel_path": "assets/processed/sleeping/frames/frame_15.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          93,
+          421,
+          546,
+          679
+        ],
+        "fg_width": 454,
+        "fg_height": 259,
+        "foot_y": 679,
+        "center_x": 320.0
+      }
+    ]
+  },
+  "peeking": {
+    "id": "peeking",
+    "title": "Peeking from Below Barrier",
+    "character": "mr_nerdy",
+    "source_file": "peeking.png",
+    "strategy": "complete_standardized",
+    "frame_count": 8,
+    "frame_duration_ms": 300,
+    "fps": 3.3,
+    "loop": false,
+    "canvas": {
+      "width": 640,
+      "height": 740,
+      "dimensions": "640x740"
+    },
+    "anchor": "feet",
+    "props": [
+      "horizontal barrier"
+    ],
+    "spritesheet_path": "assets/processed/peeking/spritesheet.png",
+    "preview_gif_path": "assets/processed/peeking/preview.gif",
+    "contact_sheet_path": "assets/processed/peeking/contact_sheet.png",
+    "frames": [
+      {
+        "index": 0,
+        "filename": "frame_00.png",
+        "rel_path": "assets/processed/peeking/frames/frame_00.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          194,
+          574,
+          446,
+          700
+        ],
+        "fg_width": 253,
+        "fg_height": 127,
+        "foot_y": 700,
+        "center_x": 320.5
+      },
+      {
+        "index": 1,
+        "filename": "frame_01.png",
+        "rel_path": "assets/processed/peeking/frames/frame_01.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          185,
+          525,
+          454,
+          700
+        ],
+        "fg_width": 270,
+        "fg_height": 176,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 2,
+        "filename": "frame_02.png",
+        "rel_path": "assets/processed/peeking/frames/frame_02.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          188,
+          481,
+          450,
+          700
+        ],
+        "fg_width": 263,
+        "fg_height": 220,
+        "foot_y": 700,
+        "center_x": 319.5
+      },
+      {
+        "index": 3,
+        "filename": "frame_03.png",
+        "rel_path": "assets/processed/peeking/frames/frame_03.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          190,
+          481,
+          449,
+          700
+        ],
+        "fg_width": 260,
+        "fg_height": 220,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 4,
+        "filename": "frame_04.png",
+        "rel_path": "assets/processed/peeking/frames/frame_04.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          189,
+          482,
+          450,
+          700
+        ],
+        "fg_width": 262,
+        "fg_height": 219,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 5,
+        "filename": "frame_05.png",
+        "rel_path": "assets/processed/peeking/frames/frame_05.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          190,
+          482,
+          448,
+          700
+        ],
+        "fg_width": 259,
+        "fg_height": 219,
+        "foot_y": 700,
+        "center_x": 319.5
+      },
+      {
+        "index": 6,
+        "filename": "frame_06.png",
+        "rel_path": "assets/processed/peeking/frames/frame_06.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          184,
+          495,
+          454,
+          700
+        ],
+        "fg_width": 271,
+        "fg_height": 206,
+        "foot_y": 700,
+        "center_x": 319.5
+      },
+      {
+        "index": 7,
+        "filename": "frame_07.png",
+        "rel_path": "assets/processed/peeking/frames/frame_07.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          194,
+          571,
+          445,
+          700
+        ],
+        "fg_width": 252,
+        "fg_height": 130,
+        "foot_y": 700,
+        "center_x": 320.0
+      }
+    ]
+  },
+  "thinking": {
+    "id": "thinking",
+    "title": "Thinking",
+    "character": "mr_nerdy",
+    "source_file": "thinking.png",
+    "strategy": "complete_standardized",
+    "frame_count": 8,
+    "frame_duration_ms": 300,
+    "fps": 3.3,
+    "loop": false,
+    "canvas": {
+      "width": 640,
+      "height": 740,
+      "dimensions": "640x740"
+    },
+    "anchor": "feet",
+    "props": [],
+    "spritesheet_path": "assets/processed/thinking/spritesheet.png",
+    "preview_gif_path": "assets/processed/thinking/preview.gif",
+    "contact_sheet_path": "assets/processed/thinking/contact_sheet.png",
+    "frames": [
+      {
+        "index": 0,
+        "filename": "frame_00.png",
+        "rel_path": "assets/processed/thinking/frames/frame_00.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          215,
+          85,
+          424,
+          700
+        ],
+        "fg_width": 210,
+        "fg_height": 616,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 1,
+        "filename": "frame_01.png",
+        "rel_path": "assets/processed/thinking/frames/frame_01.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          214,
+          90,
+          426,
+          700
+        ],
+        "fg_width": 213,
+        "fg_height": 611,
+        "foot_y": 700,
+        "center_x": 320.5
+      },
+      {
+        "index": 2,
+        "filename": "frame_02.png",
+        "rel_path": "assets/processed/thinking/frames/frame_02.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          207,
+          82,
+          432,
+          700
+        ],
+        "fg_width": 226,
+        "fg_height": 619,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 3,
+        "filename": "frame_03.png",
+        "rel_path": "assets/processed/thinking/frames/frame_03.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          211,
+          91,
+          428,
+          700
+        ],
+        "fg_width": 218,
+        "fg_height": 610,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 4,
+        "filename": "frame_04.png",
+        "rel_path": "assets/processed/thinking/frames/frame_04.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          201,
+          93,
+          438,
+          700
+        ],
+        "fg_width": 238,
+        "fg_height": 608,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 5,
+        "filename": "frame_05.png",
+        "rel_path": "assets/processed/thinking/frames/frame_05.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          206,
+          83,
+          434,
+          700
+        ],
+        "fg_width": 229,
+        "fg_height": 618,
+        "foot_y": 700,
+        "center_x": 320.5
+      },
+      {
+        "index": 6,
+        "filename": "frame_06.png",
+        "rel_path": "assets/processed/thinking/frames/frame_06.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          203,
+          83,
+          436,
+          700
+        ],
+        "fg_width": 234,
+        "fg_height": 618,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 7,
+        "filename": "frame_07.png",
+        "rel_path": "assets/processed/thinking/frames/frame_07.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          212,
+          92,
+          426,
+          700
+        ],
+        "fg_width": 215,
+        "fg_height": 609,
+        "foot_y": 700,
+        "center_x": 319.5
+      }
+    ]
+  },
+  "doc_catching": {
+    "id": "doc_catching",
+    "title": "Catching a Falling Document",
+    "character": "mr_nerdy",
+    "source_file": "doc_catching.png",
+    "strategy": "complete_standardized",
+    "frame_count": 9,
+    "frame_duration_ms": 267,
+    "fps": 3.7,
+    "loop": false,
+    "canvas": {
+      "width": 640,
+      "height": 740,
+      "dimensions": "640x740"
+    },
+    "anchor": "feet",
+    "props": [
+      "falling document"
+    ],
+    "spritesheet_path": "assets/processed/doc_catching/spritesheet.png",
+    "preview_gif_path": "assets/processed/doc_catching/preview.gif",
+    "contact_sheet_path": "assets/processed/doc_catching/contact_sheet.png",
+    "frames": [
+      {
+        "index": 0,
+        "filename": "frame_00.png",
+        "rel_path": "assets/processed/doc_catching/frames/frame_00.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          210,
+          208,
+          429,
+          699
+        ],
+        "fg_width": 220,
+        "fg_height": 492,
+        "foot_y": 699,
+        "center_x": 320.0
+      },
+      {
+        "index": 1,
+        "filename": "frame_01.png",
+        "rel_path": "assets/processed/doc_catching/frames/frame_01.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          199,
+          209,
+          440,
+          700
+        ],
+        "fg_width": 242,
+        "fg_height": 492,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 2,
+        "filename": "frame_02.png",
+        "rel_path": "assets/processed/doc_catching/frames/frame_02.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          202,
+          215,
+          436,
+          700
+        ],
+        "fg_width": 235,
+        "fg_height": 486,
+        "foot_y": 700,
+        "center_x": 319.5
+      },
+      {
+        "index": 3,
+        "filename": "frame_03.png",
+        "rel_path": "assets/processed/doc_catching/frames/frame_03.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          204,
+          52,
+          435,
+          700
+        ],
+        "fg_width": 232,
+        "fg_height": 649,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 4,
+        "filename": "frame_04.png",
+        "rel_path": "assets/processed/doc_catching/frames/frame_04.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          199,
+          104,
+          440,
+          699
+        ],
+        "fg_width": 242,
+        "fg_height": 596,
+        "foot_y": 699,
+        "center_x": 320.0
+      },
+      {
+        "index": 5,
+        "filename": "frame_05.png",
+        "rel_path": "assets/processed/doc_catching/frames/frame_05.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          200,
+          24,
+          440,
+          700
+        ],
+        "fg_width": 241,
+        "fg_height": 677,
+        "foot_y": 700,
+        "center_x": 320.5
+      },
+      {
+        "index": 6,
+        "filename": "frame_06.png",
+        "rel_path": "assets/processed/doc_catching/frames/frame_06.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          200,
+          203,
+          440,
+          699
+        ],
+        "fg_width": 241,
+        "fg_height": 497,
+        "foot_y": 699,
+        "center_x": 320.5
+      },
+      {
+        "index": 7,
+        "filename": "frame_07.png",
+        "rel_path": "assets/processed/doc_catching/frames/frame_07.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          205,
+          209,
+          434,
+          700
+        ],
+        "fg_width": 230,
+        "fg_height": 492,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 8,
+        "filename": "frame_08.png",
+        "rel_path": "assets/processed/doc_catching/frames/frame_08.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          227,
+          213,
+          412,
+          700
+        ],
+        "fg_width": 186,
+        "fg_height": 488,
+        "foot_y": 700,
+        "center_x": 320.0
+      }
+    ]
+  },
+  "confused": {
+    "id": "confused",
+    "title": "Confused",
+    "character": "mr_nerdy",
+    "source_file": "confused.png",
+    "strategy": "complete_standardized",
+    "frame_count": 8,
+    "frame_duration_ms": 300,
+    "fps": 3.3,
+    "loop": false,
+    "canvas": {
+      "width": 640,
+      "height": 740,
+      "dimensions": "640x740"
+    },
+    "anchor": "feet",
+    "props": [
+      "confusion marks"
+    ],
+    "spritesheet_path": "assets/processed/confused/spritesheet.png",
+    "preview_gif_path": "assets/processed/confused/preview.gif",
+    "contact_sheet_path": "assets/processed/confused/contact_sheet.png",
+    "frames": [
+      {
+        "index": 0,
+        "filename": "frame_00.png",
+        "rel_path": "assets/processed/confused/frames/frame_00.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          208,
+          85,
+          430,
+          697
+        ],
+        "fg_width": 223,
+        "fg_height": 613,
+        "foot_y": 697,
+        "center_x": 319.5
+      },
+      {
+        "index": 1,
+        "filename": "frame_01.png",
+        "rel_path": "assets/processed/confused/frames/frame_01.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          204,
+          96,
+          435,
+          700
+        ],
+        "fg_width": 232,
+        "fg_height": 605,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 2,
+        "filename": "frame_02.png",
+        "rel_path": "assets/processed/confused/frames/frame_02.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          198,
+          93,
+          440,
+          699
+        ],
+        "fg_width": 243,
+        "fg_height": 607,
+        "foot_y": 699,
+        "center_x": 319.5
+      },
+      {
+        "index": 3,
+        "filename": "frame_03.png",
+        "rel_path": "assets/processed/confused/frames/frame_03.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          202,
+          98,
+          436,
+          700
+        ],
+        "fg_width": 235,
+        "fg_height": 603,
+        "foot_y": 700,
+        "center_x": 319.5
+      },
+      {
+        "index": 4,
+        "filename": "frame_04.png",
+        "rel_path": "assets/processed/confused/frames/frame_04.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          194,
+          85,
+          445,
+          698
+        ],
+        "fg_width": 252,
+        "fg_height": 614,
+        "foot_y": 698,
+        "center_x": 320.0
+      },
+      {
+        "index": 5,
+        "filename": "frame_05.png",
+        "rel_path": "assets/processed/confused/frames/frame_05.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          184,
+          100,
+          454,
+          700
+        ],
+        "fg_width": 271,
+        "fg_height": 601,
+        "foot_y": 700,
+        "center_x": 319.5
+      },
+      {
+        "index": 6,
+        "filename": "frame_06.png",
+        "rel_path": "assets/processed/confused/frames/frame_06.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          189,
+          85,
+          450,
+          698
+        ],
+        "fg_width": 262,
+        "fg_height": 614,
+        "foot_y": 698,
+        "center_x": 320.0
+      },
+      {
+        "index": 7,
+        "filename": "frame_07.png",
+        "rel_path": "assets/processed/confused/frames/frame_07.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          195,
+          84,
+          444,
+          698
+        ],
+        "fg_width": 250,
+        "fg_height": 615,
+        "foot_y": 698,
+        "center_x": 320.0
+      }
+    ]
+  },
+  "excited": {
+    "id": "excited",
+    "title": "Excited",
+    "character": "mr_nerdy",
+    "source_file": "excited.png",
+    "strategy": "complete_standardized",
+    "frame_count": 8,
+    "frame_duration_ms": 300,
+    "fps": 3.3,
+    "loop": false,
+    "canvas": {
+      "width": 640,
+      "height": 740,
+      "dimensions": "640x740"
+    },
+    "anchor": "feet",
+    "props": [],
+    "spritesheet_path": "assets/processed/excited/spritesheet.png",
+    "preview_gif_path": "assets/processed/excited/preview.gif",
+    "contact_sheet_path": "assets/processed/excited/contact_sheet.png",
+    "frames": [
+      {
+        "index": 0,
+        "filename": "frame_00.png",
+        "rel_path": "assets/processed/excited/frames/frame_00.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          214,
+          130,
+          426,
+          700
+        ],
+        "fg_width": 213,
+        "fg_height": 571,
+        "foot_y": 700,
+        "center_x": 320.5
+      },
+      {
+        "index": 1,
+        "filename": "frame_01.png",
+        "rel_path": "assets/processed/excited/frames/frame_01.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          207,
+          127,
+          432,
+          700
+        ],
+        "fg_width": 226,
+        "fg_height": 574,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 2,
+        "filename": "frame_02.png",
+        "rel_path": "assets/processed/excited/frames/frame_02.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          186,
+          132,
+          452,
+          700
+        ],
+        "fg_width": 267,
+        "fg_height": 569,
+        "foot_y": 700,
+        "center_x": 319.5
+      },
+      {
+        "index": 3,
+        "filename": "frame_03.png",
+        "rel_path": "assets/processed/excited/frames/frame_03.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          184,
+          86,
+          455,
+          691
+        ],
+        "fg_width": 272,
+        "fg_height": 606,
+        "foot_y": 691,
+        "center_x": 320.0
+      },
+      {
+        "index": 4,
+        "filename": "frame_04.png",
+        "rel_path": "assets/processed/excited/frames/frame_04.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          184,
+          122,
+          455,
+          700
+        ],
+        "fg_width": 272,
+        "fg_height": 579,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 5,
+        "filename": "frame_05.png",
+        "rel_path": "assets/processed/excited/frames/frame_05.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          184,
+          141,
+          454,
+          700
+        ],
+        "fg_width": 271,
+        "fg_height": 560,
+        "foot_y": 700,
+        "center_x": 319.5
+      },
+      {
+        "index": 6,
+        "filename": "frame_06.png",
+        "rel_path": "assets/processed/excited/frames/frame_06.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          184,
+          130,
+          454,
+          700
+        ],
+        "fg_width": 271,
+        "fg_height": 571,
+        "foot_y": 700,
+        "center_x": 319.5
+      },
+      {
+        "index": 7,
+        "filename": "frame_07.png",
+        "rel_path": "assets/processed/excited/frames/frame_07.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          214,
+          130,
+          425,
+          700
+        ],
+        "fg_width": 212,
+        "fg_height": 571,
+        "foot_y": 700,
+        "center_x": 320.0
+      }
+    ]
+  },
+  "mad": {
+    "id": "mad",
+    "title": "Angry",
+    "character": "mr_nerdy",
+    "source_file": "mad.png",
+    "strategy": "complete_standardized",
+    "frame_count": 8,
+    "frame_duration_ms": 300,
+    "fps": 3.3,
+    "loop": false,
+    "canvas": {
+      "width": 640,
+      "height": 740,
+      "dimensions": "640x740"
+    },
+    "anchor": "feet",
+    "props": [
+      "anger steam"
+    ],
+    "spritesheet_path": "assets/processed/mad/spritesheet.png",
+    "preview_gif_path": "assets/processed/mad/preview.gif",
+    "contact_sheet_path": "assets/processed/mad/contact_sheet.png",
+    "frames": [
+      {
+        "index": 0,
+        "filename": "frame_00.png",
+        "rel_path": "assets/processed/mad/frames/frame_00.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          196,
+          110,
+          442,
+          700
+        ],
+        "fg_width": 247,
+        "fg_height": 591,
+        "foot_y": 700,
+        "center_x": 319.5
+      },
+      {
+        "index": 1,
+        "filename": "frame_01.png",
+        "rel_path": "assets/processed/mad/frames/frame_01.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          202,
+          118,
+          436,
+          700
+        ],
+        "fg_width": 235,
+        "fg_height": 583,
+        "foot_y": 700,
+        "center_x": 319.5
+      },
+      {
+        "index": 2,
+        "filename": "frame_02.png",
+        "rel_path": "assets/processed/mad/frames/frame_02.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          185,
+          122,
+          454,
+          700
+        ],
+        "fg_width": 270,
+        "fg_height": 579,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 3,
+        "filename": "frame_03.png",
+        "rel_path": "assets/processed/mad/frames/frame_03.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          184,
+          112,
+          455,
+          700
+        ],
+        "fg_width": 272,
+        "fg_height": 589,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 4,
+        "filename": "frame_04.png",
+        "rel_path": "assets/processed/mad/frames/frame_04.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          184,
+          163,
+          455,
+          700
+        ],
+        "fg_width": 272,
+        "fg_height": 538,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 5,
+        "filename": "frame_05.png",
+        "rel_path": "assets/processed/mad/frames/frame_05.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          184,
+          149,
+          454,
+          700
+        ],
+        "fg_width": 271,
+        "fg_height": 552,
+        "foot_y": 700,
+        "center_x": 319.5
+      },
+      {
+        "index": 6,
+        "filename": "frame_06.png",
+        "rel_path": "assets/processed/mad/frames/frame_06.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          184,
+          150,
+          454,
+          700
+        ],
+        "fg_width": 271,
+        "fg_height": 551,
+        "foot_y": 700,
+        "center_x": 319.5
+      },
+      {
+        "index": 7,
+        "filename": "frame_07.png",
+        "rel_path": "assets/processed/mad/frames/frame_07.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          196,
+          135,
+          443,
+          700
+        ],
+        "fg_width": 248,
+        "fg_height": 566,
+        "foot_y": 700,
+        "center_x": 320.0
+      }
+    ]
+  },
+  "turnaround": {
+    "id": "turnaround",
+    "title": "Turning: Front to Right and Left",
+    "character": "mr_nerdy",
+    "source_file": "Pixel Scientist Turnaround Sprite Sheet.png",
+    "strategy": "complete_standardized",
+    "frame_count": 12,
+    "frame_duration_ms": 200,
+    "fps": 5.0,
+    "loop": false,
+    "canvas": {
+      "width": 640,
+      "height": 740,
+      "dimensions": "640x740"
+    },
+    "anchor": "feet",
+    "props": [],
+    "spritesheet_path": "assets/processed/turnaround/spritesheet.png",
+    "preview_gif_path": "assets/processed/turnaround/preview.gif",
+    "contact_sheet_path": "assets/processed/turnaround/contact_sheet.png",
+    "frames": [
+      {
+        "index": 0,
+        "filename": "frame_00.png",
+        "rel_path": "assets/processed/turnaround/frames/frame_00.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          256,
+          11,
+          383,
+          699
+        ],
+        "fg_width": 128,
+        "fg_height": 689,
+        "foot_y": 699,
+        "center_x": 320.0
+      },
+      {
+        "index": 1,
+        "filename": "frame_01.png",
+        "rel_path": "assets/processed/turnaround/frames/frame_01.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          230,
+          11,
+          410,
+          699
+        ],
+        "fg_width": 181,
+        "fg_height": 689,
+        "foot_y": 699,
+        "center_x": 320.5
+      },
+      {
+        "index": 2,
+        "filename": "frame_02.png",
+        "rel_path": "assets/processed/turnaround/frames/frame_02.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          230,
+          12,
+          410,
+          699
+        ],
+        "fg_width": 181,
+        "fg_height": 688,
+        "foot_y": 699,
+        "center_x": 320.5
+      },
+      {
+        "index": 3,
+        "filename": "frame_03.png",
+        "rel_path": "assets/processed/turnaround/frames/frame_03.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          230,
+          13,
+          410,
+          699
+        ],
+        "fg_width": 181,
+        "fg_height": 687,
+        "foot_y": 699,
+        "center_x": 320.5
+      },
+      {
+        "index": 4,
+        "filename": "frame_04.png",
+        "rel_path": "assets/processed/turnaround/frames/frame_04.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          240,
+          14,
+          398,
+          699
+        ],
+        "fg_width": 159,
+        "fg_height": 686,
+        "foot_y": 699,
+        "center_x": 319.5
+      },
+      {
+        "index": 5,
+        "filename": "frame_05.png",
+        "rel_path": "assets/processed/turnaround/frames/frame_05.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          250,
+          13,
+          389,
+          699
+        ],
+        "fg_width": 140,
+        "fg_height": 687,
+        "foot_y": 699,
+        "center_x": 320.0
+      },
+      {
+        "index": 6,
+        "filename": "frame_06.png",
+        "rel_path": "assets/processed/turnaround/frames/frame_06.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          249,
+          13,
+          390,
+          699
+        ],
+        "fg_width": 142,
+        "fg_height": 687,
+        "foot_y": 699,
+        "center_x": 320.0
+      },
+      {
+        "index": 7,
+        "filename": "frame_07.png",
+        "rel_path": "assets/processed/turnaround/frames/frame_07.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          238,
+          14,
+          402,
+          699
+        ],
+        "fg_width": 165,
+        "fg_height": 686,
+        "foot_y": 699,
+        "center_x": 320.5
+      },
+      {
+        "index": 8,
+        "filename": "frame_08.png",
+        "rel_path": "assets/processed/turnaround/frames/frame_08.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          230,
+          13,
+          410,
+          700
+        ],
+        "fg_width": 181,
+        "fg_height": 688,
+        "foot_y": 700,
+        "center_x": 320.5
+      },
+      {
+        "index": 9,
+        "filename": "frame_09.png",
+        "rel_path": "assets/processed/turnaround/frames/frame_09.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          230,
+          12,
+          410,
+          699
+        ],
+        "fg_width": 181,
+        "fg_height": 688,
+        "foot_y": 699,
+        "center_x": 320.5
+      },
+      {
+        "index": 10,
+        "filename": "frame_10.png",
+        "rel_path": "assets/processed/turnaround/frames/frame_10.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          230,
+          11,
+          410,
+          699
+        ],
+        "fg_width": 181,
+        "fg_height": 689,
+        "foot_y": 699,
+        "center_x": 320.5
+      },
+      {
+        "index": 11,
+        "filename": "frame_11.png",
+        "rel_path": "assets/processed/turnaround/frames/frame_11.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          258,
+          11,
+          380,
+          699
+        ],
+        "fg_width": 123,
+        "fg_height": 689,
+        "foot_y": 699,
+        "center_x": 319.5
+      }
+    ]
+  },
+  "walking": {
+    "id": "walking",
+    "title": "Walking",
+    "character": "mr_nerdy",
+    "source_file": "walking.png",
+    "strategy": "complete_standardized",
+    "frame_count": 16,
+    "frame_duration_ms": 150,
+    "fps": 6.7,
+    "loop": false,
+    "canvas": {
+      "width": 640,
+      "height": 740,
+      "dimensions": "640x740"
+    },
+    "anchor": "feet",
+    "props": [],
+    "spritesheet_path": "assets/processed/walking/spritesheet.png",
+    "preview_gif_path": "assets/processed/walking/preview.gif",
+    "contact_sheet_path": "assets/processed/walking/contact_sheet.png",
+    "frames": [
+      {
+        "index": 0,
+        "filename": "frame_00.png",
+        "rel_path": "assets/processed/walking/frames/frame_00.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          181,
+          40,
+          458,
+          700
+        ],
+        "fg_width": 278,
+        "fg_height": 661,
+        "foot_y": 700,
+        "center_x": 320.0
+      },
+      {
+        "index": 1,
+        "filename": "frame_01.png",
+        "rel_path": "assets/processed/walking/frames/frame_01.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          146,
+          40,
+          494,
+          698
+        ],
+        "fg_width": 349,
+        "fg_height": 659,
+        "foot_y": 698,
+        "center_x": 320.5
+      },
+      {
+        "index": 2,
+        "filename": "frame_02.png",
+        "rel_path": "assets/processed/walking/frames/frame_02.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          156,
+          40,
+          484,
+          693
+        ],
+        "fg_width": 329,
+        "fg_height": 654,
+        "foot_y": 693,
+        "center_x": 320.5
+      },
+      {
+        "index": 3,
+        "filename": "frame_03.png",
+        "rel_path": "assets/processed/walking/frames/frame_03.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          150,
+          40,
+          490,
+          689
+        ],
+        "fg_width": 341,
+        "fg_height": 650,
+        "foot_y": 689,
+        "center_x": 320.5
+      },
+      {
+        "index": 4,
+        "filename": "frame_04.png",
+        "rel_path": "assets/processed/walking/frames/frame_04.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          139,
+          40,
+          500,
+          695
+        ],
+        "fg_width": 362,
+        "fg_height": 656,
+        "foot_y": 695,
+        "center_x": 320.0
+      },
+      {
+        "index": 5,
+        "filename": "frame_05.png",
+        "rel_path": "assets/processed/walking/frames/frame_05.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          140,
+          40,
+          499,
+          693
+        ],
+        "fg_width": 360,
+        "fg_height": 654,
+        "foot_y": 693,
+        "center_x": 320.0
+      },
+      {
+        "index": 6,
+        "filename": "frame_06.png",
+        "rel_path": "assets/processed/walking/frames/frame_06.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          137,
+          40,
+          502,
+          693
+        ],
+        "fg_width": 366,
+        "fg_height": 654,
+        "foot_y": 693,
+        "center_x": 320.0
+      },
+      {
+        "index": 7,
+        "filename": "frame_07.png",
+        "rel_path": "assets/processed/walking/frames/frame_07.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          154,
+          40,
+          486,
+          693
+        ],
+        "fg_width": 333,
+        "fg_height": 654,
+        "foot_y": 693,
+        "center_x": 320.5
+      },
+      {
+        "index": 8,
+        "filename": "frame_08.png",
+        "rel_path": "assets/processed/walking/frames/frame_08.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          158,
+          40,
+          480,
+          695
+        ],
+        "fg_width": 323,
+        "fg_height": 656,
+        "foot_y": 695,
+        "center_x": 319.5
+      },
+      {
+        "index": 9,
+        "filename": "frame_09.png",
+        "rel_path": "assets/processed/walking/frames/frame_09.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          140,
+          41,
+          499,
+          691
+        ],
+        "fg_width": 360,
+        "fg_height": 651,
+        "foot_y": 691,
+        "center_x": 320.0
+      },
+      {
+        "index": 10,
+        "filename": "frame_10.png",
+        "rel_path": "assets/processed/walking/frames/frame_10.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          140,
+          40,
+          500,
+          691
+        ],
+        "fg_width": 361,
+        "fg_height": 652,
+        "foot_y": 691,
+        "center_x": 320.5
+      },
+      {
+        "index": 11,
+        "filename": "frame_11.png",
+        "rel_path": "assets/processed/walking/frames/frame_11.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          138,
+          40,
+          501,
+          696
+        ],
+        "fg_width": 364,
+        "fg_height": 657,
+        "foot_y": 696,
+        "center_x": 320.0
+      },
+      {
+        "index": 12,
+        "filename": "frame_12.png",
+        "rel_path": "assets/processed/walking/frames/frame_12.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          144,
+          40,
+          494,
+          693
+        ],
+        "fg_width": 351,
+        "fg_height": 654,
+        "foot_y": 693,
+        "center_x": 319.5
+      },
+      {
+        "index": 13,
+        "filename": "frame_13.png",
+        "rel_path": "assets/processed/walking/frames/frame_13.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          146,
+          40,
+          492,
+          695
+        ],
+        "fg_width": 347,
+        "fg_height": 656,
+        "foot_y": 695,
+        "center_x": 319.5
+      },
+      {
+        "index": 14,
+        "filename": "frame_14.png",
+        "rel_path": "assets/processed/walking/frames/frame_14.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          146,
+          40,
+          494,
+          695
+        ],
+        "fg_width": 349,
+        "fg_height": 656,
+        "foot_y": 695,
+        "center_x": 320.5
+      },
+      {
+        "index": 15,
+        "filename": "frame_15.png",
+        "rel_path": "assets/processed/walking/frames/frame_15.png",
+        "width": 640,
+        "height": 740,
+        "bbox": [
+          181,
+          38,
+          458,
+          700
+        ],
+        "fg_width": 278,
+        "fg_height": 663,
+        "foot_y": 700,
+        "center_x": 320.0
+      }
+    ]
+  }
+}

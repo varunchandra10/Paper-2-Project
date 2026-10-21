@@ -4,7 +4,10 @@
   "description": "RUEXIS AI 2.0 Desktop Container Application",
   "main": "src/main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "rebuild": "electron-rebuild",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
   },
   "type": "commonjs",
   "dependencies": {

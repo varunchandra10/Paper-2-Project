@@ -1,34 +1,38 @@
-﻿# RUEXIS AI — Backend
+# RUEXIS AI — Backend (v2.0)
 
-FastAPI backend for the RUEXIS AI Platform. Provides all inference, ingestion, retrieval, telemetry, and hardware APIs consumed by the Electron desktop app.
+FastAPI backend for the RUEXIS AI Platform. Provides multi-engine document extraction, an autonomous 5-node LangGraph agent swarm, Dual Code Synthesis (Qwen + Gemini), a 12-rung verification ladder, and real-time SSE streaming.
+
+> 📘 **Master Documentation:** For in-depth architectural textbook chapters, refer to the [Master Documentation Index](../documents/README.md) and [Backend Operational Commands](../documents/backend_commands.md).
 
 ---
 
 ## Quick Start
 
-```bash
+```powershell
 # 1. Create and activate a virtual environment
 python -m venv venv
-venv\Scripts\activate         # Windows
-# source venv/bin/activate   # macOS/Linux
+venv\Scripts\Activate.ps1       # Windows PowerShell
+# source venv/bin/activate      # macOS/Linux
 
-# 2. Install dependencies
+# 2. Install runtime dependencies (and test dependencies if running tests)
 pip install -r requirements.txt
+pip install pytest pytest-asyncio  # Dev/testing
 
 # 3. Configure environment variables
-cp .env.example .env
+Copy-Item .env.example .env     # Windows PowerShell (or: copy .env.example .env)
 # Fill in: GROQ_API_KEY, OPENROUTER_API_KEY, GEMINI_API_KEY, HUGGINGFACE_API_KEY, TAVILY_API_KEY, SECRET_KEY
 
 # 4. Start the backend server
 python main.py
-# Or directly:
+# Or directly with uvicorn:
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 Server runs at **http://localhost:8000**
-- Interactive API docs: http://localhost:8000/docs
-- Rate Limits Dashboard: http://localhost:8000/limits-dashboard
-- JSON Health Check: http://localhost:8000/api/status
+- Interactive Swagger API docs: `http://localhost:8000/docs`
+- ReDoc API docs: `http://localhost:8000/redoc`
+- Rate Limits & Quotas Dashboard: `http://localhost:8000/limits-dashboard`
+- JSON Health Check: `http://localhost:8000/api/status`
 
 ---
 
@@ -36,76 +40,53 @@ Server runs at **http://localhost:8000**
 
 ```
 backend/
-├── main.py                   # FastAPI app, CORS middleware, root routes
+├── main.py                   # FastAPI app, CORS middleware, startup recovery, root routes
 ├── requirements.txt          # Minimal pinned dependencies
+├── pytest.ini                # Pytest configuration (asyncio_mode=auto, testpaths=tests)
 ├── .env.example              # Environment variable template
-├── storage/                  # All runtime-persisted data (git-ignored)
-│   ├── papers/               # Raw uploaded PDF/DOCX files
-│   ├── extracted_json/       # Structured extraction output per paper
-│   ├── conversations/        # Per-conversation JSON message history
+├── storage/                  # Runtime state & indices (git-ignored)
+│   ├── papers/               # Raw uploaded PDF files
+│   ├── conversations/        # Per-conversation JSON message threads
 │   ├── history/              # User profile & document metadata
-│   ├── reports/              # Generated analysis reports
-│   ├── rag_embeddings/       # FAISS vector indices per paper
-│   ├── knowledge_graphs/     # NetworkX knowledge graphs per paper
-│   ├── codes/                # Generated PyTorch code outputs
-│   └── traces/               # Agent execution traces
+│   ├── rag_embeddings/       # Vector indices per paper
+│   ├── codes/                # Generated code caches
+│   └── jobs.db               # SQLite WAL autonomous job state machine
+├── reports/                  # User deliverables & audit artifacts
+│   ├── extracted_json/       # Canonical structured extraction JSON per paper
+│   ├── knowledge_graphs/     # Built NetworkX 7-tier knowledge graphs
+│   ├── manifests/            # Autonomous run manifests
+│   ├── traces/               # Telemetry execution trace logs
+│   ├── benchmarks/           # Performance benchmark reports
+│   └── evaluation/           # RAG and code synthesis evaluation logs
+├── tests/                    # 31-file automated pytest test suite
 └── app/
-    ├── api/v1/               # HTTP endpoint routers
-    ├── agents/               # Autonomous agent classes
-    ├── core/                 # Config, routing, prompts, quota tracker
-    ├── providers/            # LLM provider adapters
-    ├── extraction/           # PDF/DOCX parsing pipeline
-    ├── retrieval/            # Chunking, embedding, vector DB, knowledge graph
-    ├── graph/                # LangGraph StateGraph workflow
+    ├── api/v1/               # HTTP endpoint routers (auth, papers, pipeline, chat, etc.)
+    ├── agents/               # Autonomous agent classes & ReACT ChatAgent
+    ├── core/                 # Config, ModelRouter, QuotaTracker, JobStore, CodeVerifier
+    ├── providers/            # LLM provider adapters (Groq, OpenRouter, HF, Ollama)
+    ├── extraction/           # Multi-engine PDF layout parser (Docling, MuPDF, Gemini VLM)
+    ├── retrieval/            # Chunking, vector DB, hybrid search, knowledge graph
+    ├── graph/                # LangGraph 5-node autonomous StateGraph workflow
     ├── schemas/              # Pydantic request/response models
     ├── tools/                # ReACT tool registry
-    └── evals/                # Evaluation harness
+    └── evals/                # Evaluation and benchmarking harness
 ```
 
 ---
 
 ## API Reference
 
-All routes are mounted under `/api/v1`. Full interactive spec at `/docs`.
+All routes are mounted under `/api/v1`. Full interactive OpenAPI Swagger spec at `/docs`.
 
 ### Auth — `/api/v1/auth`
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/auth/local-login` | Register or authenticate a local developer profile. Returns JWT. |
-
----
-
-### Chat — `/api/v1/conversations`
-
-Core conversational interface powered by the ReACT agent loop.
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/conversations` | List all conversation threads + active_conversation_id. |
-| POST | `/conversations` | Create a new conversation thread (optional title, project_id). |
-| GET | `/conversations/active` | Get metadata + messages for the currently active conversation. |
-| POST | `/conversations/active` | Set or clear the active conversation. |
-| GET | `/conversations/{id}` | Fetch all messages and metadata for a conversation. |
-| GET | `/conversations/{id}/messages` | Alias of above. |
-| POST | `/conversations/{id}/chat` | Non-streaming chat completion via ChatAgent ReACT loop. |
-| POST | `/conversations/{id}/chat/stream` | **Primary path.** Streaming SSE chat completion. |
-| PATCH | `/conversations/{id}` | Update conversation title. |
-| DELETE | `/conversations/{id}` | Delete a conversation thread from disk. |
-| GET | `/memory` | Retrieve stored user facts (episodic memory). |
-| POST | `/memory` | Add a new user fact to persistent memory. |
-
-#### SSE Stream Event Protocol
-
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `status` | string | Progress text ("Thinking...", "ReACT turn 1/3...") |
-| `thought` | string | ReACT THOUGHT trace |
-| `action` | string | Tool being executed |
-| `observation` | string | Tool result summary |
-| `token` | string | Individual response chunk (assembled client-side) |
-| `done` | JSON | Final: `{title, model_used, failover_model, thought, action, observation}` |
-| `error` | string | Error message string |
+| POST | `/auth/setup-wizard` | Initial onboarding wizard: set profile, API keys, and device prefs. |
+| GET | `/auth/check-ollama` | Detect if local Ollama daemon is reachable on `localhost:11434`. |
+| POST | `/auth/verify-key` | Test validity of an API key against provider endpoints. |
+| POST | `/auth/local-login` | Authenticate or auto-register local developer profile (returns JWT). |
+| POST | `/auth/reset-session` | Clear active token and session state. |
 
 ---
 
@@ -113,31 +94,58 @@ Core conversational interface powered by the ReACT agent loop.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/upload` | Upload PDF/DOCX, parse, and RAG-index. Returns paper_id + conversation_id. |
-| POST | `/history/upload` | Alias of `/upload`. |
-| GET | `/history` | List all ingested papers (title, paper_id, status). |
-| GET | `/history/{paper_id}` | Get metadata for a specific paper. |
-| GET | `/history/{paper_id}/hyperparameters` | Get extracted hyperparameters JSON. |
-| GET | `/papers/{paper_id}/pdf` | Serve the raw PDF file. |
-| GET | `/papers/{paper_id}/view` | Serve PDF inline for browser rendering. |
-| DELETE | `/history/{paper_id}` | Delete paper + all associated data from disk. |
-| GET | `/profile` | Retrieve user profile JSON. |
-| PATCH | `/profile` | Update user profile (name, API keys, Ollama link). |
+| POST | `/papers/upload` | Upload PDF paper, parse document layout, and index into vector store. |
+| GET | `/papers` | List all ingested papers with metadata and extraction status. |
+| GET | `/papers/{id}` | Retrieve parsed metadata, summary, and section tree for a paper. |
+| GET | `/papers/{id}/pdf` | Stream raw PDF document file. |
+| POST | `/papers/{id}/synthesize` | Trigger Dual Code Engine synthesis (Qwen + Gemini) for a paper. |
+| GET | `/papers/{id}/knowledge_graph` | Retrieve 7-tier NetworkX knowledge graph for a paper. |
+| GET | `/papers/{id}/codebase` | Download or view the synthesized PyTorch codebase. |
+| GET | `/papers/{id}/manifest` | Retrieve the build and verification manifest. |
+| DELETE | `/papers/{id}` | Delete paper, vector embeddings, and reports from disk. |
 
 ---
 
-### Pipeline — `/api/v1`
+### Pipeline — `/api/v1/pipeline`
 
-LangGraph autonomous paper-to-experiment analysis pipeline.
+Autonomous 5-node LangGraph extraction and code synthesis pipeline.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/pipeline/ingest` | Trigger full 5-node LangGraph pipeline for a paper (background task). |
-| POST | `/pipeline/approve` | Submit parameter approval or rejection after user review. |
-| GET | `/stream/{run_id}` | SSE stream for live pipeline logs + mascot state signals. |
-| GET | `/extraction/stream/{run_id}` | Alias of above. |
-| GET | `/pipeline/status/{run_id}` | Current job status (queued / processing / completed / failed). |
-| GET | `/pipeline/report/{paper_id}` | Retrieve the final generated analysis report. |
+| POST | `/pipeline/analyze` | Dispatch background ingestion & synthesis job for an uploaded paper. |
+| GET | `/pipeline/jobs/{id}` | Inspect real-time status, progress (0–100%), and active stage. |
+| GET | `/pipeline/jobs/{id}/events` | **Primary SSE stream.** Real-time job logs and mascot state triggers. |
+| POST | `/pipeline/jobs/{id}/cancel` | Request graceful cancellation of a running pipeline job. |
+| GET | `/pipeline/jobs/{id}/manifest` | Retrieve execution manifest for a completed job. |
+| GET | `/pipeline/manifests` | List all completed run manifests. |
+
+---
+
+### Chat — `/api/v1/conversations`
+
+Conversational interface powered by the ReACT agent loop with RAG grounding.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/conversations` | List all conversation threads. |
+| POST | `/conversations` | Create a new conversation thread. |
+| GET | `/conversations/active` | Get metadata and messages for the active conversation. |
+| POST | `/conversations/{id}/chat` | Non-streaming chat completion via ReACT loop. |
+| POST | `/conversations/{id}/chat/stream` | **Primary path.** Streaming SSE chat completion. |
+| PATCH | `/conversations/{id}` | Rename conversation thread title. |
+| DELETE | `/conversations/{id}` | Delete conversation thread from disk. |
+
+#### SSE Stream Event Protocol
+
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `status` | string | Progress text ("Thinking...", "ReACT turn 1/3...") |
+| `thought` | string | ReACT reasoning thought trace |
+| `action` | string | Tool being executed |
+| `observation` | string | Tool execution observation output |
+| `token` | string | Streamed response chunk (assembled client-side) |
+| `done` | JSON | Final metadata: `{title, model_used, failover_model, ...}` |
+| `error` | string | Error description |
 
 ---
 
@@ -145,25 +153,22 @@ LangGraph autonomous paper-to-experiment analysis pipeline.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/models` | List all frontend-visible models (Groq, OpenRouter, Local Ollama). |
+| GET | `/models` | List all available models (Groq, OpenRouter, Local Ollama). |
+| GET | `/models/status` | Real-time connectivity and health across all model providers. |
 | GET | `/models/limits` | Live rate limits and quota metrics for all providers. |
-| GET | `/models/dual-engine` | Gemini + HF Dual Code Engine availability and configuration. |
+| GET | `/models/dual-engine` | Status and availability of Gemini + HF Dual Code Engines. |
 
 ---
 
-### Hardware — `/api/v1/hardware`
+### Hardware & Telemetry — `/api/v1`
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/hardware/metrics` | Live CPU (cores, RAM, usage%) and GPU (VRAM, CUDA) via psutil + nvidia-smi. |
-
----
-
-### Telemetry — `/api/v1/telemetry`
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/telemetry/traces` | Retrieve stored agent execution traces for evaluation. |
+| GET | `/hardware/metrics` | Live CPU, RAM, and GPU/CUDA metrics via `psutil` + `torch.cuda`. |
+| GET | `/telemetry/traces` | Stored agent execution traces. |
+| POST | `/evals/run-rag` | Run empirical RAG evaluation harness against an ingested paper. |
+| GET | `/evals/baseline` | Retrieve baseline RAG accuracy and grounding benchmarks. |
+| GET | `/evals/benchmark/{paper_id}` | Retrieve benchmark metrics for a specific paper. |
 
 ---
 
@@ -334,3 +339,32 @@ START → ingestion_node → extraction_node → feasibility_node → sequencing
 | `networkx` | Knowledge graph construction |
 | `pydantic` | Request/response schema validation |
 | `python-dotenv` | `.env` file loading |
+
+---
+
+## Running Tests
+
+All 31 automated backend tests are powered by `pytest` and configured in `pytest.ini`:
+
+```powershell
+# Run entire test suite (quiet mode)
+python -m pytest tests/ -q
+
+# Run verbose output
+python -m pytest tests/ -v
+
+# Run a specific module
+python -m pytest tests/test_dual_code_engine.py -v
+python -m pytest tests/test_model_router.py -v
+```
+
+> For mocking patterns, fail-fast options, and RAG evaluation benchmarks, see the [Testing & Benchmarking Guide](../documents/testing_and_benchmarking.md).
+
+---
+
+## Further Reading
+
+* 📘 [Master Engineering Textbook & Index](../documents/README.md)
+* 🛠️ [Backend Operational Commands & Curl Reference](../documents/backend_commands.md)
+* 🧪 [Testing & Benchmarking Guide](../documents/testing_and_benchmarking.md)
+* 🚀 [Developer Extension & Contributing Recipes](../documents/developer_contributing.md)

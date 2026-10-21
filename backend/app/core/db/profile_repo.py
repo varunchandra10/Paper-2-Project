@@ -39,8 +39,8 @@ class ProfileRepository:
         self.sync_user_registry_webhook(email, full_name)
         return user_data
 
-    def sync_user_registry_webhook(self, email: str, username: str):
-        """Syncs user email and username to external Webhook API if configured."""
+    def sync_user_registry_webhook(self, email: str, username: str, subscribed: bool = False):
+        """Syncs user email, username, and subscription status to external Webhook API if configured."""
         if settings.USER_REGISTRY_WEBHOOK and "your_" not in settings.USER_REGISTRY_WEBHOOK.lower():
             try:
                 import requests
@@ -49,32 +49,35 @@ class ProfileRepository:
                     json={
                         "email": email,
                         "username": username,
+                        "subscribed": subscribed,
                         "timestamp": datetime.datetime.now().isoformat()
                     },
                     timeout=5
                 )
-                print(f"[DB WEBHOOK] Synced user ({email}) to registry webhook API.")
+                print(f"[DB WEBHOOK] Synced user ({email}, subscribed={subscribed}) to registry webhook API.")
             except Exception as w_err:
                 print(f"[DB WEBHOOK WARN] Webhook sync notice: {w_err}")
 
     def get_standalone_user_profile(self) -> dict:
-        """Loads user profile directly from storage/history/user_profile.json."""
+        """Loads user profile directly from storage/user_profile.json."""
         profile_file = settings.USER_PROFILE_FILE
-        default_profile = {
-            "user_id": "usr_1",
-            "username": "Varun Chandra",
-            "email": "varunchandra10@gmail.com",
-            "dob": "2000-01-01",
-            "age": "26",
-            "phoneNumber": "+1 (555) 019-2834",
-            "projectPath": settings.BASE_DIR,
-            "ollamaLink": "",
-            "avatarId": "mr-nerdy"
-        }
-        return self.storage.load_file(profile_file, default=default_profile)
+        if not os.path.exists(profile_file):
+            return {
+                "user_id": None,
+                "username": "",
+                "email": "",
+                "dob": None,
+                "age": None,
+                "phoneNumber": None,
+                "projectPath": settings.BASE_DIR,
+                "ollamaLink": "",
+                "avatarId": "mr-nerdy",
+                "subscribed": False
+            }
+        return self.storage.load_file(profile_file, default={})
 
     def save_standalone_user_profile(self, profile_dict: dict) -> dict:
-        """Saves user profile directly into storage/history/user_profile.json."""
+        """Saves user profile directly into storage/user_profile.json."""
         current = self.get_standalone_user_profile()
         for k, v in profile_dict.items():
             if v is not None:
@@ -86,7 +89,9 @@ class ProfileRepository:
             
         email = current.get("email", "")
         username = current.get("username") or current.get("full_name") or ""
-        self.sync_user_registry_webhook(email, username)
+        subscribed = current.get("subscribed", False)
+        if email:
+            self.sync_user_registry_webhook(email, username, subscribed=subscribed)
         return current
 
     def update_user_profile(self, user_id: str, profile_dict: dict) -> dict:

@@ -137,9 +137,12 @@ def run_code_gen_agent(
 
     if parameters:
         for attr in ["learning_rate", "batch_size", "optimizer", "backbone"]:
-            val = getattr(parameters, attr, None)
-            if val is not None:
-                param_dict[attr] = str(getattr(val, "value", val))
+            param_obj = getattr(parameters, attr, None)
+            if param_obj is not None:
+                status = getattr(param_obj, "status", "UNKNOWN")
+                raw_val = getattr(param_obj, "value", None)
+                if status != "UNKNOWN" and raw_val not in [None, "", "Not specified", "UNKNOWN", "null"]:
+                    param_dict[attr] = str(raw_val)
 
     # 2. Dynamic Paper Context Enrichment: load real extracted paper metadata
     paper_title = component_name
@@ -269,21 +272,26 @@ def run_code_gen_agent(
                     expected_modules=expected_modules
                 )
 
-            # 4. Tournament Winner Selection
+            # 4. Tournament Winner Selection (Lifecycle State & Ladder Rungs)
             if eval_gemini and eval_hf:
-                gemini_exec_ok = eval_gemini["layer3_exec"]["passed"]
-                hf_exec_ok = eval_hf["layer3_exec"]["passed"]
+                gemini_state = eval_gemini.get("lifecycle_state", "FAILED")
+                hf_state = eval_hf.get("lifecycle_state", "FAILED")
 
-                if hf_exec_ok and not gemini_exec_ok:
+                # State hierarchy: VERIFIED > EXECUTABLE > VALIDATED > FAILED
+                state_rank = {"VERIFIED": 4, "NEEDS_REVIEW": 3, "EXECUTABLE": 2, "VALIDATED": 1, "FAILED": 0}
+                g_rank = state_rank.get(gemini_state, 0)
+                h_rank = state_rank.get(hf_state, 0)
+
+                if h_rank > g_rank:
                     winning_code = hf_cand["code"]
                     best_eval = eval_hf
                     engine_label = hf_engine_label
-                elif gemini_exec_ok and not hf_exec_ok:
+                elif g_rank > h_rank:
                     winning_code = gemini_cand["code"]
                     best_eval = eval_gemini
                     engine_label = gemini_engine_label
                 else:
-                    if eval_hf["total_score"] >= eval_gemini["total_score"]:
+                    if eval_hf.get("total_score", 0) >= eval_gemini.get("total_score", 0):
                         winning_code = hf_cand["code"]
                         best_eval = eval_hf
                         engine_label = hf_engine_label
@@ -311,18 +319,21 @@ def run_code_gen_agent(
                 engine_label = "Standard ModelRouter"
 
             # 5. Multi-Iteration Reflexion Self-Repair (max_retries=2)
-            # Re-tests AST syntax and tensor forward pass execution using code_verifier.evaluate_candidate()
+            # Re-tests verification ladder rungs and feeds machine-readable feedback into repair prompt
             retry_count = 0
             max_retries = 2
             while not best_eval.get("is_valid", False) and winning_code and retry_count < max_retries:
                 error_detail = ""
-                layer1 = best_eval.get("layer1_ast", {})
-                layer3 = best_eval.get("layer3_exec", {})
-
-                if not layer1.get("valid", True):
-                    error_detail = f"Syntax Error: {layer1.get('msg', 'AST validation failed')}"
-                elif not layer3.get("passed", True):
-                    error_detail = f"Tensor Forward Pass Error: {layer3.get('error', 'Tensor execution failed')}"
+                v_rep = best_eval.get("verification_report", {})
+                if v_rep.get("repair_feedback"):
+                    error_detail = v_rep["repair_feedback"]
+                else:
+                    layer1 = best_eval.get("layer1_ast", {})
+                    layer3 = best_eval.get("layer3_exec", {})
+                    if not layer1.get("valid", True):
+                        error_detail = f"Syntax Error: {layer1.get('msg', 'AST validation failed')}"
+                    elif not layer3.get("passed", True):
+                        error_detail = f"Execution Ladder Error: {layer3.get('error', 'Execution failed')}"
 
                 if not error_detail:
                     break
@@ -368,12 +379,14 @@ def run_code_gen_agent(
         codebase_files[f_path] = winning_code
         code_evaluations[f_path] = {
             "is_valid": best_eval.get("is_valid", False),
+            "lifecycle_state": best_eval.get("lifecycle_state", "UNKNOWN"),
             "total_score": best_eval.get("total_score", 0.0),
             "engine_used": engine_label,
             "grounding_score": best_eval.get("layer2_grounding", {}).get("score", 0.0),
             "forward_pass": best_eval.get("layer3_exec", {}).get("passed", False),
             "output_shape": best_eval.get("layer3_exec", {}).get("output_shape", "N/A"),
             "ast_msg": best_eval.get("layer1_ast", {}).get("msg", "OK"),
+            "verification_report": best_eval.get("verification_report"),
             "loc": file_loc
         }
 

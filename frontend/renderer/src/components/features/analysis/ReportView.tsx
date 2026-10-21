@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { usePanelStore } from '../../../store/panelStore';
 import { TierSelector } from '../../ui/TierSelector';
-import { API_BASE } from '../../../config/api';
+import { getPaperUrl, getPaperTaskUrl, getPaperWalkthroughUrl } from '../../../config/api';
 import { UNIVERSAL_DEFAULT_HYPERPARAMETERS } from '../../../constants/defaults';
 import { ScholarBadge, type ScholarMetadata } from './ScholarBadge';
 import { ImplementationTabs } from './ImplementationTabs';
 import { ParameterConfigForm } from './ParameterConfigForm';
+import { ManifestViewer } from './ManifestViewer';
 import { parseInlineMarkdown } from '../../../utils/markdownParser';
 
 export const ReportView: React.FC = () => {
@@ -19,7 +20,10 @@ export const ReportView: React.FC = () => {
     analysisStatus,
     approveParameters,
     sendMessage,
-    setActiveView
+    setActiveView,
+    fetchKnowledgeGraph,
+    manifest,
+    fetchManifest
   } = usePanelStore();
 
   const [taskContent, setTaskContent] = useState<string>('');
@@ -33,9 +37,13 @@ export const ReportView: React.FC = () => {
 
   useEffect(() => {
     if (activePaperId) {
+      fetchManifest(activePaperId);
+      if (analysisStatus === 'success') {
+        fetchKnowledgeGraph(activePaperId);
+      }
       const fetchScholarData = async () => {
         try {
-          const resp = await fetch(`${API_BASE}/history/${activePaperId}`);
+          const resp = await fetch(getPaperUrl(activePaperId));
           if (resp.ok) {
             const data = await resp.json();
             
@@ -77,8 +85,8 @@ export const ReportView: React.FC = () => {
         setIsLoadingFiles(true);
         try {
           const [tResp, wResp] = await Promise.all([
-            fetch(`${API_BASE}/history/${activePaperId}/task`),
-            fetch(`${API_BASE}/history/${activePaperId}/walkthrough`)
+            fetch(getPaperTaskUrl(activePaperId)),
+            fetch(getPaperWalkthroughUrl(activePaperId))
           ]);
           
           if (tResp.ok) {
@@ -106,6 +114,34 @@ export const ReportView: React.FC = () => {
     }
   }, [activePaperId, selectedTier, isAnalyzing]);
 
+  const [paramFilter, setParamFilter] = useState<'ALL' | 'EXPLICIT' | 'INFERRED' | 'DEFAULT'>('ALL');
+
+  // Compute provenance breakdown statistics
+  const provenanceStats = React.useMemo(() => {
+    const keys = Object.keys(customParams);
+    let explicit = 0;
+    let inferred = 0;
+    let defaults = 0;
+
+    keys.forEach((k) => {
+      const p = extractedParams?.[k];
+      const st = p?.status?.toUpperCase();
+      if (st === 'EXPLICIT') explicit++;
+      else if (st === 'INFERRED' || st === 'DERIVED') inferred++;
+      else defaults++;
+    });
+
+    return {
+      total: keys.length,
+      explicit,
+      inferred,
+      defaults,
+      explicitPct: keys.length > 0 ? Math.round((explicit / keys.length) * 100) : 0,
+      inferredPct: keys.length > 0 ? Math.round((inferred / keys.length) * 100) : 0,
+      defaultsPct: keys.length > 0 ? Math.round((defaults / keys.length) * 100) : 0,
+    };
+  }, [customParams, extractedParams]);
+
   if (!activePaperId) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-center p-6 gap-3">
@@ -113,6 +149,73 @@ export const ReportView: React.FC = () => {
       </div>
     );
   }
+
+  // Provenance Summary Bar Component
+  const renderProvenanceBar = () => {
+    if (provenanceStats.total === 0) return null;
+    return (
+      <div className="flex flex-col gap-1.5 p-2.5 bg-[var(--bg-base)] rounded-xl border app-border text-[9px] font-mono">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5 font-bold text-[var(--text-main)]">
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            <span>Provenance Grounding:</span>
+            <span className="text-emerald-400">{provenanceStats.explicit} Explicit</span>
+            <span className="text-[var(--text-muted)]">|</span>
+            <span className="text-amber-400">{provenanceStats.inferred} Inferred</span>
+            <span className="text-[var(--text-muted)]">|</span>
+            <span className="text-rose-400">{provenanceStats.defaults} Default</span>
+          </div>
+
+          {/* Filter Pills */}
+          <div className="flex items-center gap-1">
+            {(['ALL', 'EXPLICIT', 'INFERRED', 'DEFAULT'] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setParamFilter(mode)}
+                className={`px-2 py-0.5 rounded-md text-[8px] font-bold transition-all cursor-pointer ${
+                  paramFilter === mode
+                    ? 'bg-[var(--accent)] text-white shadow-xs'
+                    : 'bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-main)] border app-border'
+                }`}
+              >
+                {mode}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Visual Progress Ratio Bar */}
+        <div className="h-1.5 w-full bg-[var(--bg-card)] rounded-full overflow-hidden flex">
+          <div
+            style={{ width: `${provenanceStats.explicitPct}%` }}
+            className="bg-emerald-400 transition-all duration-300"
+            title={`${provenanceStats.explicit} Explicit (${provenanceStats.explicitPct}%)`}
+          />
+          <div
+            style={{ width: `${provenanceStats.inferredPct}%` }}
+            className="bg-amber-400 transition-all duration-300"
+            title={`${provenanceStats.inferred} Inferred (${provenanceStats.inferredPct}%)`}
+          />
+          <div
+            style={{ width: `${provenanceStats.defaultsPct}%` }}
+            className="bg-rose-400 transition-all duration-300"
+            title={`${provenanceStats.defaults} Default (${provenanceStats.defaultsPct}%)`}
+          />
+        </div>
+
+        {/* Warning callout for ungrounded / default parameters */}
+        {paramFilter === 'DEFAULT' && provenanceStats.defaults > 0 && (
+          <div className="flex items-center gap-1.5 p-1.5 bg-rose-500/10 text-rose-300 border border-rose-500/20 rounded-lg text-[8px]">
+            <span>⚠️</span>
+            <span>
+              {provenanceStats.defaults} parameters were not found verbatim in paper text and use baseline defaults.
+            </span>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   // Render Detailed structural analysis tier
   if (selectedTier === 'detailed') {
@@ -135,6 +238,8 @@ export const ReportView: React.FC = () => {
           <ScholarBadge metadata={scholarMeta} />
         </div>
 
+        {renderProvenanceBar()}
+
         {isAnalyzing ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-3 py-10">
             <div className="w-8 h-8 rounded-full border-2 border-[var(--accent)] border-t-transparent animate-spin" />
@@ -146,6 +251,7 @@ export const ReportView: React.FC = () => {
           <ParameterConfigForm
             customParams={customParams}
             extractedParams={extractedParams}
+            activeFilter={paramFilter}
             onChange={setCustomParams}
             onConfirm={() => approveParameters(customParams)}
           />
@@ -169,6 +275,8 @@ export const ReportView: React.FC = () => {
             </button>
           </div>
         )}
+
+        <ManifestViewer manifest={manifest} />
       </div>
     );
   }
@@ -214,6 +322,7 @@ export const ReportView: React.FC = () => {
 
             <ParameterConfigForm
               customParams={customParams}
+              extractedParams={extractedParams}
               onChange={setCustomParams}
               compactMode={true}
               confirmLabel="Get Code in Chat"
@@ -231,6 +340,8 @@ export const ReportView: React.FC = () => {
             isLoadingFiles={isLoadingFiles}
           />
         )}
+
+        <ManifestViewer manifest={manifest} />
       </div>
     );
   }
@@ -277,6 +388,8 @@ export const ReportView: React.FC = () => {
           <span className="text-[var(--text-muted)] italic">No report available yet. Run ingestion first.</span>
         )}
       </div>
+
+      <ManifestViewer manifest={manifest} />
     </div>
   );
 };

@@ -5,6 +5,8 @@ import { createChatSlice, type ChatSlice } from './slices/chatSlice';
 import { createHardwareSlice, type HardwareSlice, type HardwareMetrics } from './slices/hardwareSlice';
 import { createDocumentHistorySlice, type DocumentHistorySlice } from './slices/documentHistorySlice';
 import { createAnalysisSlice, type AnalysisSlice } from './slices/analysisSlice';
+import { createKnowledgeGraphSlice, type KnowledgeGraphSlice } from './slices/knowledgeGraphSlice';
+import { createEvalSlice, type EvalSlice } from './slices/evalSlice';
 
 export interface HistoryItem {
   id: string; // Maps to conversation_id
@@ -40,7 +42,9 @@ export type PanelState = UISlice &
   ChatSlice &
   HardwareSlice &
   DocumentHistorySlice &
-  AnalysisSlice;
+  AnalysisSlice &
+  KnowledgeGraphSlice &
+  EvalSlice;
 
 export const usePanelStore = create<PanelState>()((...a) => ({
   ...createUISlice(...a),
@@ -49,4 +53,7 @@ export const usePanelStore = create<PanelState>()((...a) => ({
   ...createHardwareSlice(...a),
   ...createDocumentHistorySlice(...a),
   ...createAnalysisSlice(...a),
+  ...createKnowledgeGraphSlice(...a),
+  ...createEvalSlice(...a),
 }));
+

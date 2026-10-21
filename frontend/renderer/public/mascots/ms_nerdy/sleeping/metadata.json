@@ -1,0 +1,164 @@
+{
+  "character": "Ms. Nerdy",
+  "animation_id": "sleeping",
+  "title": "Standing to Sleeping",
+  "source_file": "Drowsy Scientist Sprite Sheet.png",
+  "strategy": "complete_standardized",
+  "frame_count": 8,
+  "canvas_size": [
+    640,
+    740
+  ],
+  "anchor": "feet",
+  "anchor_coordinates": [
+    320,
+    700
+  ],
+  "loop": false,
+  "frame_duration_ms": 300,
+  "fps": 3.3,
+  "props": [
+    "bed",
+    "cot",
+    "blanket",
+    "Zzz sleep particles"
+  ],
+  "frames": [
+    {
+      "index": 0,
+      "filename": "frame_00.png",
+      "rel_path": "assets/processed/sleeping/frames/frame_00.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        210,
+        168,
+        430,
+        693
+      ],
+      "fg_width": 221,
+      "fg_height": 526,
+      "foot_y": 693,
+      "center_x": 320.5
+    },
+    {
+      "index": 1,
+      "filename": "frame_01.png",
+      "rel_path": "assets/processed/sleeping/frames/frame_01.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        116,
+        172,
+        524,
+        693
+      ],
+      "fg_width": 409,
+      "fg_height": 522,
+      "foot_y": 693,
+      "center_x": 320.5
+    },
+    {
+      "index": 2,
+      "filename": "frame_02.png",
+      "rel_path": "assets/processed/sleeping/frames/frame_02.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        209,
+        172,
+        430,
+        696
+      ],
+      "fg_width": 222,
+      "fg_height": 525,
+      "foot_y": 696,
+      "center_x": 320.0
+    },
+    {
+      "index": 3,
+      "filename": "frame_03.png",
+      "rel_path": "assets/processed/sleeping/frames/frame_03.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        212,
+        208,
+        428,
+        697
+      ],
+      "fg_width": 217,
+      "fg_height": 490,
+      "foot_y": 697,
+      "center_x": 320.5
+    },
+    {
+      "index": 4,
+      "filename": "frame_04.png",
+      "rel_path": "assets/processed/sleeping/frames/frame_04.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        210,
+        301,
+        429,
+        700
+      ],
+      "fg_width": 220,
+      "fg_height": 400,
+      "foot_y": 700,
+      "center_x": 320.0
+    },
+    {
+      "index": 5,
+      "filename": "frame_05.png",
+      "rel_path": "assets/processed/sleeping/frames/frame_05.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        208,
+        357,
+        431,
+        699
+      ],
+      "fg_width": 224,
+      "fg_height": 343,
+      "foot_y": 699,
+      "center_x": 320.0
+    },
+    {
+      "index": 6,
+      "filename": "frame_06.png",
+      "rel_path": "assets/processed/sleeping/frames/frame_06.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        170,
+        476,
+        468,
+        696
+      ],
+      "fg_width": 299,
+      "fg_height": 221,
+      "foot_y": 696,
+      "center_x": 319.5
+    },
+    {
+      "index": 7,
+      "filename": "frame_07.png",
+      "rel_path": "assets/processed/sleeping/frames/frame_07.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        156,
+        452,
+        482,
+        691
+      ],
+      "fg_width": 327,
+      "fg_height": 240,
+      "foot_y": 691,
+      "center_x": 319.5
+    }
+  ]
+}

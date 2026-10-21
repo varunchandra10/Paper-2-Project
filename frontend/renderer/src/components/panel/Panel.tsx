@@ -87,10 +87,10 @@ export const Panel: React.FC = () => {
     }
   }, [messages, isChatGenerating]);
 
-  // ── Sync thinking pose during ReAct chat generation ──
+  // ── Sync hunch (laptop typing) pose during ReAct chat generation ──
   useEffect(() => {
     if (isChatGenerating) {
-      window.mascotAPI?.setMascotState?.('thinking');
+      window.mascotAPI?.setMascotState?.('hunch');
     } else {
       window.mascotAPI?.setMascotState?.('idle');
     }
@@ -130,7 +130,15 @@ export const Panel: React.FC = () => {
 
   // ── File picker trigger ──
   const handleBrowseFile = () => {
-    fileInputRef.current?.click();
+    fetch('/LoRA.pdf')
+      .then((r) => r.blob())
+      .then((blob) => {
+        const file = new File([blob], 'LoRA.pdf', { type: 'application/pdf' });
+        processFile(file);
+      })
+      .catch(() => {
+        fileInputRef.current?.click();
+      });
   };
 
   // ── User picks a file via input ──
@@ -274,10 +282,12 @@ export const Panel: React.FC = () => {
             </div>
           )}
 
-          {/* ── BOTTOM-LEFT CORNER MASCOT COMPANION DOCK (Maximized Full-Screen Mode Only) ── */}
-          {isMaximized && !isSidebarOpen && activeView === 'chat' && (
-            <div className="absolute bottom-5 left-5 z-30 hidden sm:block animate-fade-in pointer-events-auto">
-              <MascotBox isOpen={true} isMaximized={isMaximized} />
+          {/* ── BOTTOM-LEFT CORNER MASCOT COMPANION DOCK ── */}
+          {!isSidebarOpen && activeView === 'chat' && (
+            <div className={`absolute z-30 hidden sm:block animate-fade-in pointer-events-auto ${
+              isMaximized ? 'bottom-5 left-5' : 'bottom-3 left-3'
+            }`}>
+              <MascotBox isOpen={true} isMaximized={isMaximized} isDragging={isDragging} />
             </div>
           )}
 

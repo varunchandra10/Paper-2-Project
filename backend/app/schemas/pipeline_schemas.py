@@ -82,10 +82,15 @@ class BuildSequence(BaseModel):
     total_duration_weeks: float = Field(default=0.0, description="Total estimated project duration in weeks")
 
 class ProjectParameter(BaseModel):
-    value: str = Field(default="Not specified", description="The extracted parameter value")
-    source: str = Field(default="Section III", description="Exact source location in the paper")
-    status: str = Field(default="EXPLICIT", description="Provenance status: 'EXPLICIT', 'INFERRED', 'ASSUMED'")
-    confidence: float = Field(default=1.0, description="Confidence rating from 0.0 to 1.0")
+    value: Optional[str] = Field(default=None, description="The extracted parameter value, or None if UNKNOWN")
+    source: Optional[str] = Field(default=None, description="Exact source location in the paper")
+    evidence: Optional[str] = Field(default=None, description="Exact verbatim text quote from paper")
+    page: Optional[int] = Field(default=None, description="Page number where found")
+    status: str = Field(default="UNKNOWN", description="Provenance status: 'EXPLICIT', 'DERIVED', 'INFERRED', 'ASSUMED', 'UNKNOWN'")
+    evidence_strength: str = Field(default="NONE", description="Evidence strength: 'STRONG', 'MODERATE', 'WEAK', 'NONE'")
+    confidence: float = Field(default=0.0, description="Calibrated confidence rating from 0.0 to 1.0")
+    extraction_method: str = Field(default="llm_rag_extraction", description="Extraction method")
+
 
 class ExtractedParameters(BaseModel):
     model: ProjectParameter = Field(default_factory=ProjectParameter, description="Model architecture/backbone name")
@@ -99,3 +104,4 @@ class ExtractedParameters(BaseModel):
     input_size: ProjectParameter = Field(default_factory=ProjectParameter, description="Image spatial resolution or input size")
     augmentation: ProjectParameter = Field(default_factory=ProjectParameter, description="Data augmentations applied")
     hardware: ProjectParameter = Field(default_factory=ProjectParameter, description="Compute hardware utilized")
+    custom_parameters: Dict[str, Any] = Field(default_factory=dict, description="Custom extracted parameters")

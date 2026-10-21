@@ -31,6 +31,19 @@ app.add_middleware(
 # Include v1 API Router
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
+# Legacy aliases for PDF document streaming
+from app.api.v1.endpoints.papers import get_paper_pdf
+app.add_api_route("/api/papers/{paper_id}/pdf", get_paper_pdf, methods=["GET"])
+app.add_api_route("/papers/{paper_id}/pdf", get_paper_pdf, methods=["GET"])
+
+
+@app.on_event("startup")
+def on_startup():
+    from app.core.job_store import get_job_store
+    recovered = get_job_store().recover_stale_jobs()
+    if recovered > 0:
+        print(f"[JOB_STORE] Recovered {recovered} stale/interrupted jobs from previous session.")
+
 
 @app.get("/", response_class=HTMLResponse)
 @app.get("/limits-dashboard", response_class=HTMLResponse)

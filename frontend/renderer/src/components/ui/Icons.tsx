@@ -60,7 +60,6 @@ export {
   FiMinimize as IconMinimize,
 } from 'react-icons/fi';
 
-// ─── UI / General Icons ───────────────────────────────────────────────────────
 export {
   FiPlus          as IconPlus,
   FiFile          as IconFile,
@@ -79,6 +78,9 @@ export {
   FiEdit2         as IconEdit,
   FiRotateCcw     as IconRotateCcw,
   FiRefreshCw     as IconRefresh,
+  FiKey           as IconKey,
+  FiHardDrive     as IconHardware,
+  FiShield        as IconShield,
 } from 'react-icons/fi';
 
 // ─── User / Profile Icons ─────────────────────────────────────────────────────

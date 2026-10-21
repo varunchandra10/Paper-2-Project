@@ -1,6 +1,12 @@
 import { useLogsStore } from '../store/logsStore';
+import { 
+  getApiBase, 
+  isElectronEnvironment, 
+  getPipelineEventsUrl, 
+  getPipelineJobUrl,
+  getPaperUploadUrl 
+} from '../config/api';
 
-import { getApiBase, isElectronEnvironment } from '../config/api';
 export { getApiBase, isElectronEnvironment };
 
 export const isElectron = isElectronEnvironment();
@@ -136,7 +142,7 @@ export const connectivityService = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await fetch(`${getApiBase()}/history/upload?model_name=${modelName}`, {
+    const response = await fetch(`${getPaperUploadUrl()}?model_name=${modelName}`, {
       method: 'POST',
       body: formData
     });
@@ -153,7 +159,7 @@ export const connectivityService = {
    * Fetches the current run/job status for a pipeline run.
    */
   async getExtractionStatus(jobId: string): Promise<ExtractionStatus> {
-    const response = await fetch(`${getApiBase()}/analyze/${jobId}/status`);
+    const response = await fetch(getPipelineJobUrl(jobId));
     if (!response.ok) {
       throw new Error(`Failed to fetch job status: ${response.statusText}`);
     }
@@ -170,51 +176,71 @@ export const connectivityService = {
     onComplete: (report: string) => void,
     onFailure: (error: string) => void
   ): EventSource {
-    const eventSource = new EventSource(`${getApiBase()}/extraction/stream/${jobId}`);
+    const eventSource = new EventSource(getPipelineEventsUrl(jobId));
     const { addLog } = useLogsStore.getState();
 
     const handleEvent = (e: MessageEvent, logTag: string) => {
       try {
         const data = JSON.parse(e.data || '{}');
-        onLogEvent(logTag, data.progress, data.status);
+        onLogEvent(logTag, data.progress ?? 0, data.message || data.status || '');
       } catch (err) {
         console.error("Failed to parse SSE payload", err);
       }
     };
 
-    // Bind all registered LangGraph section extraction milestones
+    // V2 Canonical Backend Event Types
+    eventSource.addEventListener('node_started', (e) => handleEvent(e, 'node_started'));
+    eventSource.addEventListener('node_completed', (e) => handleEvent(e, 'node_completed'));
+    eventSource.addEventListener('refinement', (e) => handleEvent(e, 'refinement'));
+    eventSource.addEventListener('retry', (e) => handleEvent(e, 'retry'));
+    eventSource.addEventListener('mascot_state', (e) => handleEvent(e, 'mascot_state'));
+
+    // Legacy V1 milestone aliases for compatibility
     eventSource.addEventListener('SECTION_DETECTED', (e) => handleEvent(e, 'SECTION_DETECTED'));
     eventSource.addEventListener('RAG_READY', (e) => handleEvent(e, 'RAG_READY'));
     eventSource.addEventListener('ANALYSIS_STARTED', (e) => handleEvent(e, 'ANALYSIS_STARTED'));
     eventSource.addEventListener('CODE_GENERATION_STARTED', (e) => handleEvent(e, 'CODE_GENERATION_STARTED'));
     eventSource.addEventListener('VERIFICATION_STARTED', (e) => handleEvent(e, 'VERIFICATION_STARTED'));
     
-    // Bind terminal completion event
-    eventSource.addEventListener('COMPLETED', async () => {
+    // Terminal completion event
+    const handleCompletion = async (e?: MessageEvent) => {
       eventSource.close();
       try {
-        // Fetch status directly to retrieve the markdown report content
-        const statusResp = await fetch(`${getApiBase()}/analyze/${jobId}/status`);
+        if (e && e.data) {
+          const payload = JSON.parse(e.data);
+          if (payload.report) {
+            onComplete(payload.report);
+            return;
+          }
+        }
+        const statusResp = await fetch(getPipelineJobUrl(jobId));
         const statusData = await statusResp.json();
         onComplete(statusData.report || '# Analysis Completed successfully.');
       } catch {
         onComplete('# Analysis Complete.\nCheck generated workspace outputs.');
       }
-    });
+    };
 
-    eventSource.addEventListener('ERROR', (e: MessageEvent) => {
+    eventSource.addEventListener('pipeline_completed', handleCompletion);
+    eventSource.addEventListener('COMPLETED', handleCompletion);
+
+    // Terminal failure events
+    const handleFailure = (e: MessageEvent) => {
       eventSource.close();
       try {
         const data = JSON.parse(e.data || '{}');
-        onFailure(data.error || 'Extraction process failed');
+        onFailure(data.message || data.error || 'Extraction process failed');
       } catch {
         onFailure('Extraction process failed');
       }
-    });
+    };
+
+    eventSource.addEventListener('pipeline_failed', handleFailure);
+    eventSource.addEventListener('error', handleFailure);
+    eventSource.addEventListener('ERROR', handleFailure);
 
     eventSource.onerror = () => {
       eventSource.close();
-      // Avoid triggering failure on standard channel closure
       addLog('[System] SSE connection closed.', 'info');
     };
 

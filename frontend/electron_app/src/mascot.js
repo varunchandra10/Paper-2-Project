@@ -139,7 +139,17 @@ const STATE_SHEET = {
   angry: "angry",
   hunch: "hunch",
   working: "hunch",
-  reading: "excite",
+  reading: "catching",
+  analyzing: "thinking",
+  evaluating: "thinking",
+  adapting: "hunch",
+  planning: "thinking",
+  architecting: "hunch",
+  coding: "hunch",
+  testing: "thinking",
+  debugging: "angry",
+  fixing: "angry",
+  ready: "excite",
   wave: "wave",
   catching: "catching",
   thinking: "thinking",
@@ -149,6 +159,19 @@ const STATE_SHEET = {
   peeking: "peeking",
   standing: "standing"
 };
+
+let fallbackTimer = null;
+
+function resetMascotFallbackTimer() {
+  if (fallbackTimer) clearTimeout(fallbackTimer);
+  fallbackTimer = setTimeout(() => {
+    // If mascot is in active working/analyzing state and no new event in 30s, return to idle
+    if (currentMascotState !== 'idle' && currentMascotState !== 'sleep') {
+      console.log('[Mascot] No mascot state event in 30s; transitioning to idle.');
+      transitionToState('idle');
+    }
+  }, 30000);
+}
 
 let TRANSITIONS = null;
 
@@ -423,6 +446,31 @@ if (window.mascotAPI && window.mascotAPI.onUserActivity) {
 }
 
 // --- Wave Intro (Wakes up to standing, single wave 0 -> 1 -> 2 -> 1 -> 0, stays in standing) ---
+async function runWakeUpToIdle() {
+  stopContinuousBlinkLoop();
+  isPlaying = true;
+  updateZzzOverlay('idle');
+
+  // Wake up smoothly from sleep to standing (2 -> 1 -> 0) without waving
+  if (currentMascotState === 'sleep') {
+    drawFrame('sleep', 2);
+    await sleep(120);
+    drawFrame('sleep', 1);
+    await sleep(120);
+    drawFrame('sleep', 0);
+    await sleep(120);
+  }
+
+  // Ends in standing position and begins eye blinking loop
+  currentMascotState = 'idle';
+  drawFrame('blink', 0);
+  isPlaying = false;
+
+  lastActivityTime = Date.now();
+  startContinuousBlinkLoop();
+  startInactivityCheck();
+}
+
 async function runWaveIntro() {
   stopContinuousBlinkLoop();
   isPlaying = true;
@@ -541,8 +589,9 @@ async function playConfiguredTransition(stateName) {
 async function transitionToState(targetState) {
   if (!targetState) targetState = 'idle';
   if (targetState === 'sleeping') targetState = 'sleep';
-  if (targetState === 'working') targetState = 'hunch';
-  if (targetState === 'reading') targetState = 'excite';
+  if (targetState === 'working') targetState = 'coding';
+
+  resetMascotFallbackTimer();
 
   // 1. Guard against re-entering the current state (prevents stand -> sleep loops!)
   if (targetState === currentMascotState) {
@@ -598,9 +647,9 @@ async function transitionToState(targetState) {
     return;
   }
 
-  // 4. Wake-Up directly to idle (if requested) -> stand and wave hii
+  // 4. Wake-Up directly to idle (idle to open) -> stand idle without waving
   if (currentMascotState === 'sleep' && targetState === 'idle') {
-    await runWaveIntro();
+    await runWakeUpToIdle();
     checkPendingState();
     return;
   }

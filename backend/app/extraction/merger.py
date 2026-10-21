@@ -1,6 +1,14 @@
+"""
+Consensus Document Merger for Academic PDFs.
+
+Assembles canonical PaperDocument schemas by merging deterministic PyMuPDF structural text,
+targeted VLM element transcriptions (Figures, Tables, Equations), and citation reference lists
+with complete source provenance and element-level confidence scores.
+"""
+
 import os
 import re
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from app.schemas.canonical_paper import (
     PaperDocument,
     Section,
@@ -30,403 +38,428 @@ def _normalize_table_key(caption: str, fallback_index: int) -> str:
 
 
 def extract_consensus_tables(
-    docling_out: dict = None,
-    pymupdf_out: dict = None,
-    gemini_out: dict = None,
-    grobid_out: dict = None
+    docling_out: Optional[dict] = None,
+    pymupdf_out: Optional[dict] = None,
+    gemini_out: Optional[dict] = None
 ) -> List[Table]:
     """
-    Consensus Table Union: Matches tables across Docling, Gemini, PyMuPDF,
-    and GROBID by normalized caption (e.g. 'Table 1', 'Table 2') and preserves
-    all unique tables without greedy if/elif dropping.
+    Backward-compatible consensus aggregator for tables across multiple parser outputs.
+    Normalizes keys and selects richest markdown representation.
     """
-    table_candidates = []
+    tables_by_key: Dict[str, Table] = {}
+    counter = 1
 
-    # 1. Docling candidates (high-fidelity visual table structures)
-    if docling_out and docling_out.get("tables"):
-        for idx, tbl in enumerate(docling_out["tables"]):
-            table_candidates.append({
-                "source": "docling",
-                "caption": tbl.get("caption") or f"Table {idx + 1}",
-                "content": tbl.get("content_markdown", ""),
-                "page": tbl.get("page", 1)
-            })
+    # 1. Process Gemini / VLM tables
+    if isinstance(gemini_out, dict) and gemini_out.get("tables"):
+        for tbl in gemini_out.get("tables", []):
+            if isinstance(tbl, dict):
+                cap = tbl.get("caption", f"Table {counter}")
+                md = tbl.get("content_markdown", "")
+                page_num = tbl.get("page", 1)
+            else:
+                cap = f"Table {counter}"
+                md = str(tbl)
+                page_num = 1
+            key = _normalize_table_key(cap, counter)
+            tables_by_key[key] = Table(
+                id=key,
+                caption=cap,
+                content_markdown=md,
+                page=page_num,
+                source={"extraction_method": "gemini_vlm"},
+                confidence=0.95
+            )
+            counter += 1
 
-    # 2. Gemini candidates (deep semantic paper extraction)
-    if gemini_out and gemini_out.get("tables"):
-        for idx, tbl in enumerate(gemini_out["tables"]):
-            table_candidates.append({
-                "source": "gemini",
-                "caption": tbl.get("caption") or f"Table {idx + 1}",
-                "content": tbl.get("content_markdown", "") or tbl.get("content", ""),
-                "page": tbl.get("page", 1)
-            })
+    # 2. Process Docling tables
+    if isinstance(docling_out, dict) and docling_out.get("tables"):
+        for tbl in docling_out.get("tables", []):
+            if isinstance(tbl, dict):
+                cap = tbl.get("caption", f"Table {counter}")
+                md = tbl.get("content_markdown", "")
+                page_num = tbl.get("page", 1)
+            else:
+                cap = f"Table {counter}"
+                md = str(tbl)
+                page_num = 1
+            key = _normalize_table_key(cap, counter)
 
-    # 3. PyMuPDF candidates (local layout-extracted tables)
-    if pymupdf_out and "Tables" in pymupdf_out.get("sections", {}):
-        pymupdf_tables = pymupdf_out["sections"]["Tables"].get("subsections", {})
-        for idx, (t_caption, t_markdown) in enumerate(pymupdf_tables.items()):
-            table_candidates.append({
-                "source": "pymupdf",
-                "caption": t_caption or f"Table {idx + 1}",
-                "content": t_markdown,
-                "page": 1
-            })
+            if key in tables_by_key:
+                existing = tables_by_key[key]
+                if len(md) > len(existing.content_markdown):
+                    existing.content_markdown = md
+                if "Table" in cap and len(cap) > len(existing.caption):
+                    existing.caption = cap
+                if page_num and page_num > 1:
+                    existing.page = page_num
+            else:
+                tables_by_key[key] = Table(
+                    id=key,
+                    caption=cap,
+                    content_markdown=md,
+                    page=page_num,
+                    source={"extraction_method": "docling_parser"},
+                    confidence=0.90
+                )
+                counter += 1
 
-    # 4. GROBID candidates (standby parser)
-    if grobid_out and grobid_out.get("tables"):
-        for idx, tbl in enumerate(grobid_out["tables"]):
-            table_candidates.append({
-                "source": "grobid",
-                "caption": tbl.get("caption") or f"Table {idx + 1}",
-                "content": tbl.get("content", ""),
-                "page": tbl.get("page", 1)
-            })
+    # 3. Process PyMuPDF tables
+    if isinstance(pymupdf_out, dict) and "sections" in pymupdf_out and "Tables" in pymupdf_out["sections"]:
+        tbl_sec = pymupdf_out["sections"]["Tables"]
+        sub = tbl_sec.get("subsections", {}) if isinstance(tbl_sec, dict) else {}
+        if isinstance(sub, dict):
+            for cap, md in sub.items():
+                key = _normalize_table_key(cap, counter)
+                if key not in tables_by_key:
+                    tables_by_key[key] = Table(
+                        id=key,
+                        caption=cap,
+                        content_markdown=str(md),
+                        page=1,
+                        source={"extraction_method": "pymupdf_parser"},
+                        confidence=0.80
+                    )
+                    counter += 1
 
-    merged: Dict[str, Dict[str, Any]] = {}
-
-    for idx, cand in enumerate(table_candidates):
-        key = _normalize_table_key(cand["caption"], idx + 1)
-        if key not in merged:
-            merged[key] = {
-                "id": f"tab_{len(merged) + 1}",
-                "caption": cand["caption"],
-                "content_markdown": cand["content"],
-                "page": cand["page"]
-            }
-        else:
-            existing = merged[key]
-            # Prefer richer markdown tables over brief stubs
-            if len(cand["content"]) > len(existing["content_markdown"]) and "|" in cand["content"]:
-                existing["content_markdown"] = cand["content"]
-            # Prefer descriptive caption over generic "Table X"
-            if len(cand["caption"]) > len(existing["caption"]) and not existing["caption"].lower().startswith(cand["caption"].lower()):
-                existing["caption"] = cand["caption"]
-            # Update page number if candidate has non-default page
-            if existing["page"] == 1 and cand["page"] > 1:
-                existing["page"] = cand["page"]
-
-    return [
-        Table(
-            id=t["id"],
-            caption=t["caption"],
-            content_markdown=t["content_markdown"],
-            page=t["page"]
-        )
-        for t in merged.values()
-    ]
+    return list(tables_by_key.values())
 
 
-def _resolve_page_bounds(section_title: str, routed_data: dict) -> tuple:
-    """
-    Looks up actual source block page numbers from PyMuPDF layout metadata
-    so sections report real page coordinates instead of dummy (1, 1).
-    """
-    sec_lower = section_title.lower().strip()
-    sec_norm = re.sub(r'[^a-zA-Z0-9]', '', sec_lower)
-    total_pages = routed_data.get("inspector_report", {}).get("pages", 1)
-    
-    pymupdf_out = routed_data.get("pymupdf_output") or {}
-    py_sections = pymupdf_out.get("sections") or {}
+def _resolve_page_bounds(section_name: str, routed_data: dict) -> tuple:
+    """Estimates page start and page end coordinates for a given section."""
+    inspector = routed_data.get("inspector_report", {})
+    total_pages = inspector.get("pages", 1)
+    sec_lower = section_name.lower().strip()
 
-    # 1. Match section in PyMuPDF sections layout metadata
-    for p_title, p_data in py_sections.items():
-        if p_title.lower() == "tables":
-            continue
-        p_norm = re.sub(r'[^a-zA-Z0-9]', '', p_title).lower()
-        if sec_norm == p_norm or (p_norm and p_norm in sec_norm) or (sec_norm and sec_norm in p_norm):
-            p_start = p_data.get("page_start")
-            p_end = p_data.get("page_end")
-            if p_start is not None and p_end is not None:
-                return max(1, int(p_start)), max(int(p_start), min(total_pages, int(p_end)))
+    # Check PyMuPDF section metadata if available
+    pymupdf_out = routed_data.get("pymupdf_output", {})
+    if isinstance(pymupdf_out, dict):
+        sections_dict = pymupdf_out.get("sections", {})
+        for s_title, s_data in sections_dict.items():
+            clean_s_title = re.sub(r'^\s*(?:\d+|[ivxlcdm]+)\.?\s*', '', s_title.lower()).strip()
+            clean_target = re.sub(r'^\s*(?:\d+|[ivxlcdm]+)\.?\s*', '', sec_lower).strip()
+            if s_title.lower() == sec_lower or clean_s_title == clean_target or clean_target in clean_s_title:
+                if isinstance(s_data, dict) and "page_start" in s_data:
+                    return s_data.get("page_start", 1), s_data.get("page_end", total_pages)
 
-    # 2. Match directly against document blocks if present
-    doc_pages = routed_data.get("document_blocks") or []
-    for p in doc_pages:
-        p_num = p.get("page", 1)
-        for b in p.get("blocks", []):
-            b_text = b.get("text", "").lower()
-            if sec_lower in b_text:
-                return max(1, p_num), min(total_pages, p_num)
-
-    # 3. Positional fallbacks for known sections
     if "abstract" in sec_lower or "metadata" in sec_lower:
         return 1, 1
     elif "introduction" in sec_lower:
         return 1, min(2, total_pages)
-    elif "conclusion" in sec_lower:
+    elif "conclusion" in sec_lower or "reference" in sec_lower:
         return max(1, total_pages - 1), total_pages
-    
-    return 1, 1
+
+    return 1, total_pages
+
 
 
 def merge_extractions(routed_data: dict) -> PaperDocument:
     """
-    Merges raw routed outputs from PyMuPDF, GROBID, and Docling into a
-    single consolidated PaperDocument Pydantic model. Resolves conflicts
-    and maps coordinate details.
+    Merges deterministic PyMuPDF layout, targeted VLM elements, and standby parsers
+    into a unified, fully-provenanced PaperDocument.
     """
     paper_id = routed_data["paper_id"]
     filename = routed_data["filename"]
     inspector = routed_data.get("inspector_report", {})
 
-    gemini_out = routed_data.get("gemini_output")
-    grobid_out = routed_data.get("grobid_output")
     pymupdf_out = routed_data.get("pymupdf_output")
+    vlm_elements = routed_data.get("vlm_elements", {})
+    candidates = routed_data.get("element_candidates", {})
+    grobid_out = routed_data.get("grobid_output")
     docling_out = routed_data.get("docling_output")
+    gemini_out = routed_data.get("gemini_output")
 
-    # =========================================================================
-    # [STREAM 2 WEIGHTAGE]: PRIMARY WEIGHTAGE GIVEN TO GOOGLE GEMINI EXTRACTION
-    # If Google Gemini succeeded, its complete text, sections, title, authors,
-    # and LaTeX equations form the primary spine. PyMuPDF & Docling fill gaps.
-    # =========================================================================
-
-    # 1. Compile PaperMetadata (Google Gemini > GROBID > PyMuPDF)
+    # ── 1. Compile PaperMetadata ──
     title = "Unknown Title"
     authors = ["Unknown Author"]
     abstract = ""
     sections_found_infos = []
 
-    # Primary Weightage: Google Gemini 2.0 Flash
+    if pymupdf_out:
+        py_title = pymupdf_out.get("title", "").strip()
+        if py_title and py_title.lower() not in ("unknown title", "untitled"):
+            title = py_title
+        py_authors = pymupdf_out.get("authors", [])
+        if py_authors and (authors == ["Unknown Author"] or not authors):
+            authors = py_authors
+        abstract_sec = pymupdf_out.get("sections", {}).get("Abstract")
+        if abstract_sec:
+            abstract = abstract_sec.get("content", "") if isinstance(abstract_sec, dict) else str(abstract_sec)
+
     if gemini_out and gemini_out.get("valid"):
         gm_title = gemini_out.get("title", "").strip()
-        if gm_title and gm_title.lower() not in ("unknown title", "unknown", "untitled"):
+        if gm_title and title in ("Unknown Title", "untitled", ""):
             title = gm_title
         gm_authors = gemini_out.get("authors", [])
         if gm_authors and gm_authors != ["Unknown Author"]:
             authors = gm_authors
-        gm_abstract = gemini_out.get("abstract", "").strip()
-        if gm_abstract:
-            abstract = gm_abstract
+        if not abstract and gemini_out.get("abstract"):
+            abstract = gemini_out.get("abstract", "")
 
-    # Fallback to GROBID (standby) if metadata not yet populated
-    if not title or title.lower() in ("unknown title", "unknown", "untitled", ""):
-        if grobid_out and grobid_out.get("valid"):
-            gr_title = grobid_out.get("title", "").strip()
-            if gr_title and gr_title.lower() not in ("unknown title", "unknown", "untitled"):
-                title = gr_title
-            gr_authors = grobid_out.get("authors", [])
-            if gr_authors and gr_authors != ["Unknown Author"]:
-                authors = gr_authors
-            gr_abstract = grobid_out.get("abstract", "").strip()
-            if gr_abstract and not abstract:
-                abstract = gr_abstract
-
-    # Fallback to PyMuPDF heuristics if still missing
-    if pymupdf_out:
-        if not title or title.lower() in ("unknown title", "unknown", "untitled", ""):
-            py_title = pymupdf_out.get("title", "").strip()
-            if py_title:
-                title = py_title
+    if grobid_out and grobid_out.get("valid"):
+        gr_title = grobid_out.get("title", "").strip()
+        if gr_title and title in ("Unknown Title", "untitled"):
+            title = gr_title
+        gr_authors = grobid_out.get("authors", [])
+        if gr_authors and gr_authors != ["Unknown Author"]:
+            authors = gr_authors
         if not abstract:
-            abstract_sec = pymupdf_out.get("sections", {}).get("Abstract")
-            if abstract_sec:
-                abstract = abstract_sec.get("content", "")
+            abstract = grobid_out.get("abstract", "")
 
-    # Source Sections: Primary Weightage to Gemini, with bi-directional gap filling
+    # Fallback to filename if title remains unextracted
+    if not title or title.lower() in ("unknown title", "untitled", ""):
+        base_name = os.path.splitext(filename)[0]
+        title = base_name.replace("_", " ").title()
+
+    # ── 2. Build Sections List ──
+    sections_list = []
     source_sections = {}
-    if gemini_out and gemini_out.get("valid") and gemini_out.get("sections"):
-        source_sections = dict(gemini_out.get("sections", {}))
-        # Bi-directional fill: If PyMuPDF detected any major section missing in Gemini, fill it in
-        if pymupdf_out and pymupdf_out.get("sections"):
-            for py_sec, py_data in pymupdf_out["sections"].items():
-                if py_sec.lower() == "tables":
-                    continue
-                norm_py = re.sub(r'[^a-zA-Z0-9]', '', py_sec).lower()
-                already_exists = any(norm_py == re.sub(r'[^a-zA-Z0-9]', '', gs).lower() for gs in source_sections.keys())
-                if not already_exists:
-                    source_sections[py_sec] = py_data
-    elif grobid_out and grobid_out.get("valid"):
-        source_sections = dict(grobid_out.get("sections", {}))
-    elif pymupdf_out:
-        source_sections = dict(pymupdf_out.get("sections", {}))
+    if pymupdf_out and pymupdf_out.get("sections"):
+        source_sections = pymupdf_out["sections"]
+    elif gemini_out and gemini_out.get("sections"):
+        source_sections = gemini_out["sections"]
+    elif grobid_out and grobid_out.get("sections"):
+        source_sections = grobid_out["sections"]
 
     for sec_title, sec_data in source_sections.items():
-        char_len = len(sec_data.get("content", ""))
-        sections_found_infos.append(SectionInfo(title=sec_title, character_count=char_len))
+        if sec_title.lower() in ("tables", "figures"):
+            continue
+        p_start, p_end = _resolve_page_bounds(sec_title, routed_data)
+        if isinstance(sec_data, dict):
+            content = sec_data.get("content", "").strip()
+            subsections = sec_data.get("subsections", {})
+        else:
+            content = str(sec_data).strip()
+            subsections = {}
+
+        sections_list.append(
+            Section(
+                title=sec_title,
+                content=content,
+                subsections=subsections,
+                page_start=p_start,
+                page_end=p_end,
+                source={"page": p_start, "extraction_method": "pymupdf_deterministic"},
+                confidence=0.98 if content else 0.50
+            )
+        )
+        sections_found_infos.append(SectionInfo(title=sec_title, character_count=len(content)))
 
     metadata = PaperMetadata(
         title=title,
         authors=authors,
         abstract=abstract,
-        sections_found=sections_found_infos,
-        primary_contribution="Automated change detection & deep learning analysis."
+        sections_found=sections_found_infos
     )
 
-    # 2. Build Section list
-    sections_list = []
-    for sec_title, sec_data in source_sections.items():
-        if sec_title.lower() == "tables":
-            continue
-            
-        p_start, p_end = _resolve_page_bounds(sec_title, routed_data)
-        sections_list.append(Section(
-            title=sec_title,
-            content=sec_data.get("content", ""),
-            subsections={k: v for k, v in sec_data.get("subsections", {}).items()},
-            page_start=p_start,
-            page_end=p_end
-        ))
+    # ── 3. Assemble Figures List (VLM Output + Deterministic Crops) ──
+    figures_list: List[Figure] = []
+    seen_fig_ids = set()
 
-    # 3. Build Tables list (Consensus Table Union across Docling, Gemini, PyMuPDF, and GROBID)
-    tables_list = extract_consensus_tables(
-        docling_out=docling_out,
-        pymupdf_out=pymupdf_out,
-        gemini_out=gemini_out,
-        grobid_out=grobid_out
-    )
+    # Priority 1: VLM analyzed figures
+    # ── 3. Assemble Figures List (VLM Output + Deterministic Crops) ──
+    figures_list: List[Figure] = []
+    seen_fig_ids = set()
 
-    # 4. Build Figures list
-    figures_list = []
-    if grobid_out and grobid_out.get("figures"):
-        for fig in grobid_out["figures"]:
-            figures_list.append(Figure(
-                id=fig.get("id", "fig_unknown"),
-                caption=fig.get("caption", "Figure"),
-                page=1
-            ))
-    elif docling_out and docling_out.get("figures"):
-        for f_idx, fig in enumerate(docling_out["figures"]):
-            figures_list.append(Figure(
-                id=f"fig_{f_idx + 1}",
-                caption=fig.get("caption", "Figure"),
-                page=fig.get("page", 1)
-            ))
+    # Priority 1: VLM analyzed figures
+    for fig in vlm_elements.get("figures", []):
+        f_id = fig.get("element_id", f"fig_{len(figures_list) + 1}")
+        if f_id not in seen_fig_ids:
+            seen_fig_ids.add(f_id)
+            figures_list.append(
+                Figure(
+                    id=f_id,
+                    caption=fig.get("caption", ""),
+                    page=fig.get("page", 1),
+                    visual_description=fig.get("visual_description"),
+                    image_path=fig.get("image_path"),
+                    components=fig.get("components", []),
+                    relationships=fig.get("relationships", []),
+                    source={"extraction_method": "gemini_vlm", "source_image": fig.get("image_path"), "vlm_used": True},
+                    vlm_used=True,
+                    confidence=fig.get("confidence", 0.92)
+                )
+            )
 
-    # 5. Build Reference bibliography list
-    references_list = []
-    if grobid_out and grobid_out.get("references"):
-        for r_idx, ref in enumerate(grobid_out["references"]):
-            references_list.append(Reference(
-                ref_id=str(r_idx + 1),
-                citation_text=ref
-            ))
+    # Priority 2: Candidates preserved without VLM (offline or plain figures)
+    for fig in candidates.get("figures", []):
+        f_id = fig.get("element_id", f"fig_{len(figures_list) + 1}")
+        if f_id not in seen_fig_ids:
+            seen_fig_ids.add(f_id)
+            figures_list.append(
+                Figure(
+                    id=f_id,
+                    caption=fig.get("caption", ""),
+                    page=fig.get("page", 1),
+                    visual_description=None,  # Never claim visual understanding when VLM was skipped
+                    image_path=fig.get("image_path"),
+                    source={
+                        "extraction_method": "pymupdf_cropper",
+                        "bbox": fig.get("bbox"),
+                        "vlm_used": False,
+                        "reason": "deterministic_preservation_sufficient"
+                    },
+                    vlm_used=False,
+                    confidence=0.85
+                )
+            )
 
-    all_text_blocks = []
-    if pymupdf_out and pymupdf_out.get("sections"):
-        for sec_title, sec_data in pymupdf_out["sections"].items():
-            p_start, _ = _resolve_page_bounds(sec_title, routed_data)
-            all_text_blocks.append((sec_data.get("content", ""), p_start))
-            for sub_text in sec_data.get("subsections", {}).values():
-                all_text_blocks.append((sub_text, p_start))
-                
-    if grobid_out and grobid_out.get("sections"):
-        for sec_title, sec_data in grobid_out["sections"].items():
-            p_start, _ = _resolve_page_bounds(sec_title, routed_data)
-            all_text_blocks.append((sec_data.get("content", ""), p_start))
-            for sub_text in sec_data.get("subsections", {}).values():
-                all_text_blocks.append((sub_text, p_start))
+    # ── 4. Assemble Tables List (VLM Markdown + Deterministic Tables) ──
+    tables_list: List[Table] = []
+    seen_tab_ids = set()
 
-    # 6. Build Equations list (Primary Weightage: Google Gemini LaTeX > GROBID > Regex)
-    equations_list = []
-    seen_equations = set()
-    
-    # Primary Weightage: Google Gemini extracted LaTeX formulas
-    if gemini_out and gemini_out.get("equations"):
-        for eq_idx, eq in enumerate(gemini_out["equations"]):
-            eq_body = eq.get("latex", "").strip()
-            if eq_body and eq_body not in seen_equations:
-                seen_equations.add(eq_body)
-                equations_list.append(Equation(
-                    id=eq.get("id", f"eq_{len(equations_list) + 1}"),
-                    latex=eq_body,
-                    page=1,
-                    caption=eq.get("caption", f"Equation {len(equations_list) + 1}")
-                ))
+    # Priority 1: VLM formatted Markdown tables
+    for tab in vlm_elements.get("tables", []):
+        t_id = tab.get("element_id", f"table_{len(tables_list) + 1}")
+        if t_id not in seen_tab_ids:
+            seen_tab_ids.add(t_id)
+            tables_list.append(
+                Table(
+                    id=t_id,
+                    caption=tab.get("caption", ""),
+                    content_markdown=tab.get("content_markdown", ""),
+                    headers=tab.get("headers", []),
+                    rows=tab.get("rows", []),
+                    page=tab.get("page", 1),
+                    source={"extraction_method": "gemini_vlm", "source_image": tab.get("image_path"), "vlm_used": True},
+                    vlm_used=True,
+                    confidence=tab.get("confidence", 0.95)
+                )
+            )
 
-    # Cross-fill from GROBID (if active on standby)
-    if grobid_out and grobid_out.get("equations"):
-        for eq_idx, eq in enumerate(grobid_out["equations"]):
-            eq_body = eq.get("latex", "").strip()
-            if eq_body and eq_body not in seen_equations:
-                seen_equations.add(eq_body)
-                equations_list.append(Equation(
-                    id=eq.get("id", f"eq_{len(equations_list) + 1}"),
-                    latex=eq_body,
-                    page=1,
-                    caption=eq.get("caption")
-                ))
-
-    for block, page_num in all_text_blocks:
-        if not block:
-            continue
-        for line in block.split("\n"):
-            line = line.strip()
-            eq_match = re.search(r'^(.*?)\s*\((\d+[a-z]?)\)\s*$', line)
-            if eq_match:
-                eq_body = eq_match.group(1).strip()
-                eq_num = eq_match.group(2)
-                math_chars = ('=', '+', '-', '*', '/', '^', '_', '\\', 'σ', 'α', 'β', 'λ', 'θ', 'ŷ', '∈', '≈', '×', '∑', '∫', '∆', 'δ', 'µ', '←', '→', '≤', '≥', '±')
-                if (0 < len(eq_body) < 150 and 
-                        any(c in eq_body for c in math_chars) and 
-                        eq_body not in seen_equations):
-                    seen_equations.add(eq_body)
-                    equations_list.append(Equation(
-                        id=f"eq_{len(equations_list) + 1}",
-                        latex=eq_body,
+    # Priority 2: Docling & PyMuPDF layout tables
+    if isinstance(docling_out, dict) and docling_out.get("tables"):
+        for idx, tbl in enumerate(docling_out.get("tables", [])):
+            t_id = f"table_{len(tables_list) + 1}"
+            if t_id not in seen_tab_ids:
+                seen_tab_ids.add(t_id)
+                cap = tbl.get("caption") if isinstance(tbl, dict) else f"Table {idx + 1}"
+                md = tbl.get("content_markdown", "") if isinstance(tbl, dict) else str(tbl)
+                page_num = tbl.get("page", 1) if isinstance(tbl, dict) else 1
+                tables_list.append(
+                    Table(
+                        id=t_id,
+                        caption=cap or f"Table {idx + 1}",
+                        content_markdown=md,
                         page=page_num,
-                        caption=f"Equation ({eq_num})"
-                    ))
+                        source={"extraction_method": "docling_parser", "vlm_used": False},
+                        vlm_used=False,
+                        confidence=0.90
+                    )
+                )
 
-    # 7. Build Algorithms list
-    algorithms_list = []
-    alg_idx = 1
-    seen_algorithms = set()
-    
-    for block, page_num in all_text_blocks:
-        if not block:
-            continue
-        for match in re.finditer(r'\b(?:Algorithm|ALGORITHM)\s+([IVX\d]+)\b[^\n]*', block, re.IGNORECASE):
-            alg_caption = match.group(0).strip()
-            if len(alg_caption) > 10 and alg_caption not in seen_algorithms:
-                seen_algorithms.add(alg_caption)
-                start_idx = match.start()
-                end_idx = block.find("\n\n", start_idx)
-                if end_idx == -1:
-                    end_idx = len(block)
-                alg_body = block[start_idx:end_idx].strip()
-                alg_keywords = ("input", "output", "initialize", "for ", "loop", "if ", "while", "return", "end", "begin", "repeat", "←", "→")
-                alg_body_lower = alg_body.lower()
-                if any(kw in alg_body_lower for kw in alg_keywords):
-                    algorithms_list.append(Algorithm(
-                        id=f"alg_{alg_idx}",
-                        caption=alg_caption,
-                        pseudocode=alg_body,
-                        page=page_num
-                    ))
-                    alg_idx += 1
+    # Priority 3: Candidates preserved deterministically
+    for tab in candidates.get("tables", []):
+        t_id = tab.get("element_id", f"table_{len(tables_list) + 1}")
+        if t_id not in seen_tab_ids:
+            seen_tab_ids.add(t_id)
+            tables_list.append(
+                Table(
+                    id=t_id,
+                    caption=tab.get("caption", ""),
+                    content_markdown=tab.get("content_text", ""),
+                    page=tab.get("page", 1),
+                    source={
+                        "extraction_method": "pymupdf_cropper",
+                        "bbox": tab.get("bbox"),
+                        "vlm_used": False,
+                        "reason": "deterministic_table_sufficient"
+                    },
+                    vlm_used=False,
+                    confidence=0.80
+                )
+            )
 
-    # 8. Build PageInfo details
+    # ── 5. Assemble Equations List (VLM LaTeX + Heuristic Math) ──
+    equations_list: List[Equation] = []
+    seen_eq_ids = set()
+
+    # Priority 1: VLM LaTeX equations
+    for eq in vlm_elements.get("equations", []):
+        e_id = eq.get("element_id", f"eq_{len(equations_list) + 1}")
+        if e_id not in seen_eq_ids:
+            seen_eq_ids.add(e_id)
+            equations_list.append(
+                Equation(
+                    id=e_id,
+                    latex=eq.get("latex", ""),
+                    caption=eq.get("caption"),
+                    variables=eq.get("variables", []),
+                    page=eq.get("page", 1),
+                    source={"extraction_method": "gemini_vlm", "vlm_used": True},
+                    vlm_used=True,
+                    confidence=eq.get("confidence", 0.92)
+                )
+            )
+
+    # Priority 2: Candidates preserved from layout
+    for eq in candidates.get("equations", []):
+        e_id = eq.get("element_id", f"eq_{len(equations_list) + 1}")
+        if e_id not in seen_eq_ids:
+            seen_eq_ids.add(e_id)
+            equations_list.append(
+                Equation(
+                    id=e_id,
+                    latex=eq.get("content_text", ""),
+                    caption=eq.get("caption"),
+                    page=eq.get("page", 1),
+                    source={
+                        "extraction_method": "pymupdf_cropper",
+                        "bbox": eq.get("bbox"),
+                        "vlm_used": False,
+                        "reason": "deterministic_ascii_math_sufficient"
+                    },
+                    vlm_used=False,
+                    confidence=0.80
+                )
+            )
+
+
+    # ── 6. Assemble References List ──
+    references_list: List[Reference] = []
+    if isinstance(grobid_out, dict) and grobid_out.get("references"):
+        for r_idx, ref in enumerate(grobid_out.get("references", [])):
+            if isinstance(ref, dict):
+                ref_id = ref.get("id") or str(r_idx + 1)
+                cit_text = ref.get("raw_text") or ref.get("title", "")
+            else:
+                ref_id = str(r_idx + 1)
+                cit_text = str(ref)
+            references_list.append(
+                Reference(
+                    ref_id=ref_id,
+                    citation_text=cit_text
+                )
+            )
+    elif pymupdf_out and "References" in pymupdf_out.get("sections", {}):
+        ref_sec = pymupdf_out["sections"]["References"]
+        ref_text = ref_sec.get("content", "") if isinstance(ref_sec, dict) else str(ref_sec)
+        for idx, line in enumerate(ref_text.split("\n")):
+            line_s = line.strip()
+            if len(line_s) > 20:
+                references_list.append(
+                    Reference(ref_id=str(idx + 1), citation_text=line_s)
+                )
+
+    # ── 7. Assemble PageInfo List ──
     pages_list = []
     total_pages_count = inspector.get("pages", 1)
-    avg_chars_per_page = int(inspector.get("text_coverage_chars", 0) / total_pages_count) if total_pages_count > 0 else 0
-    
+    avg_chars = int(inspector.get("text_coverage_chars", 0) / total_pages_count) if total_pages_count > 0 else 0
     for p_num in range(1, total_pages_count + 1):
-        pages_list.append(PageInfo(
-            page=p_num,
-            width=612.0,
-            height=792.0,
-            character_count=avg_chars_per_page
-        ))
+        pages_list.append(
+            PageInfo(page=p_num, width=612.0, height=792.0, character_count=avg_chars)
+        )
 
-    # 9. Record Conflicts
-    conflicts = []
-    py_title = pymupdf_out.get("title", "") if pymupdf_out else ""
-    gr_title = grobid_out.get("title", "") if grobid_out else ""
-    
-    if py_title and gr_title and py_title.lower() != gr_title.lower():
-        conflicts.append({
-            "type": "title_mismatch",
-            "message": f"PyMuPDF title: '{py_title}' vs. GROBID title: '{gr_title}'"
-        })
-
+    # ── 8. Create Extraction Metadata with Timing, Complexity & VLM Provenance ──
     extraction_meta = {
-        "layout_type": inspector.get("is_scanned", False),
+        "layout_type": "scanned" if inspector.get("is_scanned") else "digital",
         "selected_parsers": routed_data.get("selected_parsers", []),
-        "conflicts": conflicts
+        "timing_metrics": routed_data.get("timing_metrics", {}),
+        "vlm_usage": routed_data.get("vlm_usage", {}),
+        "complexity_profile": inspector.get("complexity_profile", {}),
+        "instrumentation": routed_data.get("instrumentation", {}),
+        "conflicts": []
     }
 
-    # 10. Create validated PaperDocument
     paper_doc = PaperDocument(
         paper_id=paper_id,
         metadata=metadata,
@@ -434,11 +467,12 @@ def merge_extractions(routed_data: dict) -> PaperDocument:
         figures=figures_list,
         tables=tables_list,
         equations=equations_list,
-        algorithms=algorithms_list,
+        algorithms=[],
         citations=[],
         references=references_list,
         pages=pages_list,
         extraction_metadata=extraction_meta
     )
-    
+
     return paper_doc
+

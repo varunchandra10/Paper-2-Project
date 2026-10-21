@@ -100,10 +100,6 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  const displayTitle = isConversationOpen && conversationTitle
-    ? conversationTitle
-    : APP_BRANDING.NAME;
-
   return (
     <header className="h-12 app-rail flex items-center justify-between px-4 shrink-0 z-40 transition-colors border-none select-none">
       {/* ── Left: Logo + Current Conversation Title or Brand Name ── */}

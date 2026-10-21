@@ -1,0 +1,161 @@
+{
+  "character": "Ms. Nerdy",
+  "animation_id": "peeking",
+  "title": "Peeking from Below Barrier",
+  "source_file": "Pixel-Art Peeking Woman Expressions Sprite Sheet.png",
+  "strategy": "complete_standardized",
+  "frame_count": 8,
+  "canvas_size": [
+    640,
+    740
+  ],
+  "anchor": "feet",
+  "anchor_coordinates": [
+    320,
+    700
+  ],
+  "loop": true,
+  "frame_duration_ms": 300,
+  "fps": 3.3,
+  "props": [
+    "horizontal barrier"
+  ],
+  "frames": [
+    {
+      "index": 0,
+      "filename": "frame_00.png",
+      "rel_path": "assets/processed/peeking/frames/frame_00.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        186,
+        563,
+        454,
+        695
+      ],
+      "fg_width": 269,
+      "fg_height": 133,
+      "foot_y": 695,
+      "center_x": 320.5
+    },
+    {
+      "index": 1,
+      "filename": "frame_01.png",
+      "rel_path": "assets/processed/peeking/frames/frame_01.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        185,
+        522,
+        454,
+        698
+      ],
+      "fg_width": 270,
+      "fg_height": 177,
+      "foot_y": 698,
+      "center_x": 320.0
+    },
+    {
+      "index": 2,
+      "filename": "frame_02.png",
+      "rel_path": "assets/processed/peeking/frames/frame_02.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        184,
+        486,
+        455,
+        697
+      ],
+      "fg_width": 272,
+      "fg_height": 212,
+      "foot_y": 697,
+      "center_x": 320.0
+    },
+    {
+      "index": 3,
+      "filename": "frame_03.png",
+      "rel_path": "assets/processed/peeking/frames/frame_03.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        186,
+        489,
+        454,
+        697
+      ],
+      "fg_width": 269,
+      "fg_height": 209,
+      "foot_y": 697,
+      "center_x": 320.5
+    },
+    {
+      "index": 4,
+      "filename": "frame_04.png",
+      "rel_path": "assets/processed/peeking/frames/frame_04.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        184,
+        484,
+        454,
+        697
+      ],
+      "fg_width": 271,
+      "fg_height": 214,
+      "foot_y": 697,
+      "center_x": 319.5
+    },
+    {
+      "index": 5,
+      "filename": "frame_05.png",
+      "rel_path": "assets/processed/peeking/frames/frame_05.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        184,
+        492,
+        456,
+        697
+      ],
+      "fg_width": 273,
+      "fg_height": 206,
+      "foot_y": 697,
+      "center_x": 320.5
+    },
+    {
+      "index": 6,
+      "filename": "frame_06.png",
+      "rel_path": "assets/processed/peeking/frames/frame_06.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        182,
+        484,
+        456,
+        697
+      ],
+      "fg_width": 275,
+      "fg_height": 214,
+      "foot_y": 697,
+      "center_x": 319.5
+    },
+    {
+      "index": 7,
+      "filename": "frame_07.png",
+      "rel_path": "assets/processed/peeking/frames/frame_07.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        190,
+        550,
+        450,
+        700
+      ],
+      "fg_width": 261,
+      "fg_height": 151,
+      "foot_y": 700,
+      "center_x": 320.5
+    }
+  ]
+}

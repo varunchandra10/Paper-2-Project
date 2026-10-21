@@ -1,13 +1,30 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
+from enum import Enum
+
+
+class ProvenanceStatus(str, Enum):
+    EXPLICIT = "EXPLICIT"  # Stated verbatim in paper text, backed by exact quote
+    DERIVED = "DERIVED"    # Computed or calculated from explicit paper values
+    INFERRED = "INFERRED"  # Deduced from architectural conventions or citations
+    ASSUMED = "ASSUMED"    # Standard ML default assumed because paper is silent
+    UNKNOWN = "UNKNOWN"    # Absent / not specified in paper
 
 
 class ParameterDetails(BaseModel):
-    value: Any
-    confidence: int = 100
-    status: str = "EXTRACTED"  # EXPLICIT, IMPLICIT, ASSUMED, USER_DEFINED
-    rationale: str = ""
-    source_section: str = ""
+    value: Optional[Any] = Field(default=None, description="Extracted parameter value, or None if UNKNOWN")
+    status: str = Field(default=ProvenanceStatus.UNKNOWN.value, description="Provenance status: EXPLICIT, DERIVED, INFERRED, ASSUMED, UNKNOWN")
+    evidence: Optional[str] = Field(default=None, description="Exact verbatim quote from paper text supporting this value")
+    source_section: Optional[str] = Field(default=None, description="Section where parameter was found")
+    page: Optional[int] = Field(default=None, description="Page number where parameter was found")
+    evidence_strength: str = Field(default="NONE", description="Evidence strength: STRONG, MODERATE, WEAK, NONE")
+    confidence: float = Field(default=0.0, description="Calibrated confidence or strength score (0.0 to 100.0 or 0.0 to 1.0)")
+    extraction_method: str = Field(default="llm_rag_extraction", description="Extraction method used")
+    rationale: str = Field(default="Not specified in paper context", description="Explanation of derivation or status rationale")
+
+    @property
+    def is_known(self) -> bool:
+        return self.status != ProvenanceStatus.UNKNOWN.value and self.value not in [None, "", "Not specified", "UNKNOWN"]
 
 
 class Component(BaseModel):
@@ -24,15 +41,27 @@ class ComponentGraph(BaseModel):
     edges: List[Dict[str, str]] = Field(default_factory=list, description="Directed data flow edges connecting components")
 
 
-
 class ExtractedParameters(BaseModel):
-    learning_rate: ParameterDetails = Field(default_factory=lambda: ParameterDetails(value="0.0001", confidence=90))
-    batch_size: ParameterDetails = Field(default_factory=lambda: ParameterDetails(value="4", confidence=95))
-    epochs: ParameterDetails = Field(default_factory=lambda: ParameterDetails(value="50", confidence=90))
-    optimizer: ParameterDetails = Field(default_factory=lambda: ParameterDetails(value="AdamW", confidence=95))
-    loss_function: ParameterDetails = Field(default_factory=lambda: ParameterDetails(value="CrossEntropyLoss", confidence=90))
-    backbone: ParameterDetails = Field(default_factory=lambda: ParameterDetails(value="Swin-T", confidence=85))
+    learning_rate: ParameterDetails = Field(default_factory=lambda: ParameterDetails(status="UNKNOWN", rationale="Not found in paper context"))
+    batch_size: ParameterDetails = Field(default_factory=lambda: ParameterDetails(status="UNKNOWN", rationale="Not found in paper context"))
+    epochs: ParameterDetails = Field(default_factory=lambda: ParameterDetails(status="UNKNOWN", rationale="Not found in paper context"))
+    optimizer: ParameterDetails = Field(default_factory=lambda: ParameterDetails(status="UNKNOWN", rationale="Not found in paper context"))
+    loss_function: ParameterDetails = Field(default_factory=lambda: ParameterDetails(status="UNKNOWN", rationale="Not found in paper context"))
+    backbone: ParameterDetails = Field(default_factory=lambda: ParameterDetails(status="UNKNOWN", rationale="Not found in paper context"))
     custom_parameters: Dict[str, ParameterDetails] = Field(default_factory=dict)
+
+    def get_effective_value(self, field_name: str, fallback_default: str = "") -> Tuple[str, str]:
+        """
+        Returns (value, status) for a parameter.
+        If status is UNKNOWN or value is None, returns (fallback_default, 'ASSUMED_DEFAULT').
+        """
+        param = getattr(self, field_name, None)
+        if param is None and field_name in self.custom_parameters:
+            param = self.custom_parameters[field_name]
+
+        if param and getattr(param, "is_known", False):
+            return str(param.value), str(param.status)
+        return fallback_default, "ASSUMED_DEFAULT"
 
 
 class FeasibilityReport(BaseModel):

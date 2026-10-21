@@ -1,0 +1,125 @@
+{
+  "character": "Ms. Nerdy",
+  "animation_id": "blinking",
+  "title": "Eye Blinking",
+  "source_file": "Pixel-Art Scientist Blink Animation Sprite Sheet.png",
+  "strategy": "complete_standardized",
+  "frame_count": 6,
+  "canvas_size": [
+    640,
+    740
+  ],
+  "anchor": "feet",
+  "anchor_coordinates": [
+    320,
+    700
+  ],
+  "loop": true,
+  "frame_duration_ms": 400,
+  "fps": 2.5,
+  "props": [],
+  "frames": [
+    {
+      "index": 0,
+      "filename": "frame_00.png",
+      "rel_path": "assets/processed/blinking/frames/frame_00.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        167,
+        9,
+        472,
+        700
+      ],
+      "fg_width": 306,
+      "fg_height": 692,
+      "foot_y": 700,
+      "center_x": 320.0
+    },
+    {
+      "index": 1,
+      "filename": "frame_01.png",
+      "rel_path": "assets/processed/blinking/frames/frame_01.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        166,
+        9,
+        474,
+        700
+      ],
+      "fg_width": 309,
+      "fg_height": 692,
+      "foot_y": 700,
+      "center_x": 320.5
+    },
+    {
+      "index": 2,
+      "filename": "frame_02.png",
+      "rel_path": "assets/processed/blinking/frames/frame_02.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        166,
+        9,
+        474,
+        700
+      ],
+      "fg_width": 309,
+      "fg_height": 692,
+      "foot_y": 700,
+      "center_x": 320.5
+    },
+    {
+      "index": 3,
+      "filename": "frame_03.png",
+      "rel_path": "assets/processed/blinking/frames/frame_03.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        166,
+        9,
+        474,
+        700
+      ],
+      "fg_width": 309,
+      "fg_height": 692,
+      "foot_y": 700,
+      "center_x": 320.5
+    },
+    {
+      "index": 4,
+      "filename": "frame_04.png",
+      "rel_path": "assets/processed/blinking/frames/frame_04.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        165,
+        9,
+        474,
+        700
+      ],
+      "fg_width": 310,
+      "fg_height": 692,
+      "foot_y": 700,
+      "center_x": 320.0
+    },
+    {
+      "index": 5,
+      "filename": "frame_05.png",
+      "rel_path": "assets/processed/blinking/frames/frame_05.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        166,
+        9,
+        472,
+        700
+      ],
+      "fg_width": 307,
+      "fg_height": 692,
+      "foot_y": 700,
+      "center_x": 319.5
+    }
+  ]
+}

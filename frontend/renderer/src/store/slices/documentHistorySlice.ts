@@ -57,7 +57,7 @@ export const createDocumentHistorySlice: StateCreator<PanelState, [], [], Docume
   },
 
   loadHistoryItem: async (item) => {
-    const completedStatuses = Array(5).fill('completed');
+    const completedStatuses = Array(9).fill('completed');
     const paperId = item.id.startsWith('paper_') ? item.id : getPaperId(item.name);
     
     // Fetch live backend markdown report
@@ -93,10 +93,13 @@ export const createDocumentHistorySlice: StateCreator<PanelState, [], [], Docume
     set({
       uploadedFileName: item.name,
       uploadedFileType: item.type as 'pdf' | 'docx',
-      activeMilestoneIndex: 4,
+      activeMilestoneIndex: 8,
       milestoneStatuses: completedStatuses,
-      decompScore: item.decompScore,
-      paramCertainty: item.paramCertainty,
+      pipelineProgress: 100,
+      currentNode: 'completed',
+      currentNodeLabel: 'Pipeline Complete',
+      decompScore: item.decompScore || 100,
+      paramCertainty: item.paramCertainty || 100,
       reportContent: reportContent,
       isHistoryOpen: false,
       activeConversationId: targetConvId,

@@ -1,0 +1,161 @@
+{
+  "character": "Ms. Nerdy",
+  "animation_id": "confused",
+  "title": "Confused",
+  "source_file": "Confused Scientist Sprite Animation.png",
+  "strategy": "complete_standardized",
+  "frame_count": 8,
+  "canvas_size": [
+    640,
+    740
+  ],
+  "anchor": "feet",
+  "anchor_coordinates": [
+    320,
+    700
+  ],
+  "loop": true,
+  "frame_duration_ms": 300,
+  "fps": 3.3,
+  "props": [
+    "confusion marks"
+  ],
+  "frames": [
+    {
+      "index": 0,
+      "filename": "frame_00.png",
+      "rel_path": "assets/processed/confused/frames/frame_00.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        192,
+        72,
+        447,
+        697
+      ],
+      "fg_width": 256,
+      "fg_height": 626,
+      "foot_y": 697,
+      "center_x": 320.0
+    },
+    {
+      "index": 1,
+      "filename": "frame_01.png",
+      "rel_path": "assets/processed/confused/frames/frame_01.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        192,
+        108,
+        447,
+        699
+      ],
+      "fg_width": 256,
+      "fg_height": 592,
+      "foot_y": 699,
+      "center_x": 320.0
+    },
+    {
+      "index": 2,
+      "filename": "frame_02.png",
+      "rel_path": "assets/processed/confused/frames/frame_02.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        190,
+        73,
+        448,
+        700
+      ],
+      "fg_width": 259,
+      "fg_height": 628,
+      "foot_y": 700,
+      "center_x": 319.5
+    },
+    {
+      "index": 3,
+      "filename": "frame_03.png",
+      "rel_path": "assets/processed/confused/frames/frame_03.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        180,
+        46,
+        460,
+        700
+      ],
+      "fg_width": 281,
+      "fg_height": 655,
+      "foot_y": 700,
+      "center_x": 320.5
+    },
+    {
+      "index": 4,
+      "filename": "frame_04.png",
+      "rel_path": "assets/processed/confused/frames/frame_04.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        189,
+        52,
+        450,
+        700
+      ],
+      "fg_width": 262,
+      "fg_height": 649,
+      "foot_y": 700,
+      "center_x": 320.0
+    },
+    {
+      "index": 5,
+      "filename": "frame_05.png",
+      "rel_path": "assets/processed/confused/frames/frame_05.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        183,
+        83,
+        456,
+        700
+      ],
+      "fg_width": 274,
+      "fg_height": 618,
+      "foot_y": 700,
+      "center_x": 320.0
+    },
+    {
+      "index": 6,
+      "filename": "frame_06.png",
+      "rel_path": "assets/processed/confused/frames/frame_06.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        178,
+        62,
+        462,
+        700
+      ],
+      "fg_width": 285,
+      "fg_height": 639,
+      "foot_y": 700,
+      "center_x": 320.5
+    },
+    {
+      "index": 7,
+      "filename": "frame_07.png",
+      "rel_path": "assets/processed/confused/frames/frame_07.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        189,
+        97,
+        450,
+        699
+      ],
+      "fg_width": 262,
+      "fg_height": 603,
+      "foot_y": 699,
+      "center_x": 320.0
+    }
+  ]
+}

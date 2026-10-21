@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { usePanelStore } from '../../../store/panelStore';
 import { ModelSelector } from '../../ui/ModelSelector';
+import { MascotAnimatedSprite, type AvatarId } from '../../mascot/MascotCompanion';
 import {
   IconPlus,
   IconClose, IconFile, IconArrowUp,
@@ -38,11 +39,44 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
     isAnalyzing,
     activeMilestoneIndex,
     analysisStatus,
-    messages
+    messages,
+    avatarId,
+    isInputThinking,
+    setIsInputThinking
   } = usePanelStore();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [isFocused, setIsFocused] = useState(false);
+  const thinkingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Focus + 5s blank thinking timer -> triggers mascot peeking pose
+  useEffect(() => {
+    if (thinkingTimerRef.current) {
+      clearTimeout(thinkingTimerRef.current);
+      thinkingTimerRef.current = null;
+    }
+
+    if (isFocused && !chatInputValue.trim()) {
+      thinkingTimerRef.current = setTimeout(() => {
+        setIsInputThinking(true);
+        if (typeof window !== 'undefined' && (window as any).mascotAPI?.setMascotState) {
+          (window as any).mascotAPI.setMascotState('peeking');
+        }
+      }, 5000);
+    } else {
+      setIsInputThinking(false);
+      if (isInputThinking && typeof window !== 'undefined' && (window as any).mascotAPI?.setMascotState) {
+        (window as any).mascotAPI.setMascotState('idle');
+      }
+    }
+
+    return () => {
+      if (thinkingTimerRef.current) {
+        clearTimeout(thinkingTimerRef.current);
+      }
+    };
+  }, [isFocused, chatInputValue, isInputThinking, setIsInputThinking]);
 
   // Live elapsed timer for document ingestion pipeline
   useEffect(() => {
@@ -122,6 +156,41 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
         {/* Floating Input Card Container */}
         <div className="relative border app-border rounded-2xl bg-[var(--bg-card)] backdrop-blur-xl shadow-[0_10px_35px_rgba(0,0,0,0.08)] focus-within:border-[var(--accent-border)] focus-within:shadow-[0_0_24px_var(--accent-subtle)] transition-all duration-300 flex flex-col">
           
+          {/* Peeking Mascot Overlay over the input area when user holds blank focus > 5s */}
+          {isInputThinking && (
+            <div className="absolute -top-14 right-4 flex items-end gap-2.5 z-40 select-none animate-peek-up pointer-events-auto">
+              <div className="bg-[var(--bg-card)]/95 backdrop-blur-md border border-[var(--accent-border)] rounded-2xl px-3 py-1.5 shadow-xl flex items-center gap-2 text-[11px] text-[var(--text-main)] font-medium">
+                <span className="text-[12px] animate-pulse">💡</span>
+                <span>Thinking of what to ask? Try inquiring about LoRA rank, matrices, or code!</span>
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    setChatInputValue("Explain the low-rank decomposition W = W0 + B * A and rank r intuition.");
+                    setIsInputThinking(false);
+                  }}
+                  onClick={() => {
+                    setChatInputValue("Explain the low-rank decomposition W = W0 + B * A and rank r intuition.");
+                    setIsInputThinking(false);
+                  }}
+                  className="px-2 py-0.5 rounded-lg bg-[var(--accent-subtle)] hover:bg-[var(--accent)] hover:text-white text-[10px] font-mono text-[var(--accent)] font-semibold border border-[var(--accent-border)] transition-colors cursor-pointer"
+                >
+                  Insert prompt
+                </button>
+              </div>
+
+              {/* Peeking Mascot Sprite Window */}
+              <div className="w-12 h-14 overflow-hidden relative drop-shadow-lg -mb-1 shrink-0">
+                <MascotAnimatedSprite
+                  avatarId={(avatarId as AvatarId) || 'mr-nerdy'}
+                  pose="peeking"
+                  frameIndex={1}
+                  className="w-12 h-auto"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Staged File Pill Badge */}
           {stagedFile && (
             <div className="px-3.5 pt-3 pb-1 select-none flex items-center gap-2 flex-wrap border-b app-border bg-[var(--bg-base)]/50 rounded-t-2xl overflow-hidden">
@@ -176,6 +245,11 @@ export const ChatInputArea: React.FC<ChatInputAreaProps> = ({
               value={chatInputValue}
               onChange={(e) => setChatInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => {
+                setIsFocused(false);
+                setIsInputThinking(false);
+              }}
               disabled={isAnalyzing}
               placeholder={
                 isAnalyzing

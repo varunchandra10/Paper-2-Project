@@ -14,6 +14,7 @@ db.initialize_db()
 
 
 @router.get("/conversations")
+@router.get("/chat/conversations")
 def list_conversations(user_id: Optional[str] = None):
     """Returns system-wide conversations for local desktop application instance along with active_conversation_id."""
     convs = db.get_all_conversations()
@@ -51,6 +52,7 @@ def set_active_conversation(req: dict):
 
 
 @router.post("/conversations")
+@router.post("/chat/conversations")
 def create_conversation(req: Optional[dict] = None):
     """Creates a new conversation thread with human title."""
     conv_id = f"conv_{str(uuid.uuid4())[:8]}"

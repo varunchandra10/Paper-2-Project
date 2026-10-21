@@ -5,7 +5,7 @@ import {
   MascotWaistUpCard 
 } from '../../mascot/MascotCompanion';
 
-export const MASCOT_LIST: AvatarId[] = ['mr-nerdy', 'ms-nerdy', 'mr-nerd', 'ms-nerd'];
+const MASCOT_LIST: AvatarId[] = ['mr-nerdy', 'ms-nerdy', 'mr-nerd', 'ms-nerd'];
 
 interface MascotSelectorProps {
   formAvatar: string;

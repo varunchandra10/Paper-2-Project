@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { API_BASE } from '../../../config/api';
+import { getPaperTracesUrl } from '../../../config/api';
 import { useLogsStore } from '../../../store/logsStore';
 import { usePanelStore } from '../../../store/panelStore';
 import { MilestoneTracker } from '../analysis/MilestoneTracker';
@@ -28,7 +28,7 @@ export const LogsDrawer: React.FC = () => {
     if (isLogsOpen && activePaperId) {
       const fetchTraces = async () => {
         try {
-          const res = await fetch(`${API_BASE}/history/${activePaperId}/traces`);
+          const res = await fetch(getPaperTracesUrl(activePaperId));
           if (res.ok) {
             const data = await res.json();
             setTraces(data.traces || []);
