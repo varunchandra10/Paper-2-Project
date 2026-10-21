@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { MascotCanvasPlayer } from './MascotCanvasPlayer';
+import React, { useState, useEffect } from 'react';
 import { IconCheck } from '../ui/Icons';
 
 import {
@@ -23,83 +24,143 @@ export interface UseMascotTransitionOptions {
   activeMilestoneIndex?: number;
   reportContent?: string | null;
   isSleeping?: boolean;
+  isTired?: boolean;
   isError?: boolean;
   isDraggingFile?: boolean;
+  isChatGenerating?: boolean;
+  isInputThinking?: boolean;
+  isLongAnalyzing?: boolean;
+  isJustUploaded?: boolean;
+  isCoffeeSipping?: boolean;
+  isIngestionSuccess?: boolean;
+  isRateLimited?: boolean;
+  customPoseOverride?: MascotPose | null;
+  customSpeechOverride?: string | null;
 }
 
 /**
  * Custom React hook for unified mascot pose state machine transitions & frame stepping.
+ * Supports:
+ *  1) Wave greeting only on 1st panel open in session
+ *  2) Inactivity: tired slump (45s) -> sleep on book with Zzz (60s)
+ *  3) Catching document on PDF drop (800ms-1s) -> coffee sipping during ingestion
+ *  4) Confused pose if parsing takes > 15s
+ *  5) Hunching over laptop during ReACT query reasoning
+ *  6) Peeking when input area is focused & blank for > 5s
+ *  7) Excited celebration on verified ingestion (transient 3s)
+ *  8) Angry reaction on rate limits or errors
+ *  9) Subtle lifelike eye blinking during idle standing (every 12s)
  */
 export function useMascotTransition({
   avatarId = 'mr-nerdy',
   isAnalyzing = false,
-  activeMilestoneIndex = 0,
-  reportContent = null,
   isSleeping = false,
+  isTired = false,
   isError = false,
-  isDraggingFile = false
+  isDraggingFile = false,
+  isChatGenerating = false,
+  isInputThinking = false,
+  isLongAnalyzing = false,
+  isJustUploaded = false,
+  isCoffeeSipping = false,
+  isIngestionSuccess = false,
+  isRateLimited = false,
+  customPoseOverride = null,
+  customSpeechOverride = null,
 }: UseMascotTransitionOptions) {
   const info = MASCOT_REGISTRY[avatarId] || MASCOT_REGISTRY['mr-nerdy'];
 
-  let targetPose: MascotPose = 'standing';
-  let speechText = 'Standing by for research paper ingestion.';
+  // Handwave greeting triggers every time the user opens / loads the application
+  const [isFirstOpenWave, setIsFirstOpenWave] = useState<boolean>(true);
 
-  if (isDraggingFile) {
-    targetPose = 'document_catching';
-    speechText = 'Drop the PDF right here! Ingesting layout elements...';
-  } else if (isError) {
-    targetPose = 'angry';
-    speechText = 'Pipeline exception encountered! Checking AST syntax errors.';
-  } else if (reportContent) {
-    targetPose = 'excited';
-    speechText = 'PyTorch model synthesis completed successfully!';
-  } else if (isAnalyzing) {
-    if (activeMilestoneIndex >= 3) {
-      targetPose = 'hunching';
-      speechText = 'Synthesizing PyTorch modules & running AST reflexion...';
-    } else if (activeMilestoneIndex >= 1) {
-      targetPose = 'thinking';
-      speechText = 'Extracting hyperparameters & Tavily groundings...';
-    } else {
-      targetPose = 'peeking';
-      speechText = 'Parsing PDF layout structure & arXiv headers...';
+  // Finish initial greeting wave after single complete cycle and transition cleanly to standing idle
+  useEffect(() => {
+    if (isFirstOpenWave) {
+      if (typeof window !== 'undefined' && (window as any).mascotAPI?.setMascotState) {
+        (window as any).mascotAPI.setMascotState('wave-intro');
+      }
+      // Single smooth wave cycle (8 frames * 110ms = 880ms), resting naturally on frame 7 while pill is read
+      const timer = setTimeout(() => {
+        setIsFirstOpenWave(false);
+        if (typeof window !== 'undefined' && (window as any).mascotAPI?.setMascotState) {
+          (window as any).mascotAPI.setMascotState('idle');
+        }
+      }, 2200);
+      return () => clearTimeout(timer);
     }
+  }, [isFirstOpenWave]);
+
+  // Periodic natural eye blinking when standing idle
+  const [isBlinking, setIsBlinking] = useState(false);
+
+  // Determine target pose and context quip (pills removed unless explicitly requested)
+  let targetPose: MascotPose = 'standing';
+  let speechText: string | null = null;
+
+  if (customPoseOverride) {
+    targetPose = customPoseOverride;
+    speechText = customSpeechOverride || null;
+  } else if (isDraggingFile || isJustUploaded) {
+    targetPose = 'document_catching';
+    speechText = null;
+  } else if (isFirstOpenWave) {
+    // Wave hand and say Hello researcher..! on app open
+    targetPose = 'waving';
+    speechText = 'Hello researcher..!';
+  } else if (isRateLimited || isError) {
+    targetPose = 'angry';
+    speechText = null;
+  } else if (isChatGenerating) {
+    targetPose = 'hunching';
+    speechText = null;
+  } else if (isLongAnalyzing) {
+    targetPose = 'confused';
+    speechText = null;
+  } else if (isCoffeeSipping || isAnalyzing) {
+    targetPose = 'sipping_coffee';
+    speechText = null;
+  } else if (isIngestionSuccess) {
+    targetPose = 'excited';
+    speechText = null;
+  } else if (isInputThinking) {
+    targetPose = 'thinking';
+    speechText = null;
   } else if (isSleeping) {
     targetPose = 'sleeping';
-    speechText = 'Zzz... Idle state. Drop a paper or ask a question to wake me!';
+    speechText = null;
+  } else if (isTired) {
+    targetPose = 'tired';
+    speechText = null;
   } else {
-    targetPose = 'standing';
-    speechText = `Ready to assist! Selected avatar: ${info.name}.`;
+    targetPose = isBlinking ? 'blinking' : 'standing';
+    speechText = null;
   }
 
-  const [currentPose, setCurrentPose] = useState<MascotPose>(targetPose);
-  const [frameIndex, setFrameIndex] = useState<number>(0);
-
-  const prevPoseRef = useRef<MascotPose>(targetPose);
-
+  // Periodic blink timer (every 10 seconds when standing idle, plays full eye-blink cycle)
   useEffect(() => {
-    const prevPose = prevPoseRef.current;
-    prevPoseRef.current = targetPose;
+    if (targetPose !== 'standing' && targetPose !== 'blinking') {
+      setIsBlinking(false);
+      return;
+    }
 
-    if (prevPose === targetPose) return;
+    const blinkInterval = setInterval(() => {
+      setIsBlinking(true);
+      setTimeout(() => {
+        setIsBlinking(false);
+      }, 1600);
+    }, 10000);
 
-    setCurrentPose(targetPose);
-    setFrameIndex(0);
-
-    const t1 = setTimeout(() => setFrameIndex(1), 150);
-    const t2 = setTimeout(() => setFrameIndex(2), 300);
-
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
+    return () => clearInterval(blinkInterval);
   }, [targetPose]);
 
-  const activeImage = info.poses[currentPose] || info.standingImage;
+  // Frame index for legacy consumers (MascotCanvasPlayer drives high-precision RAF loops directly)
+  const frameIndex = 1;
+
+  const activeImage = info.poses[targetPose] || info.standingImage;
 
   return {
     mascotInfo: info,
-    currentPose,
+    currentPose: targetPose,
     frameIndex,
     activeImage,
     speechText,
@@ -107,8 +168,8 @@ export function useMascotTransition({
 }
 
 /**
- * Animated Mascot Sprite Component - 3 Horizontal Frame Slicing.
- * Preserves exact natural 225:369 aspect ratio with zero compression.
+ * Full Multi-Frame Canvas Player Component (up to 26 frames).
+ * Dynamically plays complete high-res sprite sheets with exact frame durations and zero compression.
  */
 export const MascotAnimatedSprite: React.FC<{
   avatarId?: AvatarId;
@@ -116,32 +177,27 @@ export const MascotAnimatedSprite: React.FC<{
   frameIndex?: number;
   className?: string;
   imageOverride?: string;
+  onClick?: () => void;
+  style?: React.CSSProperties;
 }> = ({
   avatarId = 'mr-nerdy',
   pose = 'standing',
-  frameIndex = 0,
   className = '',
-  imageOverride
+  onClick,
+  style,
 }) => {
-  const info = MASCOT_REGISTRY[avatarId] || MASCOT_REGISTRY['mr-nerdy'];
-  const spriteImage = imageOverride || info.poses[pose] || info.standingImage;
-  const isStanding = pose === 'standing';
-  // Standing PNG assets have the character centered in Frame 1 (middle of 3 frames)
-  const effectiveFrame = isStanding ? 1 : Math.min(Math.max(frameIndex, 0), 2);
-
   return (
-    <div
-      className={`filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.35)] shrink-0 overflow-hidden ${className}`}
-      style={{
-        aspectRatio: '225 / 369',
-        backgroundImage: `url(${spriteImage})`,
-        backgroundSize: '300% 100%',
-        backgroundPosition: `${effectiveFrame * 50}% 0%`,
-        backgroundRepeat: 'no-repeat',
-      }}
+    <MascotCanvasPlayer
+      avatarId={avatarId}
+      pose={pose}
+      className={className}
+      onClick={onClick}
+      style={style}
     />
   );
 };
+
+export { MascotCanvasPlayer };
 
 /**
  * Waist-Up Framed Standing Card Component for Developer Profile selection.

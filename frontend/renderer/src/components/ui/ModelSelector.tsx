@@ -89,12 +89,12 @@ export const ModelSelector: React.FC = () => {
             setAllModels(combined);
 
             if (!selectedModel || !combined.some(m => m.id === selectedModel)) {
-              if (groqList.length > 0) {
+              if (localList.length > 0) {
+                setSelectedModel(localList[0].id);
+              } else if (groqList.length > 0) {
                 setSelectedModel(groqList[0].id);
               } else if (orList.length > 0) {
                 setSelectedModel(orList[0].id);
-              } else if (localList.length > 0) {
-                setSelectedModel(localList[0].id);
               }
             }
           }

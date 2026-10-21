@@ -1,0 +1,465 @@
+{
+  "character": "Ms. Nerdy",
+  "animation_id": "walking",
+  "title": "Walking",
+  "source_file": "Scientist Walk Cycle Sprite Sheet.png",
+  "strategy": "complete_standardized",
+  "frame_count": 26,
+  "canvas_size": [
+    640,
+    740
+  ],
+  "anchor": "feet",
+  "anchor_coordinates": [
+    320,
+    700
+  ],
+  "loop": true,
+  "frame_duration_ms": 92,
+  "fps": 10.9,
+  "props": [],
+  "frames": [
+    {
+      "index": 0,
+      "filename": "frame_00.png",
+      "rel_path": "assets/processed/walking/frames/frame_00.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        182,
+        42,
+        458,
+        700
+      ],
+      "fg_width": 277,
+      "fg_height": 659,
+      "foot_y": 700,
+      "center_x": 320.5
+    },
+    {
+      "index": 1,
+      "filename": "frame_01.png",
+      "rel_path": "assets/processed/walking/frames/frame_01.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        166,
+        42,
+        473,
+        700
+      ],
+      "fg_width": 308,
+      "fg_height": 659,
+      "foot_y": 700,
+      "center_x": 320.0
+    },
+    {
+      "index": 2,
+      "filename": "frame_02.png",
+      "rel_path": "assets/processed/walking/frames/frame_02.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        175,
+        44,
+        464,
+        700
+      ],
+      "fg_width": 290,
+      "fg_height": 657,
+      "foot_y": 700,
+      "center_x": 320.0
+    },
+    {
+      "index": 3,
+      "filename": "frame_03.png",
+      "rel_path": "assets/processed/walking/frames/frame_03.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        150,
+        44,
+        488,
+        698
+      ],
+      "fg_width": 339,
+      "fg_height": 655,
+      "foot_y": 698,
+      "center_x": 319.5
+    },
+    {
+      "index": 4,
+      "filename": "frame_04.png",
+      "rel_path": "assets/processed/walking/frames/frame_04.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        166,
+        44,
+        473,
+        698
+      ],
+      "fg_width": 308,
+      "fg_height": 655,
+      "foot_y": 698,
+      "center_x": 320.0
+    },
+    {
+      "index": 5,
+      "filename": "frame_05.png",
+      "rel_path": "assets/processed/walking/frames/frame_05.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        150,
+        42,
+        490,
+        687
+      ],
+      "fg_width": 341,
+      "fg_height": 646,
+      "foot_y": 687,
+      "center_x": 320.5
+    },
+    {
+      "index": 6,
+      "filename": "frame_06.png",
+      "rel_path": "assets/processed/walking/frames/frame_06.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        167,
+        44,
+        472,
+        698
+      ],
+      "fg_width": 306,
+      "fg_height": 655,
+      "foot_y": 698,
+      "center_x": 320.0
+    },
+    {
+      "index": 7,
+      "filename": "frame_07.png",
+      "rel_path": "assets/processed/walking/frames/frame_07.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        140,
+        42,
+        498,
+        698
+      ],
+      "fg_width": 359,
+      "fg_height": 657,
+      "foot_y": 698,
+      "center_x": 319.5
+    },
+    {
+      "index": 8,
+      "filename": "frame_08.png",
+      "rel_path": "assets/processed/walking/frames/frame_08.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        152,
+        42,
+        486,
+        698
+      ],
+      "fg_width": 335,
+      "fg_height": 657,
+      "foot_y": 698,
+      "center_x": 319.5
+    },
+    {
+      "index": 9,
+      "filename": "frame_09.png",
+      "rel_path": "assets/processed/walking/frames/frame_09.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        178,
+        42,
+        462,
+        698
+      ],
+      "fg_width": 285,
+      "fg_height": 657,
+      "foot_y": 698,
+      "center_x": 320.5
+    },
+    {
+      "index": 10,
+      "filename": "frame_10.png",
+      "rel_path": "assets/processed/walking/frames/frame_10.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        156,
+        42,
+        483,
+        698
+      ],
+      "fg_width": 328,
+      "fg_height": 657,
+      "foot_y": 698,
+      "center_x": 320.0
+    },
+    {
+      "index": 11,
+      "filename": "frame_11.png",
+      "rel_path": "assets/processed/walking/frames/frame_11.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        146,
+        42,
+        494,
+        698
+      ],
+      "fg_width": 349,
+      "fg_height": 657,
+      "foot_y": 698,
+      "center_x": 320.5
+    },
+    {
+      "index": 12,
+      "filename": "frame_12.png",
+      "rel_path": "assets/processed/walking/frames/frame_12.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        122,
+        42,
+        517,
+        698
+      ],
+      "fg_width": 396,
+      "fg_height": 657,
+      "foot_y": 698,
+      "center_x": 320.0
+    },
+    {
+      "index": 13,
+      "filename": "frame_13.png",
+      "rel_path": "assets/processed/walking/frames/frame_13.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        154,
+        47,
+        484,
+        700
+      ],
+      "fg_width": 331,
+      "fg_height": 654,
+      "foot_y": 700,
+      "center_x": 319.5
+    },
+    {
+      "index": 14,
+      "filename": "frame_14.png",
+      "rel_path": "assets/processed/walking/frames/frame_14.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        157,
+        47,
+        482,
+        700
+      ],
+      "fg_width": 326,
+      "fg_height": 654,
+      "foot_y": 700,
+      "center_x": 320.0
+    },
+    {
+      "index": 15,
+      "filename": "frame_15.png",
+      "rel_path": "assets/processed/walking/frames/frame_15.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        148,
+        47,
+        492,
+        700
+      ],
+      "fg_width": 345,
+      "fg_height": 654,
+      "foot_y": 700,
+      "center_x": 320.5
+    },
+    {
+      "index": 16,
+      "filename": "frame_16.png",
+      "rel_path": "assets/processed/walking/frames/frame_16.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        157,
+        47,
+        482,
+        700
+      ],
+      "fg_width": 326,
+      "fg_height": 654,
+      "foot_y": 700,
+      "center_x": 320.0
+    },
+    {
+      "index": 17,
+      "filename": "frame_17.png",
+      "rel_path": "assets/processed/walking/frames/frame_17.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        156,
+        49,
+        484,
+        700
+      ],
+      "fg_width": 329,
+      "fg_height": 652,
+      "foot_y": 700,
+      "center_x": 320.5
+    },
+    {
+      "index": 18,
+      "filename": "frame_18.png",
+      "rel_path": "assets/processed/walking/frames/frame_18.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        150,
+        47,
+        490,
+        700
+      ],
+      "fg_width": 341,
+      "fg_height": 654,
+      "foot_y": 700,
+      "center_x": 320.5
+    },
+    {
+      "index": 19,
+      "filename": "frame_19.png",
+      "rel_path": "assets/processed/walking/frames/frame_19.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        154,
+        47,
+        485,
+        700
+      ],
+      "fg_width": 332,
+      "fg_height": 654,
+      "foot_y": 700,
+      "center_x": 320.0
+    },
+    {
+      "index": 20,
+      "filename": "frame_20.png",
+      "rel_path": "assets/processed/walking/frames/frame_20.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        174,
+        45,
+        464,
+        700
+      ],
+      "fg_width": 291,
+      "fg_height": 656,
+      "foot_y": 700,
+      "center_x": 319.5
+    },
+    {
+      "index": 21,
+      "filename": "frame_21.png",
+      "rel_path": "assets/processed/walking/frames/frame_21.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        148,
+        45,
+        490,
+        700
+      ],
+      "fg_width": 343,
+      "fg_height": 656,
+      "foot_y": 700,
+      "center_x": 319.5
+    },
+    {
+      "index": 22,
+      "filename": "frame_22.png",
+      "rel_path": "assets/processed/walking/frames/frame_22.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        159,
+        45,
+        480,
+        700
+      ],
+      "fg_width": 322,
+      "fg_height": 656,
+      "foot_y": 700,
+      "center_x": 320.0
+    },
+    {
+      "index": 23,
+      "filename": "frame_23.png",
+      "rel_path": "assets/processed/walking/frames/frame_23.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        167,
+        47,
+        472,
+        700
+      ],
+      "fg_width": 306,
+      "fg_height": 654,
+      "foot_y": 700,
+      "center_x": 320.0
+    },
+    {
+      "index": 24,
+      "filename": "frame_24.png",
+      "rel_path": "assets/processed/walking/frames/frame_24.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        165,
+        45,
+        474,
+        700
+      ],
+      "fg_width": 310,
+      "fg_height": 656,
+      "foot_y": 700,
+      "center_x": 320.0
+    },
+    {
+      "index": 25,
+      "filename": "frame_25.png",
+      "rel_path": "assets/processed/walking/frames/frame_25.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        150,
+        47,
+        488,
+        700
+      ],
+      "fg_width": 339,
+      "fg_height": 654,
+      "foot_y": 700,
+      "center_x": 319.5
+    }
+  ]
+}

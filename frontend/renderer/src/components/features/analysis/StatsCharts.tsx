@@ -2,20 +2,29 @@ import React from 'react';
 import { usePanelStore } from '../../../store/panelStore';
 
 export const StatsCharts: React.FC = () => {
-  const { activeMilestoneIndex, milestoneStatuses, decompScore, paramCertainty } = usePanelStore();
+  const { pipelineProgress, currentNodeLabel, isAnalyzing, analysisStatus } = usePanelStore();
 
-  const getProgressPercent = () => {
-    if (activeMilestoneIndex === -1) return 0;
-    const completed = milestoneStatuses.filter((s) => s === 'completed').length;
-    if (completed === 5) return 100;
-    const active = milestoneStatuses.filter((s) => s === 'active').length;
-    return completed * 20 + (active ? 10 : 0);
-  };
-
-  const progress = getProgressPercent();
+  const progress = Math.min(100, Math.max(0, Math.round(pipelineProgress || 0)));
   const radius = 32;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
+
+  const getStatusLabel = () => {
+    if (analysisStatus === 'error') return 'Failed';
+    if (isAnalyzing) return 'Running';
+    if (progress === 100 || analysisStatus === 'success') return 'Complete';
+    if (analysisStatus === 'paused_for_review') return 'Paused';
+    return 'Idle';
+  };
+
+  const getStageText = () => {
+    if (currentNodeLabel) return currentNodeLabel;
+    if (isAnalyzing) return 'Pipeline Active...';
+    if (progress === 100 || analysisStatus === 'success') return 'Synthesis Complete';
+    if (analysisStatus === 'paused_for_review') return 'Waiting for Approval';
+    if (analysisStatus === 'error') return 'Execution Halted';
+    return 'Ready for Ingestion';
+  };
 
   return (
     <div className="flex items-center gap-5 bg-[var(--bg-card)] border app-border rounded-xl p-4 shadow-inner text-[var(--text-main)]">
@@ -32,7 +41,9 @@ export const StatsCharts: React.FC = () => {
             cy="40" 
           />
           <circle 
-            className="text-[var(--accent)] transition-all duration-700 ease-out" 
+            className={`transition-all duration-700 ease-out ${
+              progress === 100 ? 'text-emerald-500' : 'text-[var(--accent)]'
+            }`}
             strokeWidth="5" 
             strokeDasharray={circumference} 
             strokeDashoffset={strokeDashoffset} 
@@ -45,37 +56,57 @@ export const StatsCharts: React.FC = () => {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-          <span className="text-[14px] font-mono font-extrabold tracking-tighter leading-none text-[var(--text-main)]">{progress}%</span>
-          <span className="text-[6.5px] uppercase font-bold tracking-wider text-[var(--text-muted)] mt-0.5">Ingested</span>
+          <span className="text-[14px] font-mono font-extrabold tracking-tighter leading-none text-[var(--text-main)]">
+            {progress}%
+          </span>
+          <span className="text-[6.5px] uppercase font-bold tracking-wider text-[var(--text-muted)] mt-1">
+            {getStatusLabel()}
+          </span>
         </div>
       </div>
 
-      {/* Linear metrics bars */}
+      {/* Linear metrics & active stage bars */}
       <div className="flex-1 flex flex-col gap-3">
-        {/* Metric 1 */}
+        {/* Real Pipeline Progress Bar */}
         <div className="flex flex-col gap-1">
           <div className="flex justify-between items-center text-[10px] font-bold">
-            <span className="text-[var(--text-muted)]">Decomposition Score</span>
-            <span className="text-[var(--accent)] font-mono">{decompScore}%</span>
+            <span className="text-[var(--text-muted)]">Pipeline Progress</span>
+            <span className={`font-mono ${progress === 100 ? 'text-emerald-500' : 'text-[var(--accent)]'}`}>
+              {progress}%
+            </span>
           </div>
           <div className="w-full h-1.5 bg-[var(--bg-base)] rounded-full overflow-hidden">
             <div 
-              className="h-full bg-[var(--accent)] rounded-full transition-all duration-700 ease-out"
-              style={{ width: `${decompScore}%` }}
+              className={`h-full rounded-full transition-all duration-700 ease-out ${
+                progress === 100 ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-[var(--accent)]'
+              }`}
+              style={{ width: `${progress}%` }}
             />
           </div>
         </div>
 
-        {/* Metric 2 */}
+        {/* Current Node / Execution Stage */}
         <div className="flex flex-col gap-1">
           <div className="flex justify-between items-center text-[10px] font-bold">
-            <span className="text-[var(--text-muted)]">Param Certainty</span>
-            <span className="text-[var(--accent)] font-mono">{paramCertainty}%</span>
+            <span className="text-[var(--text-muted)]">Current Stage</span>
+            <span className={`font-mono text-[9px] px-1.5 py-0.5 rounded border max-w-[150px] truncate ${
+              isAnalyzing 
+                ? 'bg-[var(--accent-subtle)] text-[var(--accent)] border-[var(--accent-border)] animate-pulse' 
+                : (progress === 100 
+                  ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30' 
+                  : 'bg-[var(--bg-base)] text-[var(--text-muted)] border-[var(--border-color)]')
+            }`}>
+              {getStageText()}
+            </span>
           </div>
           <div className="w-full h-1.5 bg-[var(--bg-base)] rounded-full overflow-hidden">
             <div 
-              className="h-full bg-[var(--accent)] rounded-full transition-all duration-700 ease-out"
-              style={{ width: `${paramCertainty}%` }}
+              className={`h-full rounded-full transition-all duration-500 ease-out ${
+                isAnalyzing 
+                  ? 'bg-gradient-to-r from-[var(--accent)] to-emerald-400 animate-pulse' 
+                  : (progress === 100 ? 'bg-emerald-500' : 'bg-[var(--border-color)]')
+              }`}
+              style={{ width: `${Math.max(15, progress)}%` }}
             />
           </div>
         </div>

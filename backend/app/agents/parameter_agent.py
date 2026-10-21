@@ -3,16 +3,25 @@ import re
 from typing import Dict, Any, Optional
 from app.core.config import settings
 from app.schemas.paper import PaperDocument
-from app.schemas.pipeline import ExtractedParameters, ParameterDetails
+from app.schemas.pipeline import ExtractedParameters, ParameterDetails, ProvenanceStatus
 from app.core.model_router import ModelRouter
 
 CONFIDENCE_MAP = {
     "EXPLICIT": 95,
-    "DERIVED": 90,
-    "INFERRED": 80,
-    "ASSUMED": 60,
-    "UNKNOWN": 30
+    "DERIVED": 85,
+    "INFERRED": 70,
+    "ASSUMED": 50,
+    "UNKNOWN": 0
 }
+
+STRENGTH_MAP = {
+    "EXPLICIT": "STRONG",
+    "DERIVED": "STRONG",
+    "INFERRED": "MODERATE",
+    "ASSUMED": "WEAK",
+    "UNKNOWN": "NONE"
+}
+
 
 def run_parameter_agent(
     paper_doc: Optional[PaperDocument] = None, 
@@ -20,11 +29,14 @@ def run_parameter_agent(
     model_name: str = settings.DEFAULT_MODEL
 ) -> ExtractedParameters:
     """
-    100% Dynamic & Open-Ended Hyperparameter Extractor:
+    Provenance-Aware Hyperparameter & Architecture Specification Extractor:
     Queries RAG vector database & paper text to dynamically collect ALL hyperparameter
-    key-value pairs present in the paper (LR, batch size, loss, weight decay, warmup epochs,
-    spatial resolutions, dropout rates, dataset split ratios, channel dims, etc.)
-    with confidence tagging (EXPLICIT, DERIVED, INFERRED, ASSUMED).
+    key-value pairs present in the paper with strict provenance attribution:
+    - EXPLICIT: backed by verbatim text evidence and section coordinate.
+    - DERIVED: calculated from explicit paper values with mathematical rationale.
+    - INFERRED: deduced from architectural conventions or cited baselines.
+    - ASSUMED: standard ML default assumed when paper is silent.
+    - UNKNOWN: absent from paper (value=null, evidence_strength=NONE).
     """
     rag_context = ""
     full_text_sample = raw_text[:4000]
@@ -47,9 +59,10 @@ def run_parameter_agent(
 
             vdb = PaperVectorDB()
             evidence_blocks = []
+            target_p_id = getattr(paper_doc, "paper_id", None)
             for q in rag_queries:
-                q_vec = generate_local_embedding(q)
-                res = vdb.hybrid_search(query_text=q, query_vector=q_vec, top_k=2)
+                q_vec = generate_local_embedding(q, raise_on_failure=False)
+                res = vdb.hybrid_search(query_text=q, query_vector=q_vec, top_k=2, paper_id=target_p_id)
                 for item in res:
                     block = f"--- Source ({item.get('section', 'RAG')}) ---\n{item.get('content', '')}"
                     if block not in evidence_blocks:
@@ -65,8 +78,13 @@ def run_parameter_agent(
 --- GROUNDED PAPER CONTEXT ---
 {rag_context if rag_context else full_text_sample}
 
-STRICT INSTRUCTION:
-Return ONLY a valid JSON object mapping every single extracted parameter to its details. Do not restrict yourself to fixed keys — extract ALL hyperparameter key-value pairs mentioned in the text (e.g., learning_rate, batch_size, epochs, optimizer, loss_function, backbone, weight_decay, warmup_epochs, dropout_rate, spatial_resolution, channel_dimensions, train_test_split, hardware_gpus, etc.).
+STRICT PROVENANCE RULES:
+1. 'EXPLICIT': Parameter is stated verbatim in the text. You MUST include the exact verbatim quote in 'evidence' and identify 'source_section'.
+2. 'DERIVED': Parameter is computed or combined from multiple stated facts. Explain computation in 'rationale'.
+3. 'INFERRED': Deduced from standard architecture conventions or cited baseline models.
+4. 'ASSUMED': Standard community practice assumed because paper does not state it.
+5. 'UNKNOWN': The paper does NOT mention this parameter. Value MUST be null, evidence MUST be null, and evidence_strength MUST be 'NONE'.
+NEVER invent or fabricate parameter values as 'EXPLICIT' if they are not in the text!
 
 EXAMPLE JSON OUTPUT FORMAT:
 {{
@@ -74,41 +92,29 @@ EXAMPLE JSON OUTPUT FORMAT:
     "learning_rate": {{
       "value": "0.0001",
       "status": "EXPLICIT",
-      "rationale": "Stated in Section IV-A Implementation Details",
-      "source_section": "Section IV-A"
+      "evidence": "We use the AdamW optimizer with an initial learning rate of 1e-4.",
+      "source_section": "Section IV-A Implementation Details",
+      "evidence_strength": "STRONG",
+      "rationale": "Explicitly stated in implementation section"
     }},
     "batch_size": {{
       "value": "16",
       "status": "EXPLICIT",
-      "rationale": "Specified in training settings",
-      "source_section": "Section IV-A"
-    }},
-    "weight_decay": {{
-      "value": "0.01",
-      "status": "EXPLICIT",
-      "rationale": "AdamW optimizer weight decay setting",
-      "source_section": "Experiments"
+      "evidence": "Models are trained with a mini-batch size of 16 images.",
+      "source_section": "Section IV-A",
+      "evidence_strength": "STRONG",
+      "rationale": "Specified in training settings"
     }},
     "warmup_epochs": {{
-      "value": "5",
-      "status": "INFERRED",
-      "rationale": "Derived from cosine scheduler description",
-      "source_section": "Experiments"
-    }},
-    "dropout_rate": {{
-      "value": "0.1",
-      "status": "EXPLICIT",
-      "rationale": "Used in Swin encoder layers",
-      "source_section": "Method"
+      "value": null,
+      "status": "UNKNOWN",
+      "evidence": null,
+      "source_section": null,
+      "evidence_strength": "NONE",
+      "rationale": "Warmup schedule not mentioned in paper text"
     }}
   }}
 }}
-
-STATUS RULES:
-- 'EXPLICIT': Parameter is explicitly stated in the context.
-- 'DERIVED': Combined or computed from multiple sections.
-- 'INFERRED': Deduced from standard architecture defaults.
-- 'ASSUMED': Assumed default ML practice.
 """
 
     try:
@@ -129,20 +135,36 @@ STATUS RULES:
 
         for k, v in param_dict.items():
             if not isinstance(v, dict):
-                v = {"value": str(v), "status": "EXPLICIT"}
+                v = {"value": str(v), "status": "INFERRED"}
 
-            clean_val = str(v.get("value", "Not specified"))
-            status = str(v.get("status", "EXPLICIT")).upper()
-            confidence = CONFIDENCE_MAP.get(status, 80)
+            raw_val = v.get("value")
+            status = str(v.get("status", "UNKNOWN")).upper().strip()
+            if status not in [s.value for s in ProvenanceStatus]:
+                status = ProvenanceStatus.INFERRED.value
+
+            clean_val = str(raw_val) if raw_val is not None and str(raw_val).lower() != "null" else None
+            evidence = v.get("evidence")
+            evidence_str = str(evidence) if evidence and str(evidence).lower() != "null" else None
+            src_sec = v.get("source_section")
+            src_sec_str = str(src_sec) if src_sec and str(src_sec).lower() != "null" else None
+            strength = str(v.get("evidence_strength", STRENGTH_MAP.get(status, "NONE"))).upper()
+            confidence = CONFIDENCE_MAP.get(status, 0.0)
             rationale = str(v.get("rationale", "Extracted from paper context"))
-            src_sec = str(v.get("source_section", "Text"))
+
+            # Guard against false EXPLICIT without evidence
+            if status == "EXPLICIT" and (not evidence_str or clean_val is None):
+                status = "INFERRED"
+                strength = "MODERATE"
 
             p_detail = ParameterDetails(
                 value=clean_val,
                 confidence=confidence,
                 status=status,
+                evidence=evidence_str,
+                source_section=src_sec_str,
+                evidence_strength=strength,
                 rationale=rationale,
-                source_section=src_sec
+                extraction_method="llm_rag_extraction"
             )
 
             k_clean = str(k).lower().strip().replace(" ", "_")
@@ -151,21 +173,33 @@ STATUS RULES:
             if k_clean in ["learning_rate", "batch_size", "epochs", "optimizer", "loss_function", "backbone"]:
                 primary_params[k_clean] = p_detail
 
-        # Build ExtractedParameters object with dynamic custom parameters
+        def _get_or_unknown(key: str, desc: str) -> ParameterDetails:
+            if key in primary_params:
+                return primary_params[key]
+            return ParameterDetails(
+                value=None,
+                status=ProvenanceStatus.UNKNOWN.value,
+                evidence=None,
+                source_section=None,
+                evidence_strength="NONE",
+                confidence=0.0,
+                rationale=f"{desc} was not specified in paper context",
+                extraction_method="default"
+            )
+
         extracted_obj = ExtractedParameters(
-            learning_rate=primary_params.get("learning_rate", ParameterDetails(value="0.0001", confidence=90, status="EXPLICIT")),
-            batch_size=primary_params.get("batch_size", ParameterDetails(value="16", confidence=95, status="EXPLICIT")),
-            epochs=primary_params.get("epochs", ParameterDetails(value="50", confidence=85, status="INFERRED")),
-            optimizer=primary_params.get("optimizer", ParameterDetails(value="AdamW", confidence=95, status="EXPLICIT")),
-            loss_function=primary_params.get("loss_function", ParameterDetails(value="CrossEntropyLoss", confidence=90, status="EXPLICIT")),
-            backbone=primary_params.get("backbone", ParameterDetails(value="Swin-T", confidence=85, status="EXPLICIT")),
+            learning_rate=_get_or_unknown("learning_rate", "Learning rate"),
+            batch_size=_get_or_unknown("batch_size", "Batch size"),
+            epochs=_get_or_unknown("epochs", "Training epochs"),
+            optimizer=_get_or_unknown("optimizer", "Optimizer"),
+            loss_function=_get_or_unknown("loss_function", "Loss function"),
+            backbone=_get_or_unknown("backbone", "Model backbone"),
             custom_parameters=custom_dict
         )
 
-        print(f"[Parameter Agent] Successfully extracted {len(custom_dict)} dynamic paper parameters.")
+        print(f"[Parameter Agent] Extracted {len(custom_dict)} parameters with verifiable provenance.")
         return extracted_obj
 
     except Exception as e:
-        print(f"[Parameter Agent WARN] Dynamic parameter extraction fallback ({e}).")
+        print(f"[Parameter Agent WARN] Parameter extraction fallback triggered ({e}). Returning honest UNKNOWN state.")
         return ExtractedParameters()
-

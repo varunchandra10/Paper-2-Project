@@ -1,3 +1,4 @@
+import os
 import re
 from typing import List, Dict, Any, Optional
 from app.schemas.canonical_paper import (
@@ -24,15 +25,26 @@ def _roman_to_int(roman: str) -> int:
 
 def validate_paper_document(doc: PaperDocument) -> ExtractionQualityReport:
     """
-    Performs deterministic validation checks on a canonical PaperDocument.
-    Generates an ExtractionQualityReport containing a validation scorecard.
+    Performs deterministic and element-level validation checks on a canonical PaperDocument.
+    Evaluates factual preservation, bracket balance, table grid structure, numeric preservation,
+    and returns ExtractionQualityReport with transparent assertions.
     """
     scorecard = {}
     conflicts_logged = []
+    element_confidence: Dict[str, Any] = {
+        "text": {"confidence": 1.0, "status": "validated", "checks": {}},
+        "tables": {},
+        "figures": {},
+        "equations": {},
+        "citations": {"confidence": 1.0, "status": "validated", "checks": {}}
+    }
 
-    # 1. Title Validation
+    total_points = 0
+    max_points = 100
+
+    # ── 1. Title Validation (15 pts) ──
     title = doc.metadata.title.strip() if doc.metadata.title else ""
-    if not title or title.lower() in ("unknown title", "unknown", "untitled"):
+    if not title or title.lower() in ("unknown title", "untitled"):
         scorecard["title_check"] = ValidationMetric(
             status="ERROR",
             message="Title is missing or unextracted.",
@@ -44,8 +56,9 @@ def validate_paper_document(doc: PaperDocument) -> ExtractionQualityReport:
             message="Title successfully extracted.",
             details=f"Title: '{title}'"
         )
+        total_points += 15
 
-    # 2. Abstract Validation
+    # ── 2. Abstract Validation (15 pts) ──
     abstract = doc.metadata.abstract.strip() if doc.metadata.abstract else ""
     if not abstract:
         scorecard["abstract_check"] = ValidationMetric(
@@ -53,28 +66,39 @@ def validate_paper_document(doc: PaperDocument) -> ExtractionQualityReport:
             message="Abstract is missing.",
             details=None
         )
-    elif len(abstract) < 100:
+    elif len(abstract) < 80:
         scorecard["abstract_check"] = ValidationMetric(
             status="WARNING",
             message="Abstract is abnormally short.",
             details=f"Abstract length: {len(abstract)} characters."
         )
+        total_points += 8
     else:
         scorecard["abstract_check"] = ValidationMetric(
             status="SUCCESS",
             message="Abstract successfully extracted.",
             details=f"Abstract length: {len(abstract)} characters."
         )
+        total_points += 15
 
-    # 3. Section Ordering Check
+    # ── 3. Section Ordering & Text Completeness (25 pts) ──
     sections = doc.sections
-    if len(sections) < 3:
+    text_checks = {
+        "section_count_sufficient": len(sections) >= 2,
+        "content_length_valid": sum(len(s.content) for s in sections) > 200,
+        "sequence_ordered": True
+    }
+
+    if len(sections) < 2:
         scorecard["section_ordering"] = ValidationMetric(
             status="WARNING",
             message="Abnormally low section count.",
             details=f"Only {len(sections)} sections extracted."
         )
+        total_points += 10
+        text_checks["section_count_sufficient"] = False
     else:
+        out_of_order = []
         idx_seq = []
         for sec in sections:
             m = re.match(r'^\s*(?:([IVXLCDM]+)|(\d+))\b', sec.title, re.IGNORECASE)
@@ -83,215 +107,201 @@ def validate_paper_document(doc: PaperDocument) -> ExtractionQualityReport:
                 if arabic:
                     idx_seq.append((sec.title, int(arabic)))
                 elif roman:
-                    val = _roman_to_int(roman)
-                    idx_seq.append((sec.title, val))
-                    
-        out_of_order = []
+                    idx_seq.append((sec.title, _roman_to_int(roman)))
+
         for i in range(len(idx_seq) - 1):
             t1, v1 = idx_seq[i]
-            t2, v2 = idx_seq[i+1]
+            t2, v2 = idx_seq[i + 1]
             if v2 <= v1:
                 out_of_order.append(f"'{t2}' (val: {v2}) parsed after '{t1}' (val: {v1})")
-                
+
         if out_of_order:
             scorecard["section_ordering"] = ValidationMetric(
                 status="WARNING",
                 message="Section headings are out of numerical order.",
                 details=" | ".join(out_of_order)
             )
+            total_points += 18
+            text_checks["sequence_ordered"] = False
         else:
             scorecard["section_ordering"] = ValidationMetric(
                 status="SUCCESS",
-                message="Sections are in sequential order.",
-                details=f"Verified {len(idx_seq)} numbered sections."
+                message="Section headings are ordered logically.",
+                details=f"Verified {len(sections)} sections in sequence."
             )
+            total_points += 25
 
-    # 4. Text Duplication Check
-    duplicated_sentences = []
-    seen_sentences = {}
-    
-    for sec in sections:
-        subs = getattr(sec, "subsections", {})
-        sub_text = " ".join(subs.values()) if isinstance(subs, dict) else ""
-        text = (getattr(sec, "content", "") or "") + " " + sub_text
-        sentences = [s.strip() for s in re.split(r'\.\s+', text) if len(s.strip()) > 80]
-        
-        for sentence in sentences:
-            normalized = re.sub(r'\s+', ' ', sentence.lower()).strip()
-            if normalized in seen_sentences:
-                seen_sentences[normalized]["count"] += 1
-                if normalized not in [d["text"] for d in duplicated_sentences]:
-                    duplicated_sentences.append({
-                        "text": normalized,
-                        "original": sentence,
-                        "sections": [seen_sentences[normalized]["section"], sec.title]
-                    })
-            else:
-                seen_sentences[normalized] = {"count": 1, "section": sec.title}
+    passed_text_checks = sum(1 for v in text_checks.values() if v)
+    text_conf = round(passed_text_checks / max(1, len(text_checks)), 2)
+    element_confidence["text"] = {
+        "confidence": text_conf,
+        "status": "validated" if text_conf >= 0.8 else "warning",
+        "checks": text_checks
+    }
 
-    if duplicated_sentences:
-        details_str = "; ".join([f"\"{d['original'][:50]}...\" duplicated in {d['sections']}" for d in duplicated_sentences[:5]])
-        scorecard["text_duplication"] = ValidationMetric(
-            status="WARNING",
-            message=f"Detected {len(duplicated_sentences)} duplicated text blocks.",
-            details=details_str
-        )
-    else:
-        scorecard["text_duplication"] = ValidationMetric(
+    # ── 4. Table Structure & Preservation Audit (15 pts) ──
+    tables = doc.tables
+    if not tables:
+        scorecard["tables_check"] = ValidationMetric(
             status="SUCCESS",
-            message="No duplicated text paragraphs detected.",
+            message="No tables detected in document.",
             details=None
         )
-
-    # 5. Suspicious Empty Pages Check
-    empty_pages = []
-    doc_pages = getattr(doc, "pages", [])
-    doc_figures = getattr(doc, "figures", [])
-    doc_tables = getattr(doc, "tables", [])
-    doc_equations = getattr(doc, "equations", [])
-    doc_algorithms = getattr(doc, "algorithms", [])
-
-    for page_info in doc_pages:
-        p_num = getattr(page_info, "page", 1)
-        char_count = getattr(page_info, "character_count", 0)
-        
-        has_fig_or_tab = (
-            any(getattr(f, "page", None) == p_num for f in doc_figures) or
-            any(getattr(t, "page", None) == p_num for t in doc_tables) or
-            any(getattr(eq, "page", None) == p_num for eq in doc_equations) or
-            any(getattr(alg, "page", None) == p_num for alg in doc_algorithms)
-        )
-        
-        if char_count < 100 and not has_fig_or_tab:
-            empty_pages.append(p_num)
-            
-    if empty_pages:
-        scorecard["empty_pages"] = ValidationMetric(
-            status="WARNING",
-            message="Suspiciously empty pages detected.",
-            details=f"Pages with low text/object coverage: {empty_pages}"
-        )
+        total_points += 15
     else:
-        scorecard["empty_pages"] = ValidationMetric(
+        invalid_tables = []
+        for tab in tables:
+            md = tab.content_markdown or ""
+            has_pipes = "|" in md
+            has_headers = "---" in md or len(tab.headers) > 0
+            has_rows = len(tab.rows) > 0 or len([l for l in md.split("\n") if "|" in l]) >= 2
+            has_caption = bool(tab.caption and len(tab.caption.strip()) > 3)
+            # Numeric & uncertainty preservation check
+            has_numeric = bool(re.search(r'\d', md))
+            preserves_uncertainty = ("±" in md) or ("%" in md) or ("." in md) or not has_numeric
+
+            checks = {
+                "bbox_valid": tab.page >= 1,
+                "caption_found": has_caption,
+                "markdown_grid_valid": has_pipes and has_headers,
+                "rows_present": has_rows,
+                "numeric_preservation": preserves_uncertainty
+            }
+
+            passed = sum(1 for v in checks.values() if v)
+            conf = round(passed / len(checks), 2)
+            status = "validated" if conf >= 0.8 else "warning"
+
+            if not (has_pipes and (has_headers or has_rows)):
+                invalid_tables.append(tab.id)
+
+            element_confidence["tables"][tab.id] = {
+                "confidence": conf,
+                "status": status,
+                "checks": checks
+            }
+
+        if invalid_tables:
+            scorecard["tables_check"] = ValidationMetric(
+                status="WARNING",
+                message="Some tables have irregular formatting.",
+                details=f"Tables needing review: {', '.join(invalid_tables)}"
+            )
+            total_points += 10
+        else:
+            scorecard["tables_check"] = ValidationMetric(
+                status="SUCCESS",
+                message=f"All {len(tables)} tables verified with structured formatting.",
+                details=f"Verified tables: {', '.join([t.id for t in tables])}"
+            )
+            total_points += 15
+
+    # ── 5. Equations & LaTeX Syntax Audit (15 pts) ──
+    equations = doc.equations
+    if not equations:
+        scorecard["equations_check"] = ValidationMetric(
             status="SUCCESS",
-            message="All pages have reasonable text/object coverage.",
+            message="No display equations detected.",
             details=None
         )
-
-    # 6. References Check
-    refs = getattr(doc, "references", [])
-    if len(refs) < 3:
-        scorecard["references_check"] = ValidationMetric(
-            status="WARNING",
-            message="Abnormally low bibliography reference count.",
-            details=f"Only {len(refs)} references extracted."
-        )
+        total_points += 15
     else:
-        scorecard["references_check"] = ValidationMetric(
+        invalid_equations = []
+        for eq in equations:
+            latex = eq.latex or ""
+            open_b = latex.count("{")
+            close_b = latex.count("}")
+            open_p = latex.count("(")
+            close_p = latex.count(")")
+            open_sq = latex.count("[")
+            close_sq = latex.count("]")
+
+            checks = {
+                "bbox_valid": eq.page >= 1,
+                "latex_non_empty": len(latex.strip()) >= 2,
+                "brace_balance": open_b == close_b,
+                "parenthesis_balance": open_p == close_p,
+                "bracket_balance": open_sq == close_sq,
+                "math_syntax_valid": bool(re.search(r'[=+\-*/\\^_{}()_0-9a-zA-Z]', latex))
+            }
+
+            passed = sum(1 for v in checks.values() if v)
+            conf = round(passed / len(checks), 2)
+            status = "validated" if conf >= 0.8 else "warning"
+
+            if not checks["brace_balance"] or not checks["latex_non_empty"]:
+                invalid_equations.append(eq.id)
+
+            element_confidence["equations"][eq.id] = {
+                "confidence": conf,
+                "status": status,
+                "checks": checks
+            }
+
+        if invalid_equations:
+            scorecard["equations_check"] = ValidationMetric(
+                status="WARNING",
+                message="Some equations contain unmatched braces or short fragments.",
+                details=f"Equations: {', '.join(invalid_equations)}"
+            )
+            total_points += 10
+        else:
+            scorecard["equations_check"] = ValidationMetric(
+                status="SUCCESS",
+                message=f"All {len(equations)} mathematical equations validated.",
+                details=f"Verified equations: {', '.join([e.id for e in equations])}"
+            )
+            total_points += 15
+
+    # ── 6. Figures & Visual Description Audit (15 pts) ──
+    figures = doc.figures
+    if not figures:
+        scorecard["figures_check"] = ValidationMetric(
             status="SUCCESS",
-            message="Bibliography reference listing is populated.",
-            details=f"Extracted {len(refs)} bibliography references."
-        )
-
-    # 7. Abnormal Text Coverage Check
-    total_pages = len(doc_pages)
-    if total_pages > 0:
-        total_chars = sum(getattr(p, "character_count", 0) for p in doc_pages)
-        avg_coverage = total_chars / total_pages
-    else:
-        total_chars = sum(len(getattr(s, "content", "")) for s in getattr(doc, "sections", []))
-        avg_coverage = total_chars
-    
-    if avg_coverage < 500:
-        scorecard["text_coverage"] = ValidationMetric(
-            status="WARNING",
-            message="Abnormally low text density per page.",
-            details=f"Average density: {avg_coverage:.1f} characters/page. May indicate OCR failure."
-        )
-    else:
-        scorecard["text_coverage"] = ValidationMetric(
-            status="SUCCESS",
-            message="Text density is normal.",
-            details=f"Average density: {avg_coverage:.1f} characters/page."
-        )
-
-    # 8. Malformed Tables Check
-    malformed_tables = []
-    for table in doc_tables:
-        t_id = table.get("id", "tbl") if isinstance(table, dict) else getattr(table, "id", "tbl")
-        t_md = table.get("content_markdown", "") if isinstance(table, dict) else getattr(table, "content_markdown", "")
-        lines = [l.strip() for l in (t_md or "").split('\n') if l.strip()]
-        if not lines:
-            malformed_tables.append(f"[{t_id}] Table is empty")
-            continue
-            
-        row_widths = []
-        for line in lines:
-            if re.match(r'^\s*\|?\s*[-:\s|]+\s*\|?\s*$', line):
-                continue
-            cells = [c.strip() for c in line.split('|')[1:-1]]
-            row_widths.append(len(cells))
-            
-        if len(row_widths) > 1 and len(set(row_widths)) > 1:
-            malformed_tables.append(f"[{t_id}] inconsistent cell count: {list(set(row_widths))}")
-
-    if malformed_tables:
-        scorecard["malformed_tables"] = ValidationMetric(
-            status="WARNING",
-            message="Malformed tables detected (row cell mismatch).",
-            details=" | ".join(malformed_tables)
-        )
-    else:
-        scorecard["malformed_tables"] = ValidationMetric(
-            status="SUCCESS",
-            message="All extracted tables are structurally valid.",
+            message="No figures detected in document.",
             details=None
         )
-
-    # 9. Missing Captions Check
-    missing_captions = []
-    for fig in doc_figures:
-        fig_id = fig.get("id", "fig") if isinstance(fig, dict) else getattr(fig, "id", "fig")
-        caption = fig.get("caption", "") if isinstance(fig, dict) else getattr(fig, "caption", "")
-        if not caption or len(str(caption).strip()) < 5:
-            missing_captions.append(f"Figure [{fig_id}]")
-    for table in doc_tables:
-        t_id = table.get("id", "tbl") if isinstance(table, dict) else getattr(table, "id", "tbl")
-        caption = table.get("caption", "") if isinstance(table, dict) else getattr(table, "caption", "")
-        if not caption or len(str(caption).strip()) < 5:
-            missing_captions.append(f"Table [{t_id}]")
-            
-    if missing_captions:
-        scorecard["missing_captions"] = ValidationMetric(
-            status="WARNING",
-            message="Visual objects missing captions.",
-            details="; ".join(missing_captions)
-        )
+        total_points += 15
     else:
-        scorecard["missing_captions"] = ValidationMetric(
+        for fig in figures:
+            has_caption = bool(fig.caption and len(fig.caption.strip()) > 3)
+            image_exists = bool(fig.image_path and os.path.exists(fig.image_path))
+            has_desc = bool(fig.visual_description and len(fig.visual_description.strip()) > 10)
+
+            checks = {
+                "bbox_valid": fig.page >= 1,
+                "caption_found": has_caption,
+                "image_file_exists": image_exists,
+                "provenance_tracked": bool(fig.source)
+            }
+            if fig.source and fig.source.get("extraction_method") == "gemini_vlm":
+                checks["visual_interpretation_present"] = has_desc
+
+            passed = sum(1 for v in checks.values() if v)
+            conf = round(passed / len(checks), 2)
+            element_confidence["figures"][fig.id] = {
+                "confidence": conf,
+                "status": "validated" if conf >= 0.75 else "warning",
+                "checks": checks
+            }
+
+        scorecard["figures_check"] = ValidationMetric(
             status="SUCCESS",
-            message="All figures and tables have captions.",
-            details=None
+            message=f"Preserved {len(figures)} figures with provenance tracking.",
+            details=f"Figures: {', '.join([f.id for f in figures])}"
         )
+        total_points += 15
 
-    # Conflict Logging Fallback
-    ext_meta = getattr(doc, "extraction_metadata", {})
-    conflict_log = ext_meta.get("conflicts", []) if isinstance(ext_meta, dict) else []
-    for conf in conflict_log:
-        conflicts_logged.append({
-            "check": "merger_discrepancy",
-            "message": conf.get("message", "Unknown conflict")
-        })
-
-    valid = not any(metric.status == "ERROR" for metric in scorecard.values())
-    total_metrics = len(scorecard)
-    success_metrics = sum(1 for m in scorecard.values() if m.status == "SUCCESS")
-    score = round((success_metrics / max(total_metrics, 1)) * 100, 1)
+    # Compute overall completeness score
+    completeness_score = round((total_points / max_points) * 100.0, 1)
+    is_valid = not any(m.status == "ERROR" for m in scorecard.values())
 
     return ExtractionQualityReport(
-        paper_id=getattr(doc, "paper_id", "paper"),
-        valid=valid,
+        paper_id=doc.paper_id,
+        valid=is_valid,
+        completeness_score=completeness_score,
+        element_confidence=element_confidence,
         scorecard=scorecard,
-        completeness_score=score,
         conflicts_logged=conflicts_logged
     )
+

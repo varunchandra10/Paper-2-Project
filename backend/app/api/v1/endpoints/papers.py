@@ -7,11 +7,12 @@ from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import FileResponse
 from app.core.config import settings
-from app.core.quota_tracker import quota_tracker
+from app.core.quota_tracker import quota_tracker, daily_quota_manager
 from app.extraction.pdf_parser import parse_pdf_document
 from app.retrieval.chunker import chunk_paper_document
 from app.retrieval.vector_db import PaperVectorDB
 from app.core.database import ChatDatabase
+from app.retrieval.knowledge_graph import PaperKnowledgeGraph
 
 router = APIRouter()
 
@@ -25,6 +26,8 @@ def get_paper_slug_id(filename: str) -> str:
 
 
 @router.post("/upload")
+@router.post("/papers/upload")
+@router.post("/papers")
 @router.post("/history/upload")
 async def upload_pdf(file: UploadFile = File(...), model_name: str = "llama-3.3-70b"):
     """Uploads PDF paper file into storage/papers/, parses document layout, and indexes RAG vector search DB."""
@@ -37,7 +40,8 @@ async def upload_pdf(file: UploadFile = File(...), model_name: str = "llama-3.3-
 
     db = ChatDatabase()
     existing = db.get_paper_by_hash(file_hash)
-    if existing:
+    candidate_json = os.path.join(settings.EXTRACTED_JSON_DIR, f"{existing['paper_id']}.json") if existing else ""
+    if existing and os.path.exists(candidate_json):
         print(f"[PAPERS] Deduplication match for '{file.filename}' (existing paper_id: {existing['paper_id']})")
         conv_id = existing.get("conversation_id")
         if conv_id:
@@ -111,6 +115,8 @@ async def upload_pdf(file: UploadFile = File(...), model_name: str = "llama-3.3-
         except Exception as kg_err:
             print(f"[PAPERS WARN] Knowledge graph build error ({kg_err}).")
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         print(f"[PAPERS WARN] PDF parsing & vector indexing warning ({e}). File saved to disk.")
 
     meta_title = None
@@ -156,8 +162,17 @@ async def upload_pdf(file: UploadFile = File(...), model_name: str = "llama-3.3-
         "conversation_id": conv_id,
         "filename": file.filename,
         "title": display_title,
-        "limits": quota_tracker.get_limits_summary()
+        "limits": quota_tracker.get_limits_summary(),
+        "daily_quota": daily_quota_manager.get_quota_summary()
     }
+
+
+@router.get("/papers/quota")
+@router.get("/quota")
+def get_daily_papers_quota():
+    """Returns real-time daily extraction budget and VLM quota usage."""
+    from app.core.quota_tracker import daily_quota_manager
+    return daily_quota_manager.get_quota_summary()
 
 
 @router.get("/papers")
@@ -242,6 +257,7 @@ def delete_paper(paper_id: str):
     return {"status": "success", "deleted": paper_id, "file_removed": deleted_any}
 
 
+@router.get("/papers/{paper_id}")
 @router.get("/history/{paper_id}")
 def get_paper_history(paper_id: str):
     """Retrieves extracted paper report state JSON."""
@@ -413,6 +429,7 @@ def synthesize_paper_codebase_endpoint(paper_id: str, model_name: Optional[str] 
     }
 
 
+@router.get("/papers/{paper_id}/task")
 @router.get("/history/{paper_id}/task")
 def get_paper_task(paper_id: str):
     """Returns the implementation task checklist and build sequence for a paper."""
@@ -455,6 +472,7 @@ def get_paper_task(paper_id: str):
     }
 
 
+@router.get("/papers/{paper_id}/walkthrough")
 @router.get("/history/{paper_id}/walkthrough")
 def get_paper_walkthrough(paper_id: str):
     """Returns the verification walkthrough and architecture blueprint for a paper."""
@@ -499,22 +517,59 @@ def get_paper_walkthrough(paper_id: str):
 
 
 @router.get("/papers/{paper_id}/knowledge_graph")
+@router.get("/papers/{paper_id}/knowledge-graph")
 @router.get("/papers/{paper_id}/graph")
 def get_paper_knowledge_graph(paper_id: str):
-    """Retrieves or builds the NetworkX knowledge graph for a paper, returning node-link JSON and summary."""
+    """Retrieves or builds the 7-level NetworkX knowledge graph for a paper, returning node-link JSON and summary."""
     from app.retrieval.knowledge_graph import PaperKnowledgeGraph
     import networkx as nx
     clean_id = paper_id.strip("[]")
     kg = PaperKnowledgeGraph(clean_id)
     data = nx.node_link_data(kg.graph)
     topology = kg.get_codegen_topology()
+    visualization = kg.export_visualization_graph()
+    consistency = kg.validate_consistency()
     return {
         "paper_id": clean_id,
         "nodes_count": len(kg.graph.nodes),
         "edges_count": len(kg.graph.edges),
+        "hierarchy_levels": 7,
         "topology": topology,
+        "consistency": consistency,
+        "visualization": visualization,
         "graph": data
     }
+
+
+@router.get("/papers/{paper_id}/knowledge_graph/validate")
+@router.get("/papers/{paper_id}/knowledge-graph/validate")
+def validate_paper_knowledge_graph(paper_id: str):
+    """Audits structural consistency, DAG acyclicity, and parameter grounding of the knowledge graph."""
+    from app.retrieval.knowledge_graph import PaperKnowledgeGraph
+    clean_id = paper_id.strip("[]")
+    kg = PaperKnowledgeGraph(clean_id)
+    return kg.validate_consistency()
+
+
+@router.get("/papers/{paper_id}/knowledge_graph/trace/{entity_name}")
+@router.get("/papers/{paper_id}/knowledge-graph/trace/{entity_name}")
+def trace_entity_evidence(paper_id: str, entity_name: str):
+    """Traces evidence provenance backwards through the 7-level hierarchy (Parameter -> Component -> Section -> Paper)."""
+    from app.retrieval.knowledge_graph import PaperKnowledgeGraph
+    clean_id = paper_id.strip("[]")
+    kg = PaperKnowledgeGraph(clean_id)
+    return kg.trace_parameter_evidence(entity_name)
+
+
+@router.get("/papers/{paper_id}/manifest")
+def get_paper_manifest(paper_id: str):
+    """Retrieves execution run manifest for paper."""
+    from app.core.manifest import get_manifest
+    clean_id = paper_id.strip("[]")
+    manifest = get_manifest(clean_id)
+    if not manifest:
+        raise HTTPException(status_code=404, detail=f"No run manifest found for '{clean_id}'.")
+    return manifest
 
 
 def ensure_all_knowledge_graphs():

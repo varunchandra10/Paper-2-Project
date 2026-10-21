@@ -1,0 +1,161 @@
+{
+  "character": "Ms. Nerdy",
+  "animation_id": "mad",
+  "title": "Angry",
+  "source_file": "Eight-Frame Angry Scientist Animation Strip.png",
+  "strategy": "complete_standardized",
+  "frame_count": 8,
+  "canvas_size": [
+    640,
+    740
+  ],
+  "anchor": "feet",
+  "anchor_coordinates": [
+    320,
+    700
+  ],
+  "loop": true,
+  "frame_duration_ms": 300,
+  "fps": 3.3,
+  "props": [
+    "anger steam"
+  ],
+  "frames": [
+    {
+      "index": 0,
+      "filename": "frame_00.png",
+      "rel_path": "assets/processed/mad/frames/frame_00.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        193,
+        89,
+        446,
+        697
+      ],
+      "fg_width": 254,
+      "fg_height": 609,
+      "foot_y": 697,
+      "center_x": 320.0
+    },
+    {
+      "index": 1,
+      "filename": "frame_01.png",
+      "rel_path": "assets/processed/mad/frames/frame_01.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        192,
+        92,
+        448,
+        697
+      ],
+      "fg_width": 257,
+      "fg_height": 606,
+      "foot_y": 697,
+      "center_x": 320.5
+    },
+    {
+      "index": 2,
+      "filename": "frame_02.png",
+      "rel_path": "assets/processed/mad/frames/frame_02.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        184,
+        101,
+        456,
+        697
+      ],
+      "fg_width": 273,
+      "fg_height": 597,
+      "foot_y": 697,
+      "center_x": 320.5
+    },
+    {
+      "index": 3,
+      "filename": "frame_03.png",
+      "rel_path": "assets/processed/mad/frames/frame_03.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        184,
+        86,
+        456,
+        697
+      ],
+      "fg_width": 273,
+      "fg_height": 612,
+      "foot_y": 697,
+      "center_x": 320.5
+    },
+    {
+      "index": 4,
+      "filename": "frame_04.png",
+      "rel_path": "assets/processed/mad/frames/frame_04.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        168,
+        64,
+        472,
+        697
+      ],
+      "fg_width": 305,
+      "fg_height": 634,
+      "foot_y": 697,
+      "center_x": 320.5
+    },
+    {
+      "index": 5,
+      "filename": "frame_05.png",
+      "rel_path": "assets/processed/mad/frames/frame_05.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        184,
+        98,
+        454,
+        697
+      ],
+      "fg_width": 271,
+      "fg_height": 600,
+      "foot_y": 697,
+      "center_x": 319.5
+    },
+    {
+      "index": 6,
+      "filename": "frame_06.png",
+      "rel_path": "assets/processed/mad/frames/frame_06.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        187,
+        91,
+        452,
+        700
+      ],
+      "fg_width": 266,
+      "fg_height": 610,
+      "foot_y": 700,
+      "center_x": 320.0
+    },
+    {
+      "index": 7,
+      "filename": "frame_07.png",
+      "rel_path": "assets/processed/mad/frames/frame_07.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        192,
+        89,
+        447,
+        700
+      ],
+      "fg_width": 256,
+      "fg_height": 612,
+      "foot_y": 700,
+      "center_x": 320.0
+    }
+  ]
+}

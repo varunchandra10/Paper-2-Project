@@ -249,6 +249,7 @@ def get_model_limits():
 
 
 @router.get("/dual-engine")
+@router.get("/status")
 def get_dual_engine_status():
     """Returns availability and configuration of the dedicated Gemini + Hugging Face Dual Code Engine."""
     hf_active = settings.has_huggingface()

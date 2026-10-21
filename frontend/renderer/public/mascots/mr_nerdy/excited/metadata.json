@@ -1,0 +1,159 @@
+{
+  "character": "Mr. Nerdy",
+  "animation_id": "excited",
+  "title": "Excited",
+  "source_file": "excited.png",
+  "strategy": "complete_standardized",
+  "frame_count": 8,
+  "canvas_size": [
+    640,
+    740
+  ],
+  "anchor": "feet",
+  "anchor_coordinates": [
+    320,
+    700
+  ],
+  "loop": true,
+  "frame_duration_ms": 300,
+  "fps": 3.3,
+  "props": [],
+  "frames": [
+    {
+      "index": 0,
+      "filename": "frame_00.png",
+      "rel_path": "assets/processed/excited/frames/frame_00.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        214,
+        130,
+        426,
+        700
+      ],
+      "fg_width": 213,
+      "fg_height": 571,
+      "foot_y": 700,
+      "center_x": 320.5
+    },
+    {
+      "index": 1,
+      "filename": "frame_01.png",
+      "rel_path": "assets/processed/excited/frames/frame_01.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        207,
+        127,
+        432,
+        700
+      ],
+      "fg_width": 226,
+      "fg_height": 574,
+      "foot_y": 700,
+      "center_x": 320.0
+    },
+    {
+      "index": 2,
+      "filename": "frame_02.png",
+      "rel_path": "assets/processed/excited/frames/frame_02.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        186,
+        132,
+        452,
+        700
+      ],
+      "fg_width": 267,
+      "fg_height": 569,
+      "foot_y": 700,
+      "center_x": 319.5
+    },
+    {
+      "index": 3,
+      "filename": "frame_03.png",
+      "rel_path": "assets/processed/excited/frames/frame_03.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        184,
+        86,
+        455,
+        691
+      ],
+      "fg_width": 272,
+      "fg_height": 606,
+      "foot_y": 691,
+      "center_x": 320.0
+    },
+    {
+      "index": 4,
+      "filename": "frame_04.png",
+      "rel_path": "assets/processed/excited/frames/frame_04.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        184,
+        122,
+        455,
+        700
+      ],
+      "fg_width": 272,
+      "fg_height": 579,
+      "foot_y": 700,
+      "center_x": 320.0
+    },
+    {
+      "index": 5,
+      "filename": "frame_05.png",
+      "rel_path": "assets/processed/excited/frames/frame_05.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        184,
+        141,
+        454,
+        700
+      ],
+      "fg_width": 271,
+      "fg_height": 560,
+      "foot_y": 700,
+      "center_x": 319.5
+    },
+    {
+      "index": 6,
+      "filename": "frame_06.png",
+      "rel_path": "assets/processed/excited/frames/frame_06.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        184,
+        130,
+        454,
+        700
+      ],
+      "fg_width": 271,
+      "fg_height": 571,
+      "foot_y": 700,
+      "center_x": 319.5
+    },
+    {
+      "index": 7,
+      "filename": "frame_07.png",
+      "rel_path": "assets/processed/excited/frames/frame_07.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        214,
+        130,
+        425,
+        700
+      ],
+      "fg_width": 212,
+      "fg_height": 571,
+      "foot_y": 700,
+      "center_x": 320.0
+    }
+  ]
+}

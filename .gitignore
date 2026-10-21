@@ -3,14 +3,18 @@
 open_models.md
 __pycache__/
 .pytest_cache/
+.pytest_temp/
 
 .env
 .env*
 *.env
 backend/.env
 backend/.env*
+!backend/.env.example
+!**/.env.example
 
-frontend/node_modules
+node_modules/
+**/node_modules/
 frontend/src/uploads
 landing_page
 # Internal planning docs
@@ -20,4 +24,13 @@ docs/new_backend_docs/e_2_e_reports
 /ignored_folders
 
 /mockups
+sprites/
+/docs
+recordings/
+*.mp4
+*.webm
 
+# Temporary build & test artifacts
+temp_frames/
+backend/reports/
+website/RUEXIS_AI_Showcase_Plan_MD/

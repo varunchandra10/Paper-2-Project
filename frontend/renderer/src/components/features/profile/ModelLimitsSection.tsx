@@ -113,13 +113,13 @@ export const ModelLimitsSection: React.FC = () => {
           const groqRem = serverMetrics?.groq?.remaining_requests;
           const groqLim = serverMetrics?.groq?.limit_requests || 1000;
           const groqReqPct = groqRem != null && groqLim > 0
-            ? (groqRem < groqLim ? Math.min(99, Math.floor((groqRem / groqLim) * 100)) : 100)
+            ? Math.max(0, Math.min(100, Math.round((groqRem / groqLim) * 100)))
             : 100;
 
           const groqTokRem = serverMetrics?.groq?.remaining_tokens;
           const groqTokLim = serverMetrics?.groq?.limit_tokens || 8000;
           const groqTokPct = groqTokRem != null && groqTokLim > 0
-            ? (groqTokRem < groqTokLim ? Math.min(99, Math.floor((groqTokRem / groqTokLim) * 100)) : 100)
+            ? Math.max(0, Math.min(100, Math.round((groqTokRem / groqTokLim) * 100)))
             : 100;
 
           return (

@@ -371,8 +371,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ isMaximized, isOpen, o
             </div>
           )}
 
-          {/* ── BOTTOM ANCHORED MASCOT COMPANION DOCK (Maximized Mode Only) ── */}
-          {isMaximized && (
+          {/* ── BOTTOM ANCHORED MASCOT COMPANION DOCK ── */}
+          {isOpen && (
             <div className="p-2 border-t app-border shrink-0 bg-[var(--bg-base)]/40 flex justify-center">
               <MascotBox isOpen={isOpen} isMaximized={isMaximized} />
             </div>

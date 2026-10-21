@@ -60,7 +60,8 @@ class PaperRepository:
             paper_id = info.get("paper_id")
             dest_pdf = os.path.join(settings.PAPERS_DIR, f"{paper_id}.pdf")
             dest_docx = os.path.join(settings.PAPERS_DIR, f"{paper_id}.docx")
-            if os.path.exists(dest_pdf) or os.path.exists(dest_docx):
+            dest_json = os.path.join(settings.EXTRACTED_JSON_DIR, f"{paper_id}.json")
+            if (os.path.exists(dest_pdf) or os.path.exists(dest_docx)) and os.path.exists(dest_json):
                 return info
             else:
                 # Stale hash entry (underlying file removed from disk)

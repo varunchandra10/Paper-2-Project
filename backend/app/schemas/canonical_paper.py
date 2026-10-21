@@ -36,6 +36,8 @@ class Section(BaseModel):
     )
     page_start: int = Field(default=1, description="The 1-based page number where this section starts")
     page_end: int = Field(default=1, description="The 1-based page number where this section ends")
+    source: Optional[Dict[str, Any]] = Field(default=None, description="Detailed provenance info (page, bbox, parser)")
+    confidence: float = Field(default=1.0, ge=0.0, le=1.0, description="Extraction confidence score from 0.0 to 1.0")
 
 
 class Figure(BaseModel):
@@ -43,6 +45,13 @@ class Figure(BaseModel):
     id: str = Field(description="Unique figure identifier (e.g. 'fig_1')")
     caption: str = Field(default="", description="Full caption text associated with this figure")
     page: int = Field(default=1, description="1-based page number containing the figure")
+    visual_description: Optional[str] = Field(default=None, description="High-level visual interpretation of flowcharts/architectures")
+    image_path: Optional[str] = Field(default=None, description="Local path to cropped image asset")
+    components: List[str] = Field(default_factory=list, description="Sub-components detected in diagram")
+    relationships: List[str] = Field(default_factory=list, description="Directional connections and arrows")
+    source: Optional[Dict[str, Any]] = Field(default=None, description="Provenance tracking coordinates and extraction method")
+    vlm_used: bool = Field(default=False, description="True only if multimodal VLM visual reasoning was executed for this figure")
+    confidence: float = Field(default=1.0, ge=0.0, le=1.0, description="Element extraction confidence score")
 
 
 class Table(BaseModel):
@@ -51,6 +60,11 @@ class Table(BaseModel):
     caption: str = Field(default="", description="Full caption text associated with this table")
     content_markdown: str = Field(default="", description="Markdown-formatted tabular string representation")
     page: int = Field(default=1, description="1-based page number containing the table")
+    headers: List[str] = Field(default_factory=list, description="Extracted column header names")
+    rows: List[List[str]] = Field(default_factory=list, description="Row-wise matrix cells")
+    source: Optional[Dict[str, Any]] = Field(default=None, description="Provenance tracking coordinates and extraction method")
+    vlm_used: bool = Field(default=False, description="True only if multimodal VLM was executed to transcribe this table")
+    confidence: float = Field(default=1.0, ge=0.0, le=1.0, description="Element extraction confidence score")
 
 
 class Equation(BaseModel):
@@ -59,6 +73,10 @@ class Equation(BaseModel):
     latex: str = Field(description="LaTeX string representation of the equation")
     page: int = Field(default=1, description="1-based page number containing the equation")
     caption: Optional[str] = Field(default=None, description="Optional caption or identifier name")
+    variables: List[str] = Field(default_factory=list, description="Defined mathematical variables")
+    source: Optional[Dict[str, Any]] = Field(default=None, description="Provenance tracking coordinates and extraction method")
+    vlm_used: bool = Field(default=False, description="True only if multimodal VLM was executed for LaTeX transcription")
+    confidence: float = Field(default=1.0, ge=0.0, le=1.0, description="Element extraction confidence score")
 
 
 class Algorithm(BaseModel):
@@ -67,6 +85,9 @@ class Algorithm(BaseModel):
     caption: str = Field(default="", description="Caption text for this algorithm")
     pseudocode: str = Field(default="", description="The raw pseudocode lines or logic text block")
     page: int = Field(default=1, description="1-based page number containing the algorithm")
+    source: Optional[Dict[str, Any]] = Field(default=None, description="Provenance tracking coordinates and extraction method")
+
+    confidence: float = Field(default=1.0, ge=0.0, le=1.0, description="Element extraction confidence score")
 
 
 class Citation(BaseModel):
@@ -120,6 +141,10 @@ class ExtractionQualityReport(BaseModel):
     paper_id: str = Field(description="Normalized paper ID")
     valid: bool = Field(default=True, description="True if the document contains zero 'ERROR' flags")
     completeness_score: Optional[float] = Field(default=None, description="Quality completeness score percentage from 0 to 100")
+    element_confidence: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Granular element-level extraction confidence breakdown (text, tables, figures, equations)"
+    )
     scorecard: Dict[str, ValidationMetric] = Field(
         default_factory=dict,
         description="Key-value scorecard mapping validation checks to their status metrics"

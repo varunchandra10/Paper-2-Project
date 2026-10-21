@@ -9,6 +9,7 @@ Enforces AST syntax validation, security checks, and cross-engine failover.
 """
 
 import ast
+import time
 import asyncio
 import httpx
 from typing import Dict, Any, Optional, Tuple
@@ -335,6 +336,61 @@ class DualCodeEngine:
 
         return "", ""
 
+    def generate_single_model_code_response(
+        self,
+        query: str,
+        context: str = "",
+        model_choice: str = "gemini"
+    ) -> Tuple[str, str]:
+        """
+        Baseline Single Model generator (no dual-candidate tournament, no failover, no cross-repair).
+        Used for Phase 14 comparative optimization benchmark.
+        """
+        code_prompt = build_code_synthesis_user_prompt(query, context)
+        start_t = time.time()
+
+        if model_choice == "huggingface" and settings.has_huggingface():
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    import concurrent.futures
+                    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
+                        res = ex.submit(asyncio.run, self.generate_huggingface(code_prompt)).result()
+                else:
+                    res = loop.run_until_complete(self.generate_huggingface(code_prompt))
+            except Exception:
+                res = asyncio.run(self.generate_huggingface(code_prompt))
+            model_name = self.hf_model
+            provider = "Hugging Face (Single Model)"
+        else:
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    import concurrent.futures
+                    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
+                        res = ex.submit(asyncio.run, self.generate_gemini(code_prompt)).result()
+                else:
+                    res = loop.run_until_complete(self.generate_gemini(code_prompt))
+            except Exception:
+                res = asyncio.run(self.generate_gemini(code_prompt))
+            model_name = self.gemini_model
+            provider = "Google Gemini (Single Model)"
+
+        raw_code = res.get("raw", "")
+        duration_ms = (time.time() - start_t) * 1000.0
+
+        from app.core.cost_optimizer import cost_optimizer
+        cost_optimizer.record_call(
+            stage="code_synthesis_single",
+            model_name=model_name,
+            prompt=code_prompt,
+            completion=raw_code,
+            duration_ms=duration_ms
+        )
+
+        return raw_code, provider
+
 
 # Global singleton instance
 dual_code_engine = DualCodeEngine()
+

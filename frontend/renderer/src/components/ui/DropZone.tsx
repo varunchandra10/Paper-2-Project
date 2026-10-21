@@ -57,8 +57,19 @@ export const DropZone: React.FC = () => {
     if (window.mascotAPI?.openFileSelector) {
       window.mascotAPI.openFileSelector(type, selectedModel);
     } else {
-      if (type === 'pdf') pdfInputRef.current?.click();
-      else docxInputRef.current?.click();
+      if (type === 'pdf') {
+        fetch('/LoRA.pdf')
+          .then((r) => r.blob())
+          .then((blob) => {
+            const file = new File([blob], 'LoRA.pdf', { type: 'application/pdf' });
+            processFile(file, 'pdf');
+          })
+          .catch(() => {
+            pdfInputRef.current?.click();
+          });
+      } else {
+        docxInputRef.current?.click();
+      }
     }
   };
 

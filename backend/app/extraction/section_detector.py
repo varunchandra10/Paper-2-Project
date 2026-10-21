@@ -12,29 +12,171 @@ from app.extraction.constants import (
 )
 
 
-def _detect_title(pages_data: List[Dict[str, Any]]) -> str:
-    """Finds the paper title using font size heuristics on page 1."""
+AFFILIATION_KEYWORDS = {
+    "department", "dept", "university", "college", "school", "institute", 
+    "faculty", "center", "centre", "laboratory", "laboratories", "lab", 
+    "hospital", "email", "emails", "@", "india", "usa", "china", "germany",
+    "united kingdom", "campus", "author", "contributed", "correspondence", 
+    "corresponding", "technology", "sciences", "engineering", "corporation",
+    "corp", "inc", "microsoft", "google", "meta", "openai", "amazon", "apple",
+    "version", "published"
+}
+
+BANNER_PATTERNS = re.compile(
+    r'^\s*(vol(?:ume)?[\.\s]?\d|\d{4}\s*[-\u2013]\s*\d{4}|doi\s*:|http[s]?://|copyright\s*©|'
+    r'ieee\b|elsevier\b|springer\b|mdpi\b|arxiv\s*:\s*\d|received\b|accepted\b|published\b|'
+    r'journal\s+of|proceedings\s+of|transactions\s+on|manuscript\s+id|under\s+review|preprint)',
+    re.IGNORECASE
+)
+
+
+def _is_banner_block(text: str) -> bool:
+    clean = text.strip()
+    if not clean or len(clean) < 4:
+        return True
+    return bool(BANNER_PATTERNS.search(clean))
+
+
+def _clean_author_name(name: str) -> Optional[str]:
+    # Strip footnote numbers, unicode asterisks (∗ \u2217), daggers, braces, brackets
+    n = re.sub(r'[\d\*\†\‡\§\#\u2217\u2020\u2021\{\}\(\)\[\]]+', ' ', name)
+    n = re.sub(r'\b(dr|prof|mr|mrs|ms|ph\.?d|m\.?tech|b\.?tech)\.?\s*', '', n, flags=re.IGNORECASE)
+    n = re.sub(r'\s+', ' ', n).strip()
+    if len(n) < 3 or len(n) > 40:
+        return None
+    letters = sum(c.isalpha() for c in n)
+    if letters < 3:
+        return None
+    lower = n.lower()
+    if any(k in lower for k in [
+        "university", "department", "college", "email", "@", "school", "institute",
+        "corporation", "corp", "inc", "microsoft", "google", "meta", "openai", "amazon",
+        "version", "research", "laborator", "center", "centre"
+    ]):
+        return None
+    # Reject email slugs or fragments
+    if "@" in n or "{" in name or "}" in name or ".com" in lower or ".edu" in lower or ".org" in lower:
+        return None
+    return n.title() if n.isupper() else n
+
+
+def _extract_frontmatter(pages_data: List[Dict[str, Any]], body_font_size: float) -> Tuple[str, List[str], str, int]:
+    """
+    Parses Page 1 before the Abstract to extract:
+    (title, authors_list, affiliations, abstract_block_idx)
+    """
     if not pages_data:
-        return "Unknown Title"
-    
+        return "Unknown Title", [], "", -1
+
     page_1 = pages_data[0]
     blocks = page_1.get("blocks", [])
     if not blocks:
-        return "Unknown Title"
-        
-    max_size = 0.0
-    title_text = ""
+        return "Unknown Title", [], "", -1
+
+    # 1. Locate the Abstract block
+    abstract_idx = -1
+    for idx, b in enumerate(blocks):
+        text = b.get("text", "").strip()
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        first_line = lines[0] if lines else ""
+        if ABSTRACT_INLINE_REGEX.match(first_line) or ABSTRACT_ALONE_REGEX.match(first_line):
+            abstract_idx = idx
+            break
+        if re.match(r'^\s*abstract\b', first_line, re.IGNORECASE):
+            abstract_idx = idx
+            break
+
+    if abstract_idx == -1:
+        abstract_idx = min(6, len(blocks))
+
+    front_blocks = blocks[:abstract_idx]
+    if not front_blocks:
+        return "Unknown Title", [], "", abstract_idx
+
+    # 2. Filter out top banner blocks (e.g. Journal or Conference name)
+    valid_blocks = []
+    for b in front_blocks:
+        if not _is_banner_block(b.get("text", "")):
+            valid_blocks.append(b)
+
+    if not valid_blocks:
+        valid_blocks = front_blocks
+
+    # 3. Detect multi-line title
+    max_font = max((float(b.get("font_size", 10.0)) for b in valid_blocks), default=12.0)
     
-    for b in blocks:
-        text = b["text"].strip()
-        if len(text) < 10 or text.lower().startswith("vol") or "arxiv" in text.lower() or "journal" in text.lower():
-            continue
-            
-        if b.get("font_size", 0.0) > max_size:
-            max_size = b.get("font_size", 0.0)
-            title_text = text
-            
-    return re.sub(r'\s+', ' ', title_text).strip() if title_text else "Unknown Title"
+    title_blocks = []
+    author_blocks = []
+    
+    found_title_start = False
+    for b in valid_blocks:
+        b_font = float(b.get("font_size", 10.0))
+        is_title_font = b_font >= max(12.5, max_font - 2.5) or (b_font >= 1.25 * body_font_size and max_font >= 13.0)
+        
+        if is_title_font and not author_blocks:
+            found_title_start = True
+            title_blocks.append(b)
+        elif found_title_start:
+            author_blocks.append(b)
+
+    if not title_blocks:
+        best_b = max(valid_blocks, key=lambda b: float(b.get("font_size", 0.0)))
+        title_blocks = [best_b]
+        author_blocks = [b for b in valid_blocks if b != best_b]
+
+    # Assemble complete title
+    title_text = " ".join(b.get("text", "").strip() for b in title_blocks)
+    title = re.sub(r'\s+', ' ', title_text).strip()
+    if not title:
+        title = "Unknown Title"
+
+    # 4. Extract Authors and Affiliations
+    authors: List[str] = []
+    affiliations_parts: List[str] = []
+
+    for ab in author_blocks:
+        raw_text = ab.get("text", "").strip()
+        lines = [l.strip() for l in raw_text.split("\n") if l.strip()]
+        
+        hit_affiliation = False
+        for line in lines:
+            line_lower = line.lower()
+            is_affil = (
+                hit_affiliation or
+                any(kw in line_lower for kw in AFFILIATION_KEYWORDS) or
+                "@" in line or "{" in line or "}" in line or
+                line.startswith("(") or line.startswith("[") or
+                ".com" in line_lower or ".edu" in line_lower or ".org" in line_lower
+            )
+            if is_affil:
+                hit_affiliation = True
+                affiliations_parts.append(line)
+            else:
+                tokens = re.split(r'[,;\t]|\band\b', line, flags=re.IGNORECASE)
+                for tok in tokens:
+                    c_name = _clean_author_name(tok)
+                    if c_name and c_name not in authors:
+                        authors.append(c_name)
+
+    if len(authors) <= 1 and author_blocks:
+        full_author_raw = "\n".join(ab.get("text", "").strip() for ab in author_blocks)
+        pattern_matches = re.findall(r'([A-Za-z\.\s]{3,35}?)(?:[\d\*\†\‡]+(?:\s*,\s*[\d\*\†\‡]+)*|\n|$)', full_author_raw)
+        alt_authors = []
+        for m in pattern_matches:
+            c = _clean_author_name(m)
+            if c and c not in alt_authors:
+                alt_authors.append(c)
+        if len(alt_authors) > len(authors):
+            authors = alt_authors
+
+    affiliations = "\n".join(affiliations_parts)
+    return title, authors, affiliations, abstract_idx
+
+
+def _detect_title(pages_data: List[Dict[str, Any]]) -> str:
+    """Finds the paper title using frontmatter parser."""
+    title, _, _, _ = _extract_frontmatter(pages_data, 10.0)
+    return title
 
 
 def _compute_body_font_size(pages_data: List[Dict[str, Any]]) -> float:
@@ -129,8 +271,8 @@ def detect_sections(pages_data: List[Dict[str, Any]]) -> Dict[str, Any]:
     Groups page layout blocks into a structured section tree using font size
     heuristics, Roman numerals, hyphenated titles, and pruning rules.
     """
-    title = _detect_title(pages_data)
     body_font_size = _compute_body_font_size(pages_data)
+    title, authors, affiliations, abstract_block_idx = _extract_frontmatter(pages_data, body_font_size)
     
     sections = {}
     current_section = "Metadata / Front Matter"
@@ -170,14 +312,42 @@ def detect_sections(pages_data: List[Dict[str, Any]]) -> Dict[str, Any]:
             if not text:
                 continue
                 
-            lines = text.split('\n')
-            first_line = lines[0].strip()
+            lines = [l.strip() for l in text.split('\n') if l.strip()]
+            if not lines:
+                continue
+            first_line = lines[0]
+            consumed_lines = 1
+
+            # Check if first line is just a section number (e.g. '1', '2', 'IV') with the title on next line
+            if (first_line.isdigit() or re.match(r'^[IVXLCDM]+$', first_line) or re.match(r'^\d+(\.\d+)+$', first_line)) and len(lines) > 1:
+                combined_cand = f"{first_line}. {lines[1]}"
+                h_test, _ = _match_heading_candidate(combined_cand, b, body_font_size)
+                if h_test:
+                    first_line = combined_cand
+                    consumed_lines = 2
             
-            # Abstract detection
-            if not abstract_extracted and ABSTRACT_INLINE_REGEX.match(first_line):
-                abstract_body = ABSTRACT_INLINE_REGEX.sub('', text, count=1).strip()
-                add_content("Abstract", None, abstract_body, page_num)
-                abstract_extracted = True
+            # Prior to Abstract, DO NOT trigger arbitrary section titles
+            if not abstract_extracted:
+                if ABSTRACT_INLINE_REGEX.match(first_line):
+                    abstract_body = ABSTRACT_INLINE_REGEX.sub('', text, count=1).strip()
+                    add_content("Abstract", None, abstract_body, page_num)
+                    abstract_extracted = True
+                    current_section = "Abstract"
+                    current_subsection = None
+                    continue
+
+                heading_candidate, is_major = _match_heading_candidate(first_line, b, body_font_size)
+                if heading_candidate and (ABSTRACT_ALONE_REGEX.match(heading_candidate) or "abstract" in heading_candidate.lower()):
+                    current_section = "Abstract"
+                    current_subsection = None
+                    abstract_extracted = True
+                    rest_text = "\n".join(lines[consumed_lines:]).strip() if len(lines) > consumed_lines else ""
+                    if rest_text:
+                        add_content("Abstract", None, rest_text, page_num)
+                    continue
+
+                # Front matter block before abstract
+                add_content("Metadata / Front Matter", None, text, page_num)
                 continue
                 
             heading_candidate, is_major = _match_heading_candidate(first_line, b, body_font_size)
@@ -189,21 +359,16 @@ def detect_sections(pages_data: List[Dict[str, Any]]) -> Dict[str, Any]:
                     pruning_triggered = True
                     break
                     
-                if ABSTRACT_ALONE_REGEX.match(heading_candidate) and not abstract_extracted:
-                    current_section = "Abstract"
-                    abstract_extracted = True
-                else:
-                    current_section = heading_candidate
-                    
+                current_section = heading_candidate
                 current_subsection = None
                 
-                rest_text = "\n".join(lines[1:]).strip() if len(lines) > 1 else ""
+                rest_text = "\n".join(lines[consumed_lines:]).strip() if len(lines) > consumed_lines else ""
                 if rest_text:
                     add_content(current_section, current_subsection, rest_text, page_num)
                     
             elif heading_candidate and not is_major:
                 current_subsection = heading_candidate
-                rest_text = "\n".join(lines[1:]).strip() if len(lines) > 1 else ""
+                rest_text = "\n".join(lines[consumed_lines:]).strip() if len(lines) > consumed_lines else ""
                 if rest_text:
                     add_content(current_section, current_subsection, rest_text, page_num)
             else:
@@ -217,5 +382,7 @@ def detect_sections(pages_data: List[Dict[str, Any]]) -> Dict[str, Any]:
                 
     return {
         "title": title,
+        "authors": authors,
+        "affiliations": affiliations,
         "sections": sections
     }

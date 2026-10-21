@@ -16,11 +16,21 @@ class Settings:
     STORAGE_DIR: str = os.path.join(BASE_DIR, "storage")
     PAPERS_DIR: str = os.path.join(STORAGE_DIR, "papers")
     HISTORY_DIR: str = os.path.join(STORAGE_DIR, "history")
-    REPORTS_DIR: str = os.path.join(STORAGE_DIR, "reports")
-    EXTRACTED_JSON_DIR: str = os.path.join(STORAGE_DIR, "extracted_json")
-    KNOWLEDGE_GRAPHS_DIR: str = os.path.join(STORAGE_DIR, "knowledge_graphs")
+    
+    # Reports Directories (All reporting and evaluation artifacts centralized)
+    REPORTS_DIR: str = os.path.join(BASE_DIR, "reports")
+    EXTRACTED_JSON_DIR: str = os.path.join(REPORTS_DIR, "extracted_json")
+    KNOWLEDGE_GRAPHS_DIR: str = os.path.join(REPORTS_DIR, "knowledge_graphs")
+    MANIFESTS_DIR: str = os.path.join(REPORTS_DIR, "manifests")
+    TRACES_DIR: str = os.path.join(REPORTS_DIR, "traces")
+    BENCHMARKS_DIR: str = os.path.join(REPORTS_DIR, "benchmarks")
+    EVALUATION_DIR: str = os.path.join(REPORTS_DIR, "evaluation")
+    AUDIT_DIR: str = os.path.join(REPORTS_DIR, "audit")
+    OPTIMIZATION_DIR: str = os.path.join(REPORTS_DIR, "optimization")
+    PERFORMANCE_DIR: str = os.path.join(REPORTS_DIR, "performance")
+    
+    # Storage & Data
     RAG_EMBEDDINGS_DIR: str = os.path.join(STORAGE_DIR, "rag_embeddings")
-    TRACES_DIR: str = os.path.join(STORAGE_DIR, "traces")
     CONVERSATIONS_DIR: str = os.path.join(STORAGE_DIR, "conversations")
     CODES_DIR: str = os.path.join(STORAGE_DIR, "codes")
     USER_PROFILE_FILE: str = os.path.join(STORAGE_DIR, "user_profile.json")
@@ -131,10 +141,17 @@ class Settings:
         return bool(self.TAVILY_API_KEY and "your_" not in self.TAVILY_API_KEY.lower())
 
     def ensure_directories(self):
-        """Ensures all persistent storage directories exist."""
-        for d in [self.STORAGE_DIR, self.PAPERS_DIR, self.HISTORY_DIR, self.REPORTS_DIR,
-                  self.EXTRACTED_JSON_DIR, self.KNOWLEDGE_GRAPHS_DIR, self.RAG_EMBEDDINGS_DIR,
-                  self.TRACES_DIR, self.CONVERSATIONS_DIR, self.CODES_DIR]:
+        """Ensures all persistent storage and reports directories exist."""
+        for d in [
+            self.STORAGE_DIR, self.PAPERS_DIR, self.HISTORY_DIR, self.RAG_EMBEDDINGS_DIR,
+            self.CONVERSATIONS_DIR, self.CODES_DIR,
+            self.REPORTS_DIR, self.EXTRACTED_JSON_DIR, self.KNOWLEDGE_GRAPHS_DIR,
+            self.MANIFESTS_DIR, self.TRACES_DIR, self.BENCHMARKS_DIR,
+            self.EVALUATION_DIR, self.AUDIT_DIR, self.OPTIMIZATION_DIR, self.PERFORMANCE_DIR,
+            os.path.join(self.EVALUATION_DIR, "rag"),
+            os.path.join(self.EVALUATION_DIR, "extraction"),
+            os.path.join(self.EVALUATION_DIR, "code_generation"),
+        ]:
             os.makedirs(d, exist_ok=True)
 
 

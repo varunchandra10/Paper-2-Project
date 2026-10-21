@@ -89,6 +89,15 @@
       { "sheet": "thinking", "frame": 2, "hold": 0, "fade": 0, "bubble": false, "zzz": false }
     ]
   },
+  "peeking": {
+    "loop": false,
+    "description": "User thinking over input area: peeking over edge",
+    "steps": [
+      { "sheet": "peeking", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "peeking", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "peeking", "frame": 2, "hold": 0, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  },
   "excited": {
     "loop": false,
     "description": "Success celebration: starts in standing (0) and returns to standing (0)",
@@ -131,6 +140,109 @@
       { "sheet": "having_sipping", "frame": 2, "hold": 600, "fade": 0, "bubble": false, "zzz": false },
       { "sheet": "having_sipping", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
       { "sheet": "having_sipping", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  },
+  "reading": {
+    "loop": false,
+    "description": "Ingestion node: catch document then relax sipping coffee",
+    "steps": [
+      { "sheet": "catching", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "catching", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "catching", "frame": 2, "hold": 800, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "having_sipping", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "having_sipping", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "having_sipping", "frame": 2, "hold": 800, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  },
+  "confused": {
+    "loop": false,
+    "description": "Long ingestion / complex math and table parsing state",
+    "steps": [
+      { "sheet": "confused", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "confused", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "confused", "frame": 2, "hold": 800, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  },
+  "analyzing": {
+    "loop": false,
+    "description": "Extraction node: decomposing paper methodology",
+    "steps": [
+      { "sheet": "thinking", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "thinking", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "thinking", "frame": 2, "hold": 600, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  },
+  "evaluating": {
+    "loop": false,
+    "description": "Feasibility node: evaluating hardware compute compatibility",
+    "steps": [
+      { "sheet": "thinking", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "thinking", "frame": 2, "hold": 500, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  },
+  "adapting": {
+    "loop": false,
+    "description": "Adaptation node: parameter optimization and tensor constraints",
+    "steps": [
+      { "sheet": "hunch", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "hunch", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "hunch", "frame": 2, "hold": 600, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  },
+  "planning": {
+    "loop": false,
+    "description": "Sequencing node: topological build sequence planning",
+    "steps": [
+      { "sheet": "thinking", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "thinking", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "thinking", "frame": 2, "hold": 500, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  },
+  "architecting": {
+    "loop": false,
+    "description": "Specification node: architectural component blueprinting",
+    "steps": [
+      { "sheet": "hunch", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "hunch", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "hunch", "frame": 2, "hold": 600, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  },
+  "coding": {
+    "loop": false,
+    "description": "Code generation node: dual-engine code synthesis",
+    "steps": [
+      { "sheet": "hunch", "frame": 0, "hold": 100, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "hunch", "frame": 1, "hold": 100, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "hunch", "frame": 2, "hold": 700, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  },
+  "testing": {
+    "loop": false,
+    "description": "Evaluation node: AST verification & tensor execution checks",
+    "steps": [
+      { "sheet": "thinking", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "thinking", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "thinking", "frame": 2, "hold": 500, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  },
+  "debugging": {
+    "loop": false,
+    "description": "Code repair node: Reflexion auto-repair loop",
+    "steps": [
+      { "sheet": "angry", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "angry", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "angry", "frame": 2, "hold": 500, "fade": 0, "bubble": false, "zzz": false }
+    ]
+  },
+  "ready": {
+    "loop": false,
+    "description": "Pipeline completed: success celebration and ready state",
+    "steps": [
+      { "sheet": "excite", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "excite", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "excite", "frame": 2, "hold": 600, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "excite", "frame": 1, "hold": 120, "fade": 0, "bubble": false, "zzz": false },
+      { "sheet": "excite", "frame": 0, "hold": 120, "fade": 0, "bubble": false, "zzz": false }
     ]
   }
 }

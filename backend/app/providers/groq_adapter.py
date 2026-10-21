@@ -75,8 +75,8 @@ class GroqAdapter:
         # Estimate prompt tokens roughly (1 token ~= 3.5 chars)
         prompt_chars = sum(len(m.get("content", "")) for m in messages)
         estimated_prompt_tokens = int(prompt_chars / 3.5)
-        # Cap max_tokens to 1024 max (384 min) so prompt + completion stays well below 3,500 tokens
-        safe_max_tokens = max(256, min(max_tokens, 1024, 7000 - estimated_prompt_tokens))
+        # Cap max_tokens to 2500 max (384 min) so full Mermaid charts & code blocks complete without truncation
+        safe_max_tokens = max(384, min(max_tokens, 2500, 7500 - estimated_prompt_tokens))
 
         payload = {
             "model": resolved_model,

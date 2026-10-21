@@ -1,225 +1,184 @@
-# 🎨 Marginalia Frontend Architecture & Feature Documentation
+# 🎨 RUEXIS AI (v2.0) — Frontend Architecture & Overview
 
-This document provides a comprehensive technical guide to the frontend architecture, desktop mascot canvas engine, React sidebar control panel, IPC messaging bridge, design tokens, and window positioning systems.
+Comprehensive technical guide to the RUEXIS AI frontend architecture, dual-window Electron desktop container, mascot canvas sprite engine, React 19 control panel, Zustand reactive state stores, IPC messaging bridge, and modern design system.
 
 ---
 
 ## 🏗️ Architecture Overview
 
-The frontend operates a **Dual-Window Electron Architecture** separating the frameless desktop mascot overlay from the interactive sidebar control panel:
+RUEXIS AI operates a **Dual-Window Electron Architecture** separating the lightweight, transparent desktop mascot overlay from the primary interactive control panel:
 
 ```
 frontend/
-├── src/                        # Mascot Overlay & Electron Main Process
-│   ├── main.js                 # Electron Main Process (Window lifecycle, IPC, DPI, positioning)
-│   ├── preload.js              # IPC Bridge (Exposes window.mascotAPI to renderer)
-│   ├── mascot.html             # Canvas stage DOM container & ZZZ overlay
-│   ├── mascot.css              # Grounded positioning, ZZZ floating keyframes, cursor rules
-│   ├── mascot.js               # Sprite canvas rendering engine, state queue, alpha cross-fading
-│   └── assets/                 # Transparent PNG sprite sheets (Mr. Nerdy)
+├── electron_app/               # Native Electron 43 desktop container
+│   ├── package.json            # Electron dependencies & build scripts
+│   ├── mascot_transitions.json # FSM transition graph for mascot poses
+│   ├── test_mascot.html        # Standalone mascot animation test harness
+│   └── src/
+│       ├── main.js             # Electron main process (lifecycle, IPC, backend spawn, DPI)
+│       ├── preload.js          # Secure context bridge (exposes window.mascotAPI)
+│       ├── mascot.html         # Mascot overlay DOM stage & ZZZ overlay container
+│       ├── mascot.css          # Window styles, keyframes, cursor rules
+│       ├── mascot.js           # 2D canvas sprite renderer, hub router, alpha cross-fade
+│       └── assets/             # Character sprite sheets (mr_nerdy, ms_nerdy, mr_nerd, ms_nerd)
 │
-└── renderer/                   # React Sidebar Control Panel Application
-    ├── src/
-    │   ├── App.tsx             # React Root Entrypoint
-    │   ├── index.css           # Tailwind v4 theme tokens & keyframes
-    │   ├── components/         # Componentized React Views
-    │   │   ├── features/       # Feature modules (chat, logs, analysis)
-    │   │   ├── layout/         # Layout scaffolding (Header, Sidebars)
-    │   │   ├── ui/             # Reusable UI primitives (Background, ThemeToggle, DropZone, ModelSelector)
-    │   │   └── panel/          # Core dashboard Panel hub
-    │   └── store/              # Zustand Reactive State Stores (panelStore, logsStore, themeStore)
-    ├── dist/                   # Compiled static production bundle (index.html, JS, CSS)
-    └── vite.config.ts          # Vite + Tailwind v4 build configuration
+└── renderer/                   # React 19 + TypeScript + Vite UI Application
+    ├── package.json            # React dependencies, scripts (dev, build, typecheck, lint)
+    ├── vite.config.ts          # Vite configuration with React & Tailwind v4 plugins
+    ├── index.html              # Single Page Application HTML shell
+    ├── dist/                   # Production bundle compiled via `npm run build`
+    └── src/
+        ├── App.tsx             # Root desktop application & view router
+        ├── index.css           # Tailwind v4 theme tokens (l1, l2, l3, d) & typography
+        ├── config/             # Centralized API base URL & endpoints
+        ├── constants/          # Model catalog fallbacks & failover resolver
+        ├── schemas/            # Zod validation schemas for backend payloads
+        ├── services/           # Backend HTTP fetchers & SSE parser
+        ├── store/              # Zustand root store & 8 feature slices
+        └── components/         # Layout scaffolding, feature views, and UI primitives
 ```
 
-### 📊 System Architecture Diagram
+---
+
+## 📊 Dual-Window System Architecture
 
 ```mermaid
 graph TD
-    subgraph MainProcess ["Electron Main Process (src/main.js)"]
-        WindowManager["Window Lifecycle & Alignment Manager"]
-        IPCBridge["IPC Dispatcher & State Guard"]
-        DisplayTracker["Screen DPI & Monitor Tracker"]
+    subgraph ElectronMain ["Electron Main Process (electron_app/src/main.js)"]
+        WindowManager["Window Lifecycle & Docking Manager"]
+        IPCBridge["IPC Dispatcher & State Forwarder"]
+        BackendSpawn["FastAPI Backend Auto-Spawn & Health Poller"]
+        DisplayTracker["Screen DPI & Taskbar Detection (Win32 Koffi)"]
     end
 
-    subgraph MascotWindow ["Desktop Mascot Window (Vanilla HTML5 Canvas)"]
-        CanvasEngine["Canvas Sprite Renderer (src/mascot.js)"]
-        HubStateMachine["Hub Pose Router (Standing Hub)"]
+    subgraph MascotWindow ["Mascot Overlay Window (Transparent Canvas)"]
+        CanvasEngine["Canvas Sprite Renderer (mascot.js)"]
+        HubStateMachine["Hub Pose State Machine (Standing Frame 0)"]
         AlphaBlend["130ms Alpha Cross-Fade Engine"]
-        ZzzOverlay["Multi-Color ZZZ Floating Overlay"]
+        ZzzOverlay["Multi-Color Floating ZZZ Overlay"]
     end
 
-    subgraph ReactPanel ["Sidebar Control Panel (React 19 + TS)"]
-        DropZoneComp["PDF/DOCX Ingestion DropZone"]
-        MilestoneComp["Pipeline Milestone Tracker"]
-        StatsComp["Decomposition Metrics Gauges"]
-        ReportComp["Blueprint Proposal Viewer"]
-        LogsComp["Console Logs Drawer"]
-        HistoryComp["Past Proposals History Drawer"]
-        ZustandStore["Zustand Reactive State Stores"]
+    subgraph ReactPanel ["React Control Panel (renderer/src/)"]
+        HeaderComp["Header (Model Selector, Theme Switch, Window Controls)"]
+        ChatFeature["ReACT Chat & Streaming Thoughts"]
+        AnalysisFeature["Analysis (DropZone, Milestones, Manifest, KG, Eval)"]
+        LogsFeature["Terminal Console Drawer"]
+        ProfileFeature["User Profile & Quota Dashboard"]
+        ZustandRoot["Zustand Stores (8 Slices)"]
     end
 
-    ReactPanel -- "window.mascotAPI (src/preload.js)" --> IPCBridge
+    ReactPanel -- "window.mascotAPI (preload.js)" --> IPCBridge
     IPCBridge -- "state-change IPC Signals" --> MascotWindow
-    MascotWindow -- "Click & Drag Window Events" --> IPCBridge
-    WindowManager -- "Synchronous Lockstep Alignment" --> ReactPanel
+    MascotWindow -- "drag-window / toggle-panel" --> IPCBridge
+    WindowManager -- "Docked Alignment & Drag Sync" --> ReactPanel
+    BackendSpawn -- "Child Process (port 8000)" --> FastAPIServer["Backend FastAPI Server"]
 ```
 
 ---
 
-## ⚛️ How React.js Powers the Control Panel
+## ⚛️ Dual-Window Modes & Window Lifecycle
 
-### 1. Vite Compilation to Static Bundle
-During development or build, Vite compiles the React TypeScript source code inside `renderer/` into static production assets:
-```bash
-renderer/src/  ──(vite build)──>  renderer/dist/
-                                    ├── index.html
-                                    └── assets/index-*.js
-```
+### 1. Docked Floating Mode (Default)
+- **Dimensions:** 340 × 480 px (scaled by display DPI factor).
+- **Positioning:** Floating window positioned directly above the mascot with a `+16px` vertical offset to account for canvas transparency.
+- **Lockstep Dragging:** Dragging the mascot character automatically moves the docked control panel in real-time sync with screen bounds clamping.
 
-### 2. Native Electron Window Injection
-In `src/main.js`, when the user clicks Mr. Nerdy, Electron creates a frameless sidebar window (`panelWindow`) and loads the built React HTML entrypoint directly:
-
-```javascript
-panelWindow = new BrowserWindow({
-    width: Math.round(340 * scaleFactor),
-    height: Math.round(480 * scaleFactor),
-    frame: false,
-    alwaysOnTop: true,
-    preload: path.join(__dirname, 'preload.js')
-});
-
-// Directly loads the compiled React app
-panelWindow.loadFile(path.join(__dirname, '../renderer/dist/index.html'));
-```
-
-### 3. IPC Communication Sequence Diagram
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User
-    participant Mascot as Mascot Canvas Window (src/mascot.js)
-    participant Main as Electron Main Process (src/main.js)
-    participant Panel as React Control Panel UI (renderer/src/)
-
-    User->>Mascot: Clicks Mr. Nerdy (Sleep Pose)
-    Mascot->>Main: Emit IPC: toggle-panel
-    Main->>Main: Calculate position (+16px head offset)
-    Main->>Panel: Show panelWindow & emit sendMascotState('idle')
-    Panel->>Mascot: Mascot receives 'idle' ➔ Wakes up to Standing pose
-
-    User->>Panel: Drag & Drop PDF Paper
-    Panel->>Main: Emit triggerUpload(filename)
-    Main->>Mascot: Emit state-change('working')
-    Mascot->>Mascot: Transition to Typing Hunch pose
-    Main->>Panel: Emit step logs & milestone updates
-    Panel->>Panel: Animate progress bars & score gauges
-
-    Main->>Panel: Ingestion complete ➔ Render Blueprint Proposal
-    Main->>Mascot: Emit state-change('idle')
-    Mascot->>Mascot: Transition back to Standing pose
-
-    User->>Panel: Click Close (X) Button
-    Panel->>Main: Emit togglePanel()
-    Main->>Panel: Hide panelWindow
-    Main->>Mascot: Emit sendMascotState('sleeping')
-    Mascot->>Mascot: Queue pending state & play Sleep pose + ZZZ overlay
-```
+### 2. Maximized Workspace Mode
+- **Dimensions:** Full-screen responsive workspace (minimum 800 × 600 px).
+- **Behavior:** Triggered via the header expand button or the global shortcut `CommandOrControl+Shift+P`.
+- **Mascot Auto-Hide:** When maximized, the mascot overlay is hidden to keep the workspace clean, reappearing upon unmaximizing.
 
 ---
 
-## 🎭 Mascot Canvas Sprite Engine (`src/mascot.js`)
+## 🎭 Mascot Animation Engine (`electron_app/src/mascot.js`)
 
-### 1. Transparent Sprite Sheets
-Utilizes transparent PNG strips mapped from `src/assets/`:
-- `mr_nerdy_stand_sleep-removebg-preview.png` (`sleep`)
-- `mr_nerdy_stand_to_excite-removebg-preview.png` (`excite` / `reading`)
-- `mr_nerd_stand_to_angry-removebg-preview.png` (`angry`)
-- `mr_nerd_stand_to_hunch-removebg-preview.png` (`hunch` / `working`)
+1. **Four Character Skins:**
+   - `mr_nerdy` (Classic academic nerd)
+   - `ms_nerdy` (Female academic variant)
+   - `mr_nerd` (Compact nerd)
+   - `ms_nerd` (Compact female variant)
 
-### 2. Hub Routing State Machine
-All pose transitions route through frame `0` of the standing pose (`idle`) as a central hub. For example, transitioning from `sleep` to `hunch` (`working`):
-1. Reverses `sleep` sequence: Frame 2 ➔ Frame 1 ➔ Frame 0 (`standing`).
-2. Plays `hunch` sequence: Frame 0 ➔ Frame 1 ➔ Frame 2 (`working`).
+2. **Hub Routing State Machine:**
+   - All state transitions route through frame `0` of the standing pose (`idle`) as a central hub.
+   - For example, transitioning from `sleep` to `hunch` (`working`):
+     - Step 1: Reverse `sleep` sequence: Frame 2 ➔ Frame 1 ➔ Frame 0 (`standing`).
+     - Step 2: Play `hunch` sequence: Frame 0 ➔ Frame 1 ➔ Frame 2 (`working`).
 
-### 3. Alpha Cross-Fade Engine (`drawFrameCrossFade`)
-Eliminates visual frame popping between pose steps by executing a 6-step `globalAlpha` cross-blend over 130ms in `src/mascot.js`.
+3. **Smooth Alpha Cross-Fading:**
+   - Frame popping is eliminated via a 6-step `globalAlpha` cross-blend over 130ms.
 
-### 4. Floating Multi-Color ZZZ Overlay
-Displays animated sleeping Zs directly above Mr. Nerdy's head (`bottom: 92px; left: 48%` in `src/mascot.css`) in three distinct tailored colors:
-- **Z 1 (9px):** Sky Blue (`#38bdf8`)
-- **Z 2 (12px):** Violet Purple (`#a855f7`)
-- **Z 3 (15px):** Coral Rose (`#f43f5e`)
+4. **Multi-Color Floating ZZZ Overlay:**
+   - Displays animated sleeping Zs directly above the mascot's head in three distinct colors:
+     - **Z 1 (9px):** Sky Blue (`#38bdf8`)
+     - **Z 2 (12px):** Violet Purple (`#a855f7`)
+     - **Z 3 (15px):** Coral Rose (`#f43f5e`)
 
-### 5. Asynchronous State Queue (`pendingTargetState`)
-Prevents state drop race conditions when double-clicking or closing the panel rapidly. If a state change arrives mid-animation, it is saved in a queue and executed immediately after the current step finishes.
-
----
-
-## 📊 Sidebar Control Panel Features (React + TypeScript)
-
-* **Layout Scaffoldings (`renderer/src/components/layout/`):**
-  * **`Header.tsx`:** Standard header hosting the brand logo (compact mode only) and a unified right-side control group (segmented buttons for theme, documents, terminal logs, maximize/minimize, and app closing). Integrates the hamburger menu button in maximized mode.
-  * **`LeftSidebar.tsx`:** Maximized-only sidebar that supports collapsible transitions (260px full mode vs. 56px icon rail). Houses the New Analysis trigger, Mr. Nerd mascot box, and user profile slot.
-  * **`RightSidebar.tsx`:** Maximized-only slide-out panel that handles proposal archives and documents history indexing.
-* **Feature Modules (`renderer/src/components/features/`):**
-  * **DropZone (`analysis/DropZone.tsx`):** Drag-and-drop ingestion interface for PDF and DOCX academic research papers.
-  * **Milestone Pipeline Tracker (`analysis/MilestoneTracker.tsx`):** Animated 5-stage progress indicator.
-  * **Execution Tier Selector (`analysis/TierSelector.tsx`):** Granularity toggles (Brief, Detailed, Implementation) for synthesis customization.
-  * **Proposal Report View (`analysis/ReportView.tsx`):** Code-highlighting markdown reporter showing synthesized project proposals.
-  * **Logs Drawer (`logs/LogsDrawer.tsx`):** Expandable console terminal displaying system process output.
-  * **Documents Drawer (`analysis/DocumentsDrawer.tsx`):** Slide-out proposal history list.
-* **Shared UI Primitives (`renderer/src/components/ui/`):**
-  * **`ThemeToggle.tsx`:** Dynamic toggle icon button displaying a moon 🌙 (switch to dark) or a sun ☀️ (switch to light) inside the header group.
-  * **`Background.tsx`:** Theme-aware visual depth container offering neural web constellations, PCB trace layouts, rotating radar rings, and floating data streams.
+5. **Asynchronous State Queue:**
+   - State updates sent mid-animation are buffered in a queue to prevent frame drops or rapid toggling glitches.
 
 ---
 
-## 🎨 Theme Tokens & Custom Scrollbars (`renderer/src/index.css`)
+## 🎨 Design System & Theme Engine
 
-### 1. Marginalia Color Palette
-Configured in `@theme` variables inside `renderer/src/index.css`:
-- `--ink` (`#1A1B20` dark background / text in light mode)
-- `--parchment` (`#EDE6D6` light text / background in light mode)
-- `--brass` (`#C99A3E` primary accent / buttons)
-- `--confirmed` (`#6B9B7C` green metric indicators)
-- `--inferred` (`#D9A441` amber metric indicators)
-- `--assumed` (`#8B8378` gray secondary text)
-- `--error-color` (`#B5533C` red status alerts)
+The renderer utilizes a modern design system defined in `renderer/src/index.css` supporting **4 distinct theme variants**:
 
-### 2. Theme-Aware Scrollbar System
-Custom WebKit and Firefox scrollbars inside `renderer/src/index.css` dynamically adjust based on active theme state:
-- **Track:** Adapts to `--background`.
-- **Thumb:** Uses `--muted` with `--border` stroke.
-- **Hover:** Highlights in warm `--brass`.
+| Theme ID | Mode | Name | Key Aesthetic |
+|----------|------|------|---------------|
+| `l1` | Light | Warm Ivory | Warm parchment background, deep charcoal typography, warm brass accents |
+| `l2` | Light | Arctic Frost | Crisp cool white background, glacial blue accents, high contrast slate text |
+| `l3` | Light | Iris Violet | Soft lavender-tinted background, royal violet accents, balanced readable text |
+| `d` | Dark | Slate Obsidian | Deep dark slate/charcoal background, neon cyan and amber accents |
+
+Themes are persisted in `localStorage` via `themeStore.ts` and applied as class attributes on `document.documentElement`.
 
 ---
 
-## 📐 Window Alignment & Lockstep Dragging
+## 🧩 React Renderer Architecture & Store Slices
 
-### 1. Precision Vertical Alignment
-`getPanelPosition()` in `src/main.js` applies a `+16px` vertical offset to account for canvas transparency, creating a clean **2-3 line space** above Mr. Nerdy's head.
+The UI state is managed via **Zustand 5** across 8 feature slices:
 
-### 2. Lockstep Window Dragging
-Dragging Mr. Nerdy emits `drag-window` events in `src/main.js` that shift `panelWindow` by `(deltaX, deltaY)` in real-time sync.
-
-### 3. High-DPI Size Clamping
-To prevent window size expansion on High-DPI displays (125%/150% Windows scaling), `panelWindow` bounds are explicitly clamped during drag to `340 * scaleFactor` x `480 * scaleFactor`.
+1. **`uiSlice.ts`** — Active theme, selected model ID, selected mascot skin, modal visibility.
+2. **`chatSlice.ts`** — Conversation history, message feed, SSE streaming (status, thought, action, token), and auto-failover synchronization.
+3. **`analysisSlice.ts`** — Paper ingestion, milestone progression, hyperparameter approval, and report viewing.
+4. **`evalSlice.ts`** — RAG evaluation metrics (`RAGSummaryMetrics`), benchmark comparisons, latency & token cost metrics.
+5. **`knowledgeGraphSlice.ts`** — Interactive SVG/Canvas entity-relationship knowledge graph inspection.
+6. **`profileSlice.ts`** — User profile metadata, API key management (Groq, OpenRouter), and Ollama host configuration.
+7. **`documentHistorySlice.ts`** — Ingested paper catalog, indexing status, and selection.
+8. **`hardwareSlice.ts`** — Live host CPU/GPU load and system memory telemetry.
 
 ---
 
 ## 🚀 Running & Building
 
-### Build Renderer Bundle:
+### Development Mode
 ```bash
-cd renderer
+# Terminal 1: Start React renderer Vite dev server
+cd frontend/renderer
 npm install
-npm run build
-```
+npm run dev
 
-### Start Electron Application:
-```bash
-cd ..
+# Terminal 2: Launch Electron desktop container
+cd frontend/electron_app
+npm install
 npm start
 ```
+
+### Production Build
+```bash
+# 1. Compile React production bundle
+cd frontend/renderer
+npm run build
+
+# 2. Run or package Electron application
+cd ../electron_app
+npm start          # Runs packaged dist bundle
+npm run pack       # Builds unpacked executable directory
+npm run dist       # Builds final Windows installer (.exe)
+```
+
+---
+
+## 📚 Component Guides
+
+- [Electron Application Guide](./electron_app/README.md) — Detailed main process, Win32 FFI, IPC channels, and mascot engine.
+- [React Renderer Guide](./renderer/README.md) — UI components, Zustand stores, API services, and Vite configuration.

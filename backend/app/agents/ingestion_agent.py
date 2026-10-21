@@ -85,7 +85,13 @@ def _extract_title(route_result: dict, docling_md: str) -> str:
 
 
 def _extract_authors(route_result: dict) -> List[str]:
-    return [a for a in (route_result.get("grobid_output") or {}).get("authors", []) if a]
+    gr = [a for a in (route_result.get("grobid_output") or {}).get("authors", []) if a]
+    if gr:
+        return gr
+    py = (route_result.get("pymupdf_output") or {}).get("authors", [])
+    if py:
+        return py
+    return ["Unknown Author"]
 
 
 def _extract_abstract(route_result: dict) -> str:
@@ -212,22 +218,28 @@ def _assemble_raw_text(route_result: dict) -> str:
 
 # ── Public API ─────────────────────────────────────────────────────────────────
 
-def run_ingestion_agent(pdf_path: str, model_name: str = settings.DEFAULT_MODEL) -> PaperDocument:
+def run_ingestion_agent(pdf_path: Any, model_name: str = settings.DEFAULT_MODEL) -> Any:
     """
-    Full-pipeline ingestion of a single research paper PDF.
-
-    Parameters
-    ----------
-    pdf_path   : absolute path to the PDF
-    model_name : Ollama model (reserved; extraction is rule-based)
-
-    Returns
-    -------
-    PaperDocument with title, authors, abstract, sections (with subsections),
-    tables (as Markdown), equations, figures. Also saves canonical JSON.
+    Full-pipeline ingestion of a single research paper PDF or parsed_sections dict.
     """
-    print(f"  [INGESTION] {os.path.basename(pdf_path)}")
-    route_result = route_and_extract(pdf_path)
+    if isinstance(pdf_path, dict):
+        from app.schemas.pipeline_schemas import SectionInfo
+        meta_str = pdf_path.get("Metadata", "")
+        title = "Untitled Paper"
+        abstract = ""
+        for line in meta_str.splitlines():
+            if line.startswith("Title:"):
+                title = line.replace("Title:", "").strip()
+            elif line.startswith("Abstract:"):
+                abstract = line.replace("Abstract:", "").strip()
+        sec_infos = [
+            SectionInfo(title=k, character_count=len(v) if isinstance(v, str) else len(str(v)))
+            for k, v in pdf_path.items() if k != "Metadata"
+        ]
+        return PaperMetadata(title=title, authors=[], abstract=abstract, sections_found=sec_infos)
+
+    print(f"  [INGESTION] {os.path.basename(str(pdf_path))}")
+    route_result = route_and_extract(str(pdf_path))
     parsers = route_result.get("selected_parsers", [])
     print(f"  [INGESTION] Parsers: {parsers}")
 

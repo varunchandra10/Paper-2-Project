@@ -1,0 +1,159 @@
+{
+  "character": "Mr. Nerdy",
+  "animation_id": "waving_hii",
+  "title": "Hand Waving / Saying Hi",
+  "source_file": "waving_hii.png",
+  "strategy": "complete_standardized",
+  "frame_count": 8,
+  "canvas_size": [
+    640,
+    740
+  ],
+  "anchor": "feet",
+  "anchor_coordinates": [
+    320,
+    700
+  ],
+  "loop": false,
+  "frame_duration_ms": 120,
+  "fps": 8.3,
+  "props": [],
+  "frames": [
+    {
+      "index": 0,
+      "filename": "frame_00.png",
+      "rel_path": "assets/processed/waving_hii/frames/frame_00.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        203,
+        38,
+        438,
+        700
+      ],
+      "fg_width": 236,
+      "fg_height": 663,
+      "foot_y": 700,
+      "center_x": 321.0
+    },
+    {
+      "index": 1,
+      "filename": "frame_01.png",
+      "rel_path": "assets/processed/waving_hii/frames/frame_01.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        195,
+        38,
+        437,
+        700
+      ],
+      "fg_width": 243,
+      "fg_height": 663,
+      "foot_y": 700,
+      "center_x": 316.5
+    },
+    {
+      "index": 2,
+      "filename": "frame_02.png",
+      "rel_path": "assets/processed/waving_hii/frames/frame_02.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        186,
+        38,
+        437,
+        700
+      ],
+      "fg_width": 252,
+      "fg_height": 663,
+      "foot_y": 700,
+      "center_x": 312.0
+    },
+    {
+      "index": 3,
+      "filename": "frame_03.png",
+      "rel_path": "assets/processed/waving_hii/frames/frame_03.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        166,
+        38,
+        437,
+        700
+      ],
+      "fg_width": 272,
+      "fg_height": 663,
+      "foot_y": 700,
+      "center_x": 302.0
+    },
+    {
+      "index": 4,
+      "filename": "frame_04.png",
+      "rel_path": "assets/processed/waving_hii/frames/frame_04.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        166,
+        38,
+        437,
+        700
+      ],
+      "fg_width": 272,
+      "fg_height": 663,
+      "foot_y": 700,
+      "center_x": 302.0
+    },
+    {
+      "index": 5,
+      "filename": "frame_05.png",
+      "rel_path": "assets/processed/waving_hii/frames/frame_05.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        171,
+        38,
+        437,
+        700
+      ],
+      "fg_width": 267,
+      "fg_height": 663,
+      "foot_y": 700,
+      "center_x": 304.5
+    },
+    {
+      "index": 6,
+      "filename": "frame_06.png",
+      "rel_path": "assets/processed/waving_hii/frames/frame_06.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        194,
+        38,
+        439,
+        700
+      ],
+      "fg_width": 246,
+      "fg_height": 663,
+      "foot_y": 700,
+      "center_x": 317.0
+    },
+    {
+      "index": 7,
+      "filename": "frame_07.png",
+      "rel_path": "assets/processed/waving_hii/frames/frame_07.png",
+      "width": 640,
+      "height": 740,
+      "bbox": [
+        204,
+        38,
+        437,
+        700
+      ],
+      "fg_width": 234,
+      "fg_height": 663,
+      "foot_y": 700,
+      "center_x": 321.0
+    }
+  ]
+}

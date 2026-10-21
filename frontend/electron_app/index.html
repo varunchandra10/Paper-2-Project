@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mr. Nerdy Mascot - Animation Transition Visualizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Top App Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo">👓</div>
+      <div class="brand-text">
+        <h1>MR. NERDY <span style="font-weight: 500; color: var(--accent-cyan); font-size: 13px;">TRANSITION STUDIO</span></h1>
+        <p>Interactive Mascot Animation & Transition Visualizer</p>
+      </div>
+    </div>
+    
+    <div class="header-badges">
+      <div class="badge success">
+        <span class="badge-dot"></span>
+        <span>17 Animations Loaded</span>
+      </div>
+      <div class="badge">
+        <span class="badge-dot"></span>
+        <span>132 Processed Frames</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn-accent" id="btnOpenExport">
+        <span>💾</span> Export Transition
+      </button>
+    </div>
+  </header>
+
+  <!-- 3-Column Main Dashboard Layout -->
+  <main class="main-layout">
+    
+    <!-- Left Column: Transition Editor & Presets -->
+    <section class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>⚙️</span> Transition Editor
+        </div>
+      </div>
+      <div class="panel-body">
+        
+        <!-- Source Animation -->
+        <div class="form-group">
+          <label class="form-label" for="sourceAnimSelect">Source State (From)</label>
+          <select id="sourceAnimSelect"></select>
+        </div>
+
+        <!-- Target Animation -->
+        <div class="form-group">
+          <label class="form-label" for="targetAnimSelect">Target State (To)</label>
+          <select id="targetAnimSelect"></select>
+        </div>
+
+        <!-- Transition Type -->
+        <div class="form-group">
+          <label class="form-label" for="transitionTypeSelect">Transition Interpolation Type</label>
+          <select id="transitionTypeSelect">
+            <option value="pose_based">Pose-Based (Intermediate Stance / Natural Prep)</option>
+            <option value="immediate">Immediate (Instant State Switch)</option>
+            <option value="crossfade">Crossfade (Alpha Blend Dissolve)</option>
+            <option value="sequential">Sequential Scene (Natural Multi-Step Flow)</option>
+          </select>
+        </div>
+
+        <!-- Duration Slider -->
+        <div class="form-group">
+          <div class="form-label">
+            <span>Transition Duration</span>
+            <span class="val-badge" id="durationVal">300ms</span>
+          </div>
+          <input type="range" id="durationSlider" min="50" max="1500" step="25" value="300">
+        </div>
+
+        <!-- Preset Gallery -->
+        <div class="form-group" style="margin-top: 6px;">
+          <div class="form-label">
+            <span>Preset Transition Gallery</span>
+          </div>
+          <div class="presets-list" id="presetsList">
+            <!-- Populated via JavaScript -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Center Column: Visual Stage & Timeline -->
+    <section class="stage-panel">
+      
+      <!-- Stage Toolbar -->
+      <div class="stage-toolbar">
+        <!-- Zoom Pills -->
+        <div class="pill-group" style="width: 220px;">
+          <button class="pill-btn" data-zoom="0.5">50%</button>
+          <button class="pill-btn" data-zoom="0.75">75%</button>
+          <button class="pill-btn active" data-zoom="1.0">100%</button>
+          <button class="pill-btn" data-zoom="1.5">150%</button>
+        </div>
+
+        <!-- Background Pills -->
+        <div class="pill-group" style="width: 200px;">
+          <button class="pill-btn active" data-bg="checkerboard">Checker</button>
+          <button class="pill-btn" data-bg="solid-dark">Dark</button>
+          <button class="pill-btn" data-bg="solid-light">Light</button>
+        </div>
+
+        <!-- Visual Guides Toggle -->
+        <button class="btn-secondary active" id="btnGuides" style="padding: 4px 10px; font-size: 11px;">
+          <span>📏</span> Guides
+        </button>
+      </div>
+
+      <!-- Main Stage Viewport -->
+      <div class="stage-container checkerboard" id="stageContainer">
+        <canvas id="stageCanvas" width="400" height="720"></canvas>
+        
+        <!-- Live Frame Information Overlay -->
+        <div class="stage-overlay-info">
+          <span id="timecodeDisplay">0.00s / 1.00s</span>
+          <span id="frameDisplay">Phase: SOURCE (F1)</span>
+          <span id="canvasDimDisplay">400×720</span>
+        </div>
+      </div>
+
+      <!-- Transport Controls Bar -->
+      <div class="transport-bar">
+        <div class="transport-controls">
+          <button class="btn-primary" id="btnPlay" style="width: 80px;">▶ Play</button>
+          <button class="btn-secondary" id="btnRestart">↺ Restart</button>
+          <button class="btn-icon" id="btnPrev" title="Step Previous Frame">⏮</button>
+          <button class="btn-icon" id="btnNext" title="Step Next Frame">⏭</button>
+          <button class="btn-icon active" id="btnLoop" title="Toggle Looping">🔁</button>
+        </div>
+
+        <!-- Speed Selector Pills -->
+        <div class="pill-group" style="width: 180px;">
+          <button class="pill-btn" data-speed="0.25">0.25×</button>
+          <button class="pill-btn" data-speed="0.5">0.5×</button>
+          <button class="pill-btn active" data-speed="1.0">1.0×</button>
+          <button class="pill-btn" data-speed="2.0">2.0×</button>
+        </div>
+      </div>
+
+      <!-- Interactive Transition Timeline -->
+      <div class="timeline-container">
+        <div class="timeline-header">
+          <span>0ms</span>
+          <span>TRANSITION TIMELINE</span>
+          <span id="timelineTimeTotal">1000ms</span>
+        </div>
+        
+        <div class="timeline-track" id="timelineTrack">
+          <div class="timeline-segment source" id="timelineSource" style="width: 40%;">Source</div>
+          <div class="timeline-segment transition" id="timelineTrans" style="width: 20%;">Transition</div>
+          <div class="timeline-segment target" id="timelineTarget" style="width: 40%;">Target</div>
+          <div class="timeline-playhead" id="timelinePlayhead" style="left: 0%;"></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Right Column: Side-by-Side Comparison & Quality Diagnostics -->
+    <section class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>🔍</span> Pose & Quality Inspector
+        </div>
+      </div>
+      <div class="panel-body">
+        
+        <!-- Side-by-Side Cards -->
+        <div class="form-group">
+          <label class="form-label">Side-by-Side Pose Alignment</label>
+          <div class="side-by-side-grid">
+            <div class="pose-card">
+              <span class="pose-label">Source Exit</span>
+              <div class="pose-preview-box">
+                <canvas id="sourcePoseCanvas" width="90" height="90"></canvas>
+              </div>
+              <span class="pose-dim" id="sourcePoseDim">--</span>
+            </div>
+
+            <div class="pose-card">
+              <span class="pose-label">Transition</span>
+              <div class="pose-preview-box">
+                <canvas id="transPoseCanvas" width="90" height="90"></canvas>
+              </div>
+              <span class="pose-dim" id="transPoseDim">--</span>
+            </div>
+
+            <div class="pose-card">
+              <span class="pose-label">Target Entry</span>
+              <div class="pose-preview-box">
+                <canvas id="targetPoseCanvas" width="90" height="90"></canvas>
+              </div>
+              <span class="pose-dim" id="targetPoseDim">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Automated Quality Diagnostics Report -->
+        <div class="diagnostics-box">
+          <div class="diag-score-row">
+            <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">TRANSITION RATING</span>
+            <span class="diag-rating seamless" id="diagScore">Seamless</span>
+          </div>
+
+          <div class="diag-metrics-grid">
+            <div class="diag-metric-item">
+              <span class="diag-metric-label">Center Shift (ΔX)</span>
+              <span class="diag-metric-val" id="diagDeltaX">0px</span>
+            </div>
+            <div class="diag-metric-item">
+              <span class="diag-metric-label">Ground Shift (ΔY)</span>
+              <span class="diag-metric-val" id="diagDeltaY">0px</span>
+            </div>
+            <div class="diag-metric-item">
+              <span class="diag-metric-label">Silhouette Scale</span>
+              <span class="diag-metric-val" id="diagScale">1.00×</span>
+            </div>
+            <div class="diag-metric-item">
+              <span class="diag-metric-label">Transparency</span>
+              <span class="diag-metric-val" style="color: var(--accent-emerald);">Genuine RGBA</span>
+            </div>
+          </div>
+
+          <div class="form-label" style="margin-top: 4px;">
+            <span>Diagnostic Warnings & Advice</span>
+          </div>
+          <div class="diag-warnings-list" id="diagWarnings">
+            <div class="diag-warning-item clean">✓ Consistent foot placement and silhouette scale.</div>
+          </div>
+        </div>
+
+        <!-- Mascot Attribute Summary -->
+        <div class="diagnostics-box" style="margin-top: auto;">
+          <div class="form-label">
+            <span>Mascot Voxel Specs</span>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); line-height: 1.5;">
+            • Character: <strong>Mr. Nerdy</strong> (Researcher)<br>
+            • Attire: White Lab Coat, Blue Shirt, Brown Shoes<br>
+            • Anchors: Ground Baseline pinned at canvas bottom<br>
+            • Preserved Props: Laptops, Desks, Falling Papers
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Export Modal -->
+  <div class="modal-overlay" id="exportModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">💾 Export Mascot Transition Assets</div>
+        <button class="modal-close" id="btnCloseExport">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="export-option-card" id="exportJsonBtn">
+          <div>
+            <div class="export-option-title">Export Transition Definition (JSON)</div>
+            <div class="export-option-desc">Download frame-by-frame timing, easing, and state sequence metadata.</div>
+          </div>
+          <button class="btn-secondary">Download</button>
+        </div>
+
+        <div class="export-option-card" id="exportManifestBtn">
+          <div>
+            <div class="export-option-title">Export App Controller Manifest (JSON)</div>
+            <div class="export-option-desc">Directly formatted for electron_app/src/mascot_transitions.json integration.</div>
+          </div>
+          <button class="btn-primary">Download</button>
+        </div>
+
+        <div class="export-option-card" id="exportSheetBtn">
+          <div>
+            <div class="export-option-title">Export Transition Spritesheet (PNG)</div>
+            <div class="export-option-desc">Stitched horizontal strip of all rendered transition frames with genuine transparency.</div>
+          </div>
+          <button class="btn-secondary">Generate PNG</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Embedded Dataset for Immediate Offline/File Loading -->
+  <script>
+    window.EMBEDDED_ANIMATIONS_DATA = {"blinking": {"id": "blinking", "title": "Eye Blinking", "source_file": "blinking.png", "strategy": "strategy_a", "frame_count": 6, "frame_duration_ms": 130, "fps": 7.7, "loop": true, "canvas": {"width": 290, "height": 694, "dimensions": "290x694"}, "anchor": "head", "props": [], "spritesheet_path": "assets/processed/blinking/spritesheet.png", "preview_gif_path": "assets/processed/blinking/preview.gif", "contact_sheet_path": "assets/processed/blinking/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/blinking/frames/frame_00.png", "width": 290, "height": 694, "bbox": [21, 16, 268, 676], "fg_width": 248, "fg_height": 661, "foot_y": 676, "center_x": 144.5}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/blinking/frames/frame_01.png", "width": 290, "height": 694, "bbox": [20, 16, 270, 676], "fg_width": 251, "fg_height": 661, "foot_y": 676, "center_x": 145.0}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/blinking/frames/frame_02.png", "width": 290, "height": 694, "bbox": [18, 17, 271, 676], "fg_width": 254, "fg_height": 660, "foot_y": 676, "center_x": 144.5}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/blinking/frames/frame_03.png", "width": 290, "height": 694, "bbox": [17, 16, 273, 676], "fg_width": 257, "fg_height": 661, "foot_y": 676, "center_x": 145.0}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/blinking/frames/frame_04.png", "width": 290, "height": 694, "bbox": [19, 17, 272, 676], "fg_width": 254, "fg_height": 660, "foot_y": 676, "center_x": 145.5}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/blinking/frames/frame_05.png", "width": 290, "height": 694, "bbox": [20, 17, 270, 676], "fg_width": 251, "fg_height": 660, "foot_y": 676, "center_x": 145.0}]}, "confused": {"id": "confused", "title": "Confused", "source_file": "confused.png", "strategy": "strategy_c", "frame_count": 8, "frame_duration_ms": 140, "fps": 7.1, "loop": true, "canvas": {"width": 308, "height": 650, "dimensions": "308x650"}, "anchor": "feet", "props": ["confusion marks"], "spritesheet_path": "assets/processed/confused/spritesheet.png", "preview_gif_path": "assets/processed/confused/preview.gif", "contact_sheet_path": "assets/processed/confused/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/confused/frames/frame_00.png", "width": 308, "height": 650, "bbox": [43, 22, 264, 633], "fg_width": 222, "fg_height": 612, "foot_y": 633, "center_x": 153.5}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/confused/frames/frame_01.png", "width": 308, "height": 650, "bbox": [40, 30, 269, 633], "fg_width": 230, "fg_height": 604, "foot_y": 633, "center_x": 154.5}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/confused/frames/frame_02.png", "width": 308, "height": 650, "bbox": [34, 28, 274, 633], "fg_width": 241, "fg_height": 606, "foot_y": 633, "center_x": 154.0}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/confused/frames/frame_03.png", "width": 308, "height": 650, "bbox": [37, 33, 271, 633], "fg_width": 235, "fg_height": 601, "foot_y": 633, "center_x": 154.0}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/confused/frames/frame_04.png", "width": 308, "height": 650, "bbox": [17, 19, 291, 632], "fg_width": 275, "fg_height": 614, "foot_y": 632, "center_x": 154.0}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/confused/frames/frame_05.png", "width": 308, "height": 650, "bbox": [26, 35, 283, 633], "fg_width": 258, "fg_height": 599, "foot_y": 633, "center_x": 154.5}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/confused/frames/frame_06.png", "width": 308, "height": 650, "bbox": [35, 20, 272, 633], "fg_width": 238, "fg_height": 614, "foot_y": 633, "center_x": 153.5}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/confused/frames/frame_07.png", "width": 308, "height": 650, "bbox": [31, 19, 278, 632], "fg_width": 248, "fg_height": 614, "foot_y": 632, "center_x": 154.5}]}, "doc_catching": {"id": "doc_catching", "title": "Catching a Falling Document", "source_file": "doc_catching.png", "strategy": "strategy_d", "frame_count": 9, "frame_duration_ms": 130, "fps": 7.7, "loop": false, "canvas": {"width": 286, "height": 714, "dimensions": "286x714"}, "anchor": "scene", "props": ["falling document", "papers"], "spritesheet_path": "assets/processed/doc_catching/spritesheet.png", "preview_gif_path": "assets/processed/doc_catching/preview.gif", "contact_sheet_path": "assets/processed/doc_catching/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/doc_catching/frames/frame_00.png", "width": 286, "height": 714, "bbox": [38, 202, 219, 693], "fg_width": 182, "fg_height": 492, "foot_y": 693, "center_x": 128.5}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/doc_catching/frames/frame_01.png", "width": 286, "height": 714, "bbox": [29, 204, 262, 693], "fg_width": 234, "fg_height": 490, "foot_y": 693, "center_x": 145.5}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/doc_catching/frames/frame_02.png", "width": 286, "height": 714, "bbox": [16, 209, 267, 693], "fg_width": 252, "fg_height": 485, "foot_y": 693, "center_x": 141.5}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/doc_catching/frames/frame_03.png", "width": 286, "height": 714, "bbox": [24, 46, 264, 693], "fg_width": 241, "fg_height": 648, "foot_y": 693, "center_x": 144.0}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/doc_catching/frames/frame_04.png", "width": 286, "height": 714, "bbox": [23, 98, 259, 693], "fg_width": 237, "fg_height": 596, "foot_y": 693, "center_x": 141.0}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/doc_catching/frames/frame_05.png", "width": 286, "height": 714, "bbox": [16, 22, 258, 693], "fg_width": 243, "fg_height": 672, "foot_y": 693, "center_x": 137.0}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/doc_catching/frames/frame_06.png", "width": 286, "height": 714, "bbox": [31, 197, 243, 693], "fg_width": 213, "fg_height": 497, "foot_y": 693, "center_x": 137.0}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/doc_catching/frames/frame_07.png", "width": 286, "height": 714, "bbox": [29, 203, 209, 693], "fg_width": 181, "fg_height": 491, "foot_y": 693, "center_x": 119.0}, {"index": 8, "filename": "frame_08.png", "rel_path": "assets/processed/doc_catching/frames/frame_08.png", "width": 286, "height": 714, "bbox": [35, 207, 219, 693], "fg_width": 185, "fg_height": 487, "foot_y": 693, "center_x": 127.0}]}, "excited": {"id": "excited", "title": "Excited", "source_file": "excited.png", "strategy": "strategy_c", "frame_count": 8, "frame_duration_ms": 110, "fps": 9.1, "loop": true, "canvas": {"width": 346, "height": 640, "dimensions": "346x640"}, "anchor": "feet", "props": [], "spritesheet_path": "assets/processed/excited/spritesheet.png", "preview_gif_path": "assets/processed/excited/preview.gif", "contact_sheet_path": "assets/processed/excited/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/excited/frames/frame_00.png", "width": 346, "height": 640, "bbox": [67, 54, 279, 623], "fg_width": 213, "fg_height": 570, "foot_y": 623, "center_x": 173.0}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/excited/frames/frame_01.png", "width": 346, "height": 640, "bbox": [62, 51, 285, 623], "fg_width": 224, "fg_height": 573, "foot_y": 623, "center_x": 173.5}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/excited/frames/frame_02.png", "width": 346, "height": 640, "bbox": [59, 56, 288, 623], "fg_width": 230, "fg_height": 568, "foot_y": 623, "center_x": 173.5}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/excited/frames/frame_03.png", "width": 346, "height": 640, "bbox": [20, 18, 328, 623], "fg_width": 309, "fg_height": 606, "foot_y": 623, "center_x": 174.0}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/excited/frames/frame_04.png", "width": 346, "height": 640, "bbox": [30, 47, 317, 623], "fg_width": 288, "fg_height": 577, "foot_y": 623, "center_x": 173.5}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/excited/frames/frame_05.png", "width": 346, "height": 640, "bbox": [48, 65, 298, 623], "fg_width": 251, "fg_height": 559, "foot_y": 623, "center_x": 173.0}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/excited/frames/frame_06.png", "width": 346, "height": 640, "bbox": [55, 54, 292, 623], "fg_width": 238, "fg_height": 570, "foot_y": 623, "center_x": 173.5}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/excited/frames/frame_07.png", "width": 346, "height": 640, "bbox": [68, 54, 278, 623], "fg_width": 211, "fg_height": 570, "foot_y": 623, "center_x": 173.0}]}, "hunching_laptop": {"id": "hunching_laptop", "title": "Hunching Over a Laptop", "source_file": "huncing.png", "strategy": "strategy_d", "frame_count": 8, "frame_duration_ms": 130, "fps": 7.7, "loop": true, "canvas": {"width": 296, "height": 336, "dimensions": "296x336"}, "anchor": "scene", "props": ["desk", "chair", "laptop"], "spritesheet_path": "assets/processed/hunching_laptop/spritesheet.png", "preview_gif_path": "assets/processed/hunching_laptop/preview.gif", "contact_sheet_path": "assets/processed/hunching_laptop/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/hunching_laptop/frames/frame_00.png", "width": 296, "height": 336, "bbox": [27, 16, 277, 318], "fg_width": 251, "fg_height": 303, "foot_y": 318, "center_x": 152.0}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/hunching_laptop/frames/frame_01.png", "width": 296, "height": 336, "bbox": [20, 21, 269, 318], "fg_width": 250, "fg_height": 298, "foot_y": 318, "center_x": 144.5}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/hunching_laptop/frames/frame_02.png", "width": 296, "height": 336, "bbox": [17, 20, 266, 318], "fg_width": 250, "fg_height": 299, "foot_y": 318, "center_x": 141.5}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/hunching_laptop/frames/frame_03.png", "width": 296, "height": 336, "bbox": [18, 20, 269, 318], "fg_width": 252, "fg_height": 299, "foot_y": 318, "center_x": 143.5}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/hunching_laptop/frames/frame_04.png", "width": 296, "height": 336, "bbox": [17, 24, 269, 318], "fg_width": 253, "fg_height": 295, "foot_y": 318, "center_x": 143.0}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/hunching_laptop/frames/frame_05.png", "width": 296, "height": 336, "bbox": [16, 24, 271, 318], "fg_width": 256, "fg_height": 295, "foot_y": 318, "center_x": 143.5}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/hunching_laptop/frames/frame_06.png", "width": 296, "height": 336, "bbox": [19, 24, 274, 318], "fg_width": 256, "fg_height": 295, "foot_y": 318, "center_x": 146.5}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/hunching_laptop/frames/frame_07.png", "width": 296, "height": 336, "bbox": [16, 19, 272, 317], "fg_width": 257, "fg_height": 299, "foot_y": 317, "center_x": 144.0}]}, "mad": {"id": "mad", "title": "Angry", "source_file": "mad.png", "strategy": "strategy_c", "frame_count": 8, "frame_duration_ms": 110, "fps": 9.1, "loop": true, "canvas": {"width": 318, "height": 624, "dimensions": "318x624"}, "anchor": "feet", "props": ["anger steam"], "spritesheet_path": "assets/processed/mad/spritesheet.png", "preview_gif_path": "assets/processed/mad/preview.gif", "contact_sheet_path": "assets/processed/mad/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/mad/frames/frame_00.png", "width": 318, "height": 624, "bbox": [49, 18, 268, 607], "fg_width": 220, "fg_height": 590, "foot_y": 607, "center_x": 158.5}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/mad/frames/frame_01.png", "width": 318, "height": 624, "bbox": [40, 26, 277, 607], "fg_width": 238, "fg_height": 582, "foot_y": 607, "center_x": 158.5}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/mad/frames/frame_02.png", "width": 318, "height": 624, "bbox": [42, 30, 275, 607], "fg_width": 234, "fg_height": 578, "foot_y": 607, "center_x": 158.5}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/mad/frames/frame_03.png", "width": 318, "height": 624, "bbox": [17, 21, 301, 607], "fg_width": 285, "fg_height": 587, "foot_y": 607, "center_x": 159.0}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/mad/frames/frame_04.png", "width": 318, "height": 624, "bbox": [18, 71, 300, 607], "fg_width": 283, "fg_height": 537, "foot_y": 607, "center_x": 159.0}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/mad/frames/frame_05.png", "width": 318, "height": 624, "bbox": [18, 57, 300, 607], "fg_width": 283, "fg_height": 551, "foot_y": 607, "center_x": 159.0}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/mad/frames/frame_06.png", "width": 318, "height": 624, "bbox": [38, 58, 280, 607], "fg_width": 243, "fg_height": 550, "foot_y": 607, "center_x": 159.0}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/mad/frames/frame_07.png", "width": 318, "height": 624, "bbox": [45, 43, 272, 607], "fg_width": 228, "fg_height": 565, "foot_y": 607, "center_x": 158.5}]}, "peeking": {"id": "peeking", "title": "Peeking from Below a Horizontal Bar", "source_file": "peeking.png", "strategy": "strategy_c", "frame_count": 8, "frame_duration_ms": 140, "fps": 7.1, "loop": true, "canvas": {"width": 298, "height": 254, "dimensions": "298x254"}, "anchor": "baseline", "props": ["horizontal barrier"], "spritesheet_path": "assets/processed/peeking/spritesheet.png", "preview_gif_path": "assets/processed/peeking/preview.gif", "contact_sheet_path": "assets/processed/peeking/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/peeking/frames/frame_00.png", "width": 298, "height": 254, "bbox": [19, 112, 278, 237], "fg_width": 260, "fg_height": 126, "foot_y": 237, "center_x": 148.5}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/peeking/frames/frame_01.png", "width": 298, "height": 254, "bbox": [20, 62, 278, 236], "fg_width": 259, "fg_height": 175, "foot_y": 236, "center_x": 149.0}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/peeking/frames/frame_02.png", "width": 298, "height": 254, "bbox": [17, 20, 279, 237], "fg_width": 263, "fg_height": 218, "foot_y": 237, "center_x": 148.0}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/peeking/frames/frame_03.png", "width": 298, "height": 254, "bbox": [19, 20, 278, 237], "fg_width": 260, "fg_height": 218, "foot_y": 237, "center_x": 148.5}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/peeking/frames/frame_04.png", "width": 298, "height": 254, "bbox": [19, 18, 279, 236], "fg_width": 261, "fg_height": 219, "foot_y": 236, "center_x": 149.0}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/peeking/frames/frame_05.png", "width": 298, "height": 254, "bbox": [20, 18, 277, 236], "fg_width": 258, "fg_height": 219, "foot_y": 236, "center_x": 148.5}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/peeking/frames/frame_06.png", "width": 298, "height": 254, "bbox": [22, 32, 277, 236], "fg_width": 256, "fg_height": 205, "foot_y": 236, "center_x": 149.5}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/peeking/frames/frame_07.png", "width": 298, "height": 254, "bbox": [19, 107, 278, 236], "fg_width": 260, "fg_height": 130, "foot_y": 236, "center_x": 148.5}]}, "sleeping_loop": {"id": "sleeping_loop", "title": "Sleeping (In Chair & Bed)", "source_file": "sleeping.png", "strategy": "strategy_d", "frame_count": 7, "frame_duration_ms": 160, "fps": 6.2, "loop": true, "canvas": {"width": 410, "height": 296, "dimensions": "410x296"}, "anchor": "scene", "props": ["chair", "desk", "bed", "Zzz sleep particles"], "spritesheet_path": "assets/processed/sleeping_loop/spritesheet.png", "preview_gif_path": "assets/processed/sleeping_loop/preview.gif", "contact_sheet_path": "assets/processed/sleeping_loop/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/sleeping_loop/frames/frame_00.png", "width": 410, "height": 296, "bbox": [51, 23, 282, 269], "fg_width": 232, "fg_height": 247, "foot_y": 269, "center_x": 166.5}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/sleeping_loop/frames/frame_01.png", "width": 410, "height": 296, "bbox": [41, 25, 274, 270], "fg_width": 234, "fg_height": 246, "foot_y": 270, "center_x": 157.5}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/sleeping_loop/frames/frame_02.png", "width": 410, "height": 296, "bbox": [46, 17, 256, 276], "fg_width": 211, "fg_height": 260, "foot_y": 276, "center_x": 151.0}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/sleeping_loop/frames/frame_03.png", "width": 410, "height": 296, "bbox": [50, 17, 254, 277], "fg_width": 205, "fg_height": 261, "foot_y": 277, "center_x": 152.0}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/sleeping_loop/frames/frame_04.png", "width": 410, "height": 296, "bbox": [38, 77, 392, 262], "fg_width": 355, "fg_height": 186, "foot_y": 262, "center_x": 215.0}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/sleeping_loop/frames/frame_05.png", "width": 410, "height": 296, "bbox": [22, 86, 351, 262], "fg_width": 330, "fg_height": 177, "foot_y": 262, "center_x": 186.5}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/sleeping_loop/frames/frame_06.png", "width": 410, "height": 296, "bbox": [17, 99, 304, 264], "fg_width": 288, "fg_height": 166, "foot_y": 264, "center_x": 160.5}]}, "standing_to_sleeping": {"id": "standing_to_sleeping", "title": "Standing to Sleeping", "source_file": "sleeping.png", "strategy": "strategy_d", "frame_count": 9, "frame_duration_ms": 150, "fps": 6.7, "loop": false, "canvas": {"width": 258, "height": 462, "dimensions": "258x462"}, "anchor": "scene", "props": ["chair", "desk"], "spritesheet_path": "assets/processed/standing_to_sleeping/spritesheet.png", "preview_gif_path": "assets/processed/standing_to_sleeping/preview.gif", "contact_sheet_path": "assets/processed/standing_to_sleeping/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/standing_to_sleeping/frames/frame_00.png", "width": 258, "height": 462, "bbox": [26, 16, 187, 437], "fg_width": 162, "fg_height": 422, "foot_y": 437, "center_x": 106.5}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/standing_to_sleeping/frames/frame_01.png", "width": 258, "height": 462, "bbox": [28, 17, 192, 437], "fg_width": 165, "fg_height": 421, "foot_y": 437, "center_x": 110.0}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/standing_to_sleeping/frames/frame_02.png", "width": 258, "height": 462, "bbox": [24, 21, 201, 439], "fg_width": 178, "fg_height": 419, "foot_y": 439, "center_x": 112.5}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/standing_to_sleeping/frames/frame_03.png", "width": 258, "height": 462, "bbox": [28, 21, 209, 439], "fg_width": 182, "fg_height": 419, "foot_y": 439, "center_x": 118.5}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/standing_to_sleeping/frames/frame_04.png", "width": 258, "height": 462, "bbox": [27, 20, 215, 439], "fg_width": 189, "fg_height": 420, "foot_y": 439, "center_x": 121.0}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/standing_to_sleeping/frames/frame_05.png", "width": 258, "height": 462, "bbox": [22, 33, 224, 439], "fg_width": 203, "fg_height": 407, "foot_y": 439, "center_x": 123.0}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/standing_to_sleeping/frames/frame_06.png", "width": 258, "height": 462, "bbox": [25, 70, 240, 439], "fg_width": 216, "fg_height": 370, "foot_y": 439, "center_x": 132.5}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/standing_to_sleeping/frames/frame_07.png", "width": 258, "height": 462, "bbox": [17, 133, 240, 444], "fg_width": 224, "fg_height": 312, "foot_y": 444, "center_x": 128.5}, {"index": 8, "filename": "frame_08.png", "rel_path": "assets/processed/standing_to_sleeping/frames/frame_08.png", "width": 258, "height": 462, "bbox": [16, 187, 219, 439], "fg_width": 204, "fg_height": 253, "foot_y": 439, "center_x": 117.5}]}, "thinking": {"id": "thinking", "title": "Thinking", "source_file": "thinking.png", "strategy": "strategy_c", "frame_count": 8, "frame_duration_ms": 150, "fps": 6.7, "loop": true, "canvas": {"width": 272, "height": 652, "dimensions": "272x652"}, "anchor": "feet", "props": [], "spritesheet_path": "assets/processed/thinking/spritesheet.png", "preview_gif_path": "assets/processed/thinking/preview.gif", "contact_sheet_path": "assets/processed/thinking/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/thinking/frames/frame_00.png", "width": 272, "height": 652, "bbox": [32, 22, 240, 635], "fg_width": 209, "fg_height": 614, "foot_y": 635, "center_x": 136.0}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/thinking/frames/frame_01.png", "width": 272, "height": 652, "bbox": [31, 27, 242, 635], "fg_width": 212, "fg_height": 609, "foot_y": 635, "center_x": 136.5}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/thinking/frames/frame_02.png", "width": 272, "height": 652, "bbox": [24, 18, 248, 635], "fg_width": 225, "fg_height": 618, "foot_y": 635, "center_x": 136.0}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/thinking/frames/frame_03.png", "width": 272, "height": 652, "bbox": [29, 27, 244, 635], "fg_width": 216, "fg_height": 609, "foot_y": 635, "center_x": 136.5}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/thinking/frames/frame_04.png", "width": 272, "height": 652, "bbox": [17, 29, 254, 635], "fg_width": 238, "fg_height": 607, "foot_y": 635, "center_x": 135.5}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/thinking/frames/frame_05.png", "width": 272, "height": 652, "bbox": [22, 19, 249, 635], "fg_width": 228, "fg_height": 617, "foot_y": 635, "center_x": 135.5}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/thinking/frames/frame_06.png", "width": 272, "height": 652, "bbox": [21, 19, 252, 635], "fg_width": 232, "fg_height": 617, "foot_y": 635, "center_x": 136.5}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/thinking/frames/frame_07.png", "width": 272, "height": 652, "bbox": [29, 28, 243, 635], "fg_width": 215, "fg_height": 608, "foot_y": 635, "center_x": 136.0}]}, "tired": {"id": "tired", "title": "Tired (Nodding at Desk)", "source_file": "huncing.png", "strategy": "strategy_d", "frame_count": 8, "frame_duration_ms": 180, "fps": 5.6, "loop": true, "canvas": {"width": 296, "height": 336, "dimensions": "296x336"}, "anchor": "scene", "props": ["desk", "chair", "laptop"], "spritesheet_path": "assets/processed/tired/spritesheet.png", "preview_gif_path": "assets/processed/tired/preview.gif", "contact_sheet_path": "assets/processed/tired/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/tired/frames/frame_00.png", "width": 296, "height": 336, "bbox": [27, 16, 277, 318], "fg_width": 251, "fg_height": 303, "foot_y": 318, "center_x": 152.0}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/tired/frames/frame_01.png", "width": 296, "height": 336, "bbox": [20, 21, 269, 318], "fg_width": 250, "fg_height": 298, "foot_y": 318, "center_x": 144.5}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/tired/frames/frame_02.png", "width": 296, "height": 336, "bbox": [17, 20, 266, 318], "fg_width": 250, "fg_height": 299, "foot_y": 318, "center_x": 141.5}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/tired/frames/frame_03.png", "width": 296, "height": 336, "bbox": [18, 20, 269, 318], "fg_width": 252, "fg_height": 299, "foot_y": 318, "center_x": 143.5}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/tired/frames/frame_04.png", "width": 296, "height": 336, "bbox": [17, 24, 269, 318], "fg_width": 253, "fg_height": 295, "foot_y": 318, "center_x": 143.0}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/tired/frames/frame_05.png", "width": 296, "height": 336, "bbox": [16, 24, 271, 318], "fg_width": 256, "fg_height": 295, "foot_y": 318, "center_x": 143.5}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/tired/frames/frame_06.png", "width": 296, "height": 336, "bbox": [19, 24, 274, 318], "fg_width": 256, "fg_height": 295, "foot_y": 318, "center_x": 146.5}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/tired/frames/frame_07.png", "width": 296, "height": 336, "bbox": [16, 19, 272, 317], "fg_width": 257, "fg_height": 299, "foot_y": 317, "center_x": 144.0}]}, "turnaround": {"id": "turnaround", "title": "Turning From Front to Right and Left (360 Rotation)", "source_file": "Pixel Scientist Turnaround Sprite Sheet.png", "strategy": "strategy_c", "frame_count": 12, "frame_duration_ms": 110, "fps": 9.1, "loop": true, "canvas": {"width": 180, "height": 722, "dimensions": "180x722"}, "anchor": "pivot", "props": [], "spritesheet_path": "assets/processed/turnaround/spritesheet.png", "preview_gif_path": "assets/processed/turnaround/preview.gif", "contact_sheet_path": "assets/processed/turnaround/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/turnaround/frames/frame_00.png", "width": 180, "height": 722, "bbox": [19, 18, 161, 705], "fg_width": 143, "fg_height": 688, "foot_y": 705, "center_x": 90.0}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/turnaround/frames/frame_01.png", "width": 180, "height": 722, "bbox": [18, 19, 162, 705], "fg_width": 145, "fg_height": 687, "foot_y": 705, "center_x": 90.0}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/turnaround/frames/frame_02.png", "width": 180, "height": 722, "bbox": [19, 19, 161, 705], "fg_width": 143, "fg_height": 687, "foot_y": 705, "center_x": 90.0}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/turnaround/frames/frame_03.png", "width": 180, "height": 722, "bbox": [26, 19, 155, 705], "fg_width": 130, "fg_height": 687, "foot_y": 705, "center_x": 90.5}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/turnaround/frames/frame_04.png", "width": 180, "height": 722, "bbox": [26, 21, 154, 705], "fg_width": 129, "fg_height": 685, "foot_y": 705, "center_x": 90.0}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/turnaround/frames/frame_05.png", "width": 180, "height": 722, "bbox": [20, 20, 159, 705], "fg_width": 140, "fg_height": 686, "foot_y": 705, "center_x": 89.5}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/turnaround/frames/frame_06.png", "width": 180, "height": 722, "bbox": [21, 20, 160, 705], "fg_width": 140, "fg_height": 686, "foot_y": 705, "center_x": 90.5}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/turnaround/frames/frame_07.png", "width": 180, "height": 722, "bbox": [27, 20, 154, 705], "fg_width": 128, "fg_height": 686, "foot_y": 705, "center_x": 90.5}, {"index": 8, "filename": "frame_08.png", "rel_path": "assets/processed/turnaround/frames/frame_08.png", "width": 180, "height": 722, "bbox": [26, 19, 155, 705], "fg_width": 130, "fg_height": 687, "foot_y": 705, "center_x": 90.5}, {"index": 9, "filename": "frame_09.png", "rel_path": "assets/processed/turnaround/frames/frame_09.png", "width": 180, "height": 722, "bbox": [18, 18, 162, 705], "fg_width": 145, "fg_height": 688, "foot_y": 705, "center_x": 90.0}, {"index": 10, "filename": "frame_10.png", "rel_path": "assets/processed/turnaround/frames/frame_10.png", "width": 180, "height": 722, "bbox": [18, 17, 163, 705], "fg_width": 146, "fg_height": 689, "foot_y": 705, "center_x": 90.5}, {"index": 11, "filename": "frame_11.png", "rel_path": "assets/processed/turnaround/frames/frame_11.png", "width": 180, "height": 722, "bbox": [20, 18, 161, 705], "fg_width": 142, "fg_height": 688, "foot_y": 705, "center_x": 90.5}]}, "walking_left_to_right": {"id": "walking_left_to_right", "title": "Walking Left to Right", "source_file": "walking.png", "strategy": "strategy_b", "frame_count": 8, "frame_duration_ms": 120, "fps": 8.3, "loop": true, "canvas": {"width": 236, "height": 398, "dimensions": "236x398"}, "anchor": "feet", "props": [], "spritesheet_path": "assets/processed/walking_left_to_right/spritesheet.png", "preview_gif_path": "assets/processed/walking_left_to_right/preview.gif", "contact_sheet_path": "assets/processed/walking_left_to_right/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/walking_left_to_right/frames/frame_00.png", "width": 236, "height": 398, "bbox": [42, 19, 193, 381], "fg_width": 152, "fg_height": 363, "foot_y": 381, "center_x": 117.5}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/walking_left_to_right/frames/frame_01.png", "width": 236, "height": 398, "bbox": [24, 20, 213, 381], "fg_width": 190, "fg_height": 362, "foot_y": 381, "center_x": 118.5}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/walking_left_to_right/frames/frame_02.png", "width": 236, "height": 398, "bbox": [28, 23, 207, 381], "fg_width": 180, "fg_height": 359, "foot_y": 381, "center_x": 117.5}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/walking_left_to_right/frames/frame_03.png", "width": 236, "height": 398, "bbox": [25, 25, 212, 381], "fg_width": 188, "fg_height": 357, "foot_y": 381, "center_x": 118.5}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/walking_left_to_right/frames/frame_04.png", "width": 236, "height": 398, "bbox": [20, 22, 217, 381], "fg_width": 198, "fg_height": 360, "foot_y": 381, "center_x": 118.5}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/walking_left_to_right/frames/frame_05.png", "width": 236, "height": 398, "bbox": [20, 23, 216, 381], "fg_width": 197, "fg_height": 359, "foot_y": 381, "center_x": 118.0}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/walking_left_to_right/frames/frame_06.png", "width": 236, "height": 398, "bbox": [17, 23, 217, 381], "fg_width": 201, "fg_height": 359, "foot_y": 381, "center_x": 117.0}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/walking_left_to_right/frames/frame_07.png", "width": 236, "height": 398, "bbox": [27, 22, 209, 381], "fg_width": 183, "fg_height": 360, "foot_y": 381, "center_x": 118.0}]}, "walking_right_to_left": {"id": "walking_right_to_left", "title": "Walking Right to Left", "source_file": "walking.png", "strategy": "strategy_b", "frame_count": 8, "frame_duration_ms": 120, "fps": 8.3, "loop": true, "canvas": {"width": 232, "height": 398, "dimensions": "232x398"}, "anchor": "feet", "props": [], "spritesheet_path": "assets/processed/walking_right_to_left/spritesheet.png", "preview_gif_path": "assets/processed/walking_right_to_left/preview.gif", "contact_sheet_path": "assets/processed/walking_right_to_left/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/walking_right_to_left/frames/frame_00.png", "width": 232, "height": 398, "bbox": [28, 21, 204, 381], "fg_width": 177, "fg_height": 361, "foot_y": 381, "center_x": 116.0}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/walking_right_to_left/frames/frame_01.png", "width": 232, "height": 398, "bbox": [18, 25, 215, 381], "fg_width": 198, "fg_height": 357, "foot_y": 381, "center_x": 116.5}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/walking_right_to_left/frames/frame_02.png", "width": 232, "height": 398, "bbox": [18, 24, 215, 381], "fg_width": 198, "fg_height": 358, "foot_y": 381, "center_x": 116.5}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/walking_right_to_left/frames/frame_03.png", "width": 232, "height": 398, "bbox": [17, 22, 215, 381], "fg_width": 199, "fg_height": 360, "foot_y": 381, "center_x": 116.0}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/walking_right_to_left/frames/frame_04.png", "width": 232, "height": 398, "bbox": [20, 22, 211, 381], "fg_width": 192, "fg_height": 360, "foot_y": 381, "center_x": 115.5}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/walking_right_to_left/frames/frame_05.png", "width": 232, "height": 398, "bbox": [21, 22, 211, 381], "fg_width": 191, "fg_height": 360, "foot_y": 381, "center_x": 116.0}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/walking_right_to_left/frames/frame_06.png", "width": 232, "height": 398, "bbox": [21, 21, 211, 381], "fg_width": 191, "fg_height": 361, "foot_y": 381, "center_x": 116.0}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/walking_right_to_left/frames/frame_07.png", "width": 232, "height": 398, "bbox": [40, 18, 191, 381], "fg_width": 152, "fg_height": 364, "foot_y": 381, "center_x": 115.5}]}, "waving_hii": {"id": "waving_hii", "title": "Hand Waving / Saying Hi", "source_file": "waving_hii.png", "strategy": "strategy_c", "frame_count": 8, "frame_duration_ms": 120, "fps": 8.3, "loop": true, "canvas": {"width": 276, "height": 620, "dimensions": "276x620"}, "anchor": "feet", "props": [], "spritesheet_path": "assets/processed/waving_hii/spritesheet.png", "preview_gif_path": "assets/processed/waving_hii/preview.gif", "contact_sheet_path": "assets/processed/waving_hii/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/waving_hii/frames/frame_00.png", "width": 276, "height": 620, "bbox": [34, 18, 241, 603], "fg_width": 208, "fg_height": 586, "foot_y": 603, "center_x": 137.5}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/waving_hii/frames/frame_01.png", "width": 276, "height": 620, "bbox": [31, 18, 244, 603], "fg_width": 214, "fg_height": 586, "foot_y": 603, "center_x": 137.5}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/waving_hii/frames/frame_02.png", "width": 276, "height": 620, "bbox": [28, 18, 249, 603], "fg_width": 222, "fg_height": 586, "foot_y": 603, "center_x": 138.5}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/waving_hii/frames/frame_03.png", "width": 276, "height": 620, "bbox": [17, 18, 256, 603], "fg_width": 240, "fg_height": 586, "foot_y": 603, "center_x": 136.5}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/waving_hii/frames/frame_04.png", "width": 276, "height": 620, "bbox": [18, 18, 257, 603], "fg_width": 240, "fg_height": 586, "foot_y": 603, "center_x": 137.5}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/waving_hii/frames/frame_05.png", "width": 276, "height": 620, "bbox": [20, 18, 256, 603], "fg_width": 237, "fg_height": 586, "foot_y": 603, "center_x": 138.0}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/waving_hii/frames/frame_06.png", "width": 276, "height": 620, "bbox": [30, 18, 246, 603], "fg_width": 217, "fg_height": 586, "foot_y": 603, "center_x": 138.0}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/waving_hii/frames/frame_07.png", "width": 276, "height": 620, "bbox": [35, 18, 240, 603], "fg_width": 206, "fg_height": 586, "foot_y": 603, "center_x": 137.5}]}, "working_laptop": {"id": "working_laptop", "title": "Working on a Laptop", "source_file": "huncing.png", "strategy": "strategy_d", "frame_count": 9, "frame_duration_ms": 140, "fps": 7.1, "loop": true, "canvas": {"width": 320, "height": 378, "dimensions": "320x378"}, "anchor": "scene", "props": ["desk", "chair", "laptop"], "spritesheet_path": "assets/processed/working_laptop/spritesheet.png", "preview_gif_path": "assets/processed/working_laptop/preview.gif", "contact_sheet_path": "assets/processed/working_laptop/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/working_laptop/frames/frame_00.png", "width": 320, "height": 378, "bbox": [65, 16, 195, 356], "fg_width": 131, "fg_height": 341, "foot_y": 356, "center_x": 130.0}, {"index": 1, "filename": "frame_01.png", "rel_path": "assets/processed/working_laptop/frames/frame_01.png", "width": 320, "height": 378, "bbox": [42, 18, 214, 356], "fg_width": 173, "fg_height": 339, "foot_y": 356, "center_x": 128.0}, {"index": 2, "filename": "frame_02.png", "rel_path": "assets/processed/working_laptop/frames/frame_02.png", "width": 320, "height": 378, "bbox": [40, 26, 194, 355], "fg_width": 155, "fg_height": 330, "foot_y": 355, "center_x": 117.0}, {"index": 3, "filename": "frame_03.png", "rel_path": "assets/processed/working_laptop/frames/frame_03.png", "width": 320, "height": 378, "bbox": [39, 53, 298, 357], "fg_width": 260, "fg_height": 305, "foot_y": 357, "center_x": 168.5}, {"index": 4, "filename": "frame_04.png", "rel_path": "assets/processed/working_laptop/frames/frame_04.png", "width": 320, "height": 378, "bbox": [32, 53, 221, 357], "fg_width": 190, "fg_height": 305, "foot_y": 357, "center_x": 126.5}, {"index": 5, "filename": "frame_05.png", "rel_path": "assets/processed/working_laptop/frames/frame_05.png", "width": 320, "height": 378, "bbox": [47, 52, 235, 355], "fg_width": 189, "fg_height": 304, "foot_y": 355, "center_x": 141.0}, {"index": 6, "filename": "frame_06.png", "rel_path": "assets/processed/working_laptop/frames/frame_06.png", "width": 320, "height": 378, "bbox": [37, 53, 251, 356], "fg_width": 215, "fg_height": 304, "foot_y": 356, "center_x": 144.0}, {"index": 7, "filename": "frame_07.png", "rel_path": "assets/processed/working_laptop/frames/frame_07.png", "width": 320, "height": 378, "bbox": [16, 54, 242, 357], "fg_width": 227, "fg_height": 304, "foot_y": 357, "center_x": 129.0}, {"index": 8, "filename": "frame_08.png", "rel_path": "assets/processed/working_laptop/frames/frame_08.png", "width": 320, "height": 378, "bbox": [24, 59, 302, 360], "fg_width": 279, "fg_height": 302, "foot_y": 360, "center_x": 163.0}]}, "idle": {"id": "idle", "title": "Idle (Standing Neutral)", "source_file": "blinking.png", "strategy": "static_pose", "frame_count": 1, "frame_duration_ms": 300, "fps": 3.3, "loop": true, "canvas": {"width": 290, "height": 694, "dimensions": "290x694"}, "anchor": "feet", "props": [], "spritesheet_path": "assets/processed/blinking/spritesheet.png", "preview_gif_path": "assets/processed/blinking/preview.gif", "contact_sheet_path": "assets/processed/blinking/contact_sheet.png", "frames": [{"index": 0, "filename": "frame_00.png", "rel_path": "assets/processed/blinking/frames/frame_00.png", "width": 290, "height": 694, "bbox": [21, 16, 268, 676], "fg_width": 248, "fg_height": 661, "foot_y": 676, "center_x": 144.5}]}};
+  </script>
+
+  <script src="app.js"></script>
+</body>
+</html>

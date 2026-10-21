@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { IconInfo2, IconClose } from '../../ui/Icons';
 
-interface ExtractedParamMeta {
-  value: string;
-  status: string;
-  confidence: number;
+export interface ExtractedParamMeta {
+  value: string | number | boolean;
+  status: 'EXPLICIT' | 'INFERRED' | 'DERIVED' | 'ASSUMED' | 'DEFAULT' | 'UNKNOWN' | string;
+  confidence?: number;
+  evidence_quote?: string | null;
+  source_section?: string | null;
+  grounding?: string | null;
+  evidence_strength?: string;
 }
 
 interface ParameterConfigFormProps {
@@ -13,6 +18,7 @@ interface ParameterConfigFormProps {
   onConfirm: () => void;
   confirmLabel?: string;
   compactMode?: boolean;
+  activeFilter?: 'ALL' | 'EXPLICIT' | 'INFERRED' | 'DEFAULT' | null;
 }
 
 export const ParameterConfigForm: React.FC<ParameterConfigFormProps> = ({
@@ -22,20 +28,41 @@ export const ParameterConfigForm: React.FC<ParameterConfigFormProps> = ({
   onConfirm,
   confirmLabel = 'Confirm & Run Feasibility Check',
   compactMode = false,
+  activeFilter = 'ALL',
 }) => {
-  const getStatusColor = (status?: string) => {
-    switch (status) {
+  const [activeTooltipParam, setActiveTooltipParam] = useState<string | null>(null);
+
+  const getResolvedStatus = (status?: string): 'EXPLICIT' | 'INFERRED' | 'DEFAULT' => {
+    if (!status) return 'DEFAULT';
+    const upper = status.toUpperCase();
+    if (upper === 'EXPLICIT') return 'EXPLICIT';
+    if (upper === 'INFERRED' || upper === 'DERIVED') return 'INFERRED';
+    return 'DEFAULT';
+  };
+
+  const getStatusBadgeStyles = (status?: string) => {
+    const resolved = getResolvedStatus(status);
+    switch (resolved) {
       case 'EXPLICIT':
-        return 'border-emerald-500/25 bg-emerald-500/5 text-emerald-400';
+        return 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400 font-bold';
       case 'INFERRED':
-      case 'DERIVED':
-        return 'border-sky-500/25 bg-sky-500/5 text-sky-400';
-      case 'ASSUMED':
-        return 'border-amber-500/25 bg-amber-500/5 text-amber-400';
-      case 'UNKNOWN':
-        return 'border-rose-500/25 bg-rose-500/5 text-rose-400';
+        return 'border-amber-500/40 bg-amber-500/10 text-amber-400 font-bold';
+      case 'DEFAULT':
       default:
-        return 'border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-muted)]';
+        return 'border-dashed border-rose-500/40 bg-rose-500/10 text-rose-400 font-bold';
+    }
+  };
+
+  const getCardBorderStyles = (status?: string) => {
+    const resolved = getResolvedStatus(status);
+    switch (resolved) {
+      case 'EXPLICIT':
+        return 'border-emerald-500/40 bg-emerald-500/[0.03] hover:border-emerald-500/70 focus-within:border-emerald-400';
+      case 'INFERRED':
+        return 'border-amber-500/40 bg-amber-500/[0.03] hover:border-amber-500/70 focus-within:border-amber-400';
+      case 'DEFAULT':
+      default:
+        return 'border-dashed border-rose-500/40 bg-rose-500/[0.03] hover:border-rose-500/70 focus-within:border-rose-400';
     }
   };
 
@@ -54,19 +81,34 @@ export const ParameterConfigForm: React.FC<ParameterConfigFormProps> = ({
           Hyperparameter Review (Human-in-Loop)
         </span>
         <div className="grid grid-cols-2 gap-2 text-[10px]">
-          {compactKeys.map((key) => (
-            <div key={key} className="flex flex-col gap-1">
-              <label className="text-[8px] font-mono text-[var(--text-muted)] capitalize">
-                {key.replace('_', ' ')}
-              </label>
-              <input
-                type="text"
-                value={customParams[key] || ''}
-                onChange={(e) => handleFieldChange(key, e.target.value)}
-                className="bg-[var(--bg-card)] border app-border rounded px-2 py-1 text-[var(--text-main)] font-mono text-[9px] focus:outline-none focus:border-[var(--accent)]"
-              />
-            </div>
-          ))}
+          {compactKeys.map((key) => {
+            const item = extractedParams?.[key];
+            const resolved = getResolvedStatus(item?.status);
+            return (
+              <div key={key} className="flex flex-col gap-1">
+                <div className="flex justify-between items-center">
+                  <label className="text-[8px] font-mono text-[var(--text-muted)] capitalize">
+                    {key.replace('_', ' ')}
+                  </label>
+                  <span
+                    className={`text-[7px] font-mono px-1 py-0.2 rounded border ${getStatusBadgeStyles(
+                      item?.status
+                    )}`}
+                  >
+                    {resolved}
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  value={customParams[key] || ''}
+                  onChange={(e) => handleFieldChange(key, e.target.value)}
+                  className={`bg-[var(--bg-card)] border rounded px-2 py-1 text-[var(--text-main)] font-mono text-[9px] focus:outline-none ${getCardBorderStyles(
+                    item?.status
+                  )}`}
+                />
+              </div>
+            );
+          })}
         </div>
         <button
           type="button"
@@ -79,52 +121,144 @@ export const ParameterConfigForm: React.FC<ParameterConfigFormProps> = ({
     );
   }
 
+  // Filter keys if activeFilter is specified
+  const paramKeys = Object.keys(customParams).filter((paramKey) => {
+    if (!activeFilter || activeFilter === 'ALL') return true;
+    const item = extractedParams?.[paramKey];
+    const resolved = getResolvedStatus(item?.status);
+    return resolved === activeFilter;
+  });
+
   return (
     <div className="flex-1 flex flex-col gap-3">
       <div className="flex flex-col gap-0.5 text-left pb-1">
         <span className="text-xs font-bold text-[var(--text-main)]">
-          Review Extracted Hyperparameters
+          Review Extracted Hyperparameters & Provenance Evidence
         </span>
         <span className="text-[9px] text-[var(--text-muted)] leading-tight">
-          Review or adjust target attributes before executing the hardware resource compatibility analysis.
+          Every parameter includes its source section and extracted paper quote. Adjust values as needed before executing downstream synthesis.
         </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto max-h-[360px] pr-1.5 scrollbar-thin flex flex-col gap-3">
+      <div className="flex-1 overflow-y-auto max-h-[360px] pr-1.5 scrollbar-thin flex flex-col gap-3 relative">
         <div className="grid grid-cols-2 gap-2 text-left">
-          {Object.keys(customParams).map((paramKey) => {
+          {paramKeys.map((paramKey) => {
             const item = extractedParams?.[paramKey];
             const label = paramKey.toUpperCase().replace('_', ' ');
+            const resolvedStatus = getResolvedStatus(item?.status);
+            const isTooltipOpen = activeTooltipParam === paramKey;
 
             return (
               <div
                 key={paramKey}
-                className="bg-[var(--bg-base)]/50 border app-border rounded-lg p-2 flex flex-col gap-1.5 transition-all"
+                className={`relative border rounded-xl p-2.5 flex flex-col gap-2 transition-all ${getCardBorderStyles(
+                  item?.status
+                )}`}
               >
+                {/* Header: Label, Status Badge & Info Tooltip Trigger */}
                 <div className="flex justify-between items-center gap-1.5">
-                  <span className="text-[8px] font-mono font-bold text-[var(--accent)]">
+                  <span className="text-[9px] font-mono font-bold text-[var(--text-main)] truncate">
                     {label}
                   </span>
-                  {item && (
+
+                  <div className="flex items-center gap-1 shrink-0">
                     <span
-                      className={`text-[7px] font-mono font-semibold border px-1.5 py-0.2 rounded-full leading-none uppercase ${getStatusColor(
-                        item.status
+                      className={`text-[7px] font-mono px-1.5 py-0.5 rounded-md uppercase tracking-wider border leading-none ${getStatusBadgeStyles(
+                        item?.status
                       )}`}
                     >
-                      {item.status}
+                      {resolvedStatus}
                     </span>
-                  )}
+
+                    {/* Info Evidence Trigger */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setActiveTooltipParam(isTooltipOpen ? null : paramKey)
+                      }
+                      className={`p-1 rounded-md transition-all cursor-pointer ${
+                        isTooltipOpen
+                          ? 'bg-[var(--accent)] text-white'
+                          : 'text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent-subtle)]'
+                      }`}
+                      title="View paper provenance evidence"
+                    >
+                      <IconInfo2 className="text-xs" />
+                    </button>
+                  </div>
                 </div>
-                <input
-                  type="text"
-                  value={customParams[paramKey]}
-                  onChange={(e) => handleFieldChange(paramKey, e.target.value)}
-                  className="w-full bg-[var(--bg-card)] border app-border rounded px-2.5 py-1 text-[var(--text-main)] font-mono text-[9px] focus:outline-none focus:border-[var(--accent)]"
-                />
+
+                {/* Input Field */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={customParams[paramKey] ?? ''}
+                    onChange={(e) => handleFieldChange(paramKey, e.target.value)}
+                    className="w-full bg-[var(--bg-card)] border app-border rounded-lg px-2.5 py-1 text-[var(--text-main)] font-mono text-[10px] focus:outline-none focus:border-[var(--accent)]"
+                  />
+                </div>
+
+                {/* Paper Evidence Quote Drawer / Tooltip Popover */}
+                {isTooltipOpen && (
+                  <div className="mt-1 p-2.5 rounded-lg bg-[var(--bg-card)] border border-amber-500/40 shadow-xl flex flex-col gap-1.5 text-[9px] font-mono select-text z-20">
+                    <div className="flex items-center justify-between border-b app-border pb-1">
+                      <div className="flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                        <span className="font-bold text-[var(--text-main)]">
+                          Provenance Evidence
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTooltipParam(null)}
+                        className="text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer"
+                      >
+                        <IconClose className="text-xs" />
+                      </button>
+                    </div>
+
+                    {/* Section Label */}
+                    <div className="text-[9px] text-[var(--text-muted)]">
+                      Source Section:{' '}
+                      <strong className="text-[var(--text-main)]">
+                        {item?.source_section || 'Section not explicitly specified'}
+                      </strong>
+                    </div>
+
+                    {/* Paper-styled Blockquote */}
+                    {item?.evidence_quote ? (
+                      <blockquote className="p-2 rounded bg-amber-500/5 border-l-2 border-l-amber-400 font-serif italic text-[10px] text-[var(--text-main)] leading-relaxed">
+                        “{item.evidence_quote}”
+                      </blockquote>
+                    ) : (
+                      <div className="text-[8px] text-[var(--text-muted)] italic">
+                        {resolvedStatus === 'DEFAULT'
+                          ? 'No verbatim text quote in paper. Applied canonical ML baseline default.'
+                          : 'Deduced via contextual architecture inference.'}
+                      </div>
+                    )}
+
+                    {/* Confidence Score */}
+                    {item?.confidence !== undefined && (
+                      <div className="flex justify-between items-center pt-0.5 text-[8px] text-[var(--text-muted)]">
+                        <span>Confidence:</span>
+                        <span className="font-bold text-emerald-400">
+                          {item.confidence}%
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
+
+        {paramKeys.length === 0 && (
+          <div className="py-8 flex flex-col items-center justify-center text-[var(--text-muted)] text-[10px] font-mono">
+            <span>No parameters match the filter "{activeFilter}".</span>
+          </div>
+        )}
       </div>
 
       <div className="flex justify-end gap-2 border-t app-border pt-2">

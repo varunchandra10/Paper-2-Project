@@ -318,7 +318,7 @@ class QuotaTracker:
 
                 daily_remaining = max(0, daily_limit - daily_used)
                 minute_remaining = max(0, minute_limit - minute_used)
-                daily_pct = max(0, min(100, int((daily_remaining / daily_limit) * 100)))
+                daily_pct = max(0, min(100, round((daily_remaining / daily_limit) * 100)))
 
                 daily_refresh_str = f"{daily_remaining:,} of {daily_limit:,} daily requests remaining."
                 minute_refresh_str = f"{minute_remaining} of {minute_limit} requests/min currently available."
@@ -346,7 +346,7 @@ class QuotaTracker:
                     "five_hour": {
                         "limit": minute_limit,
                         "used": minute_used,
-                        "remaining_pct": max(0, min(100, int((minute_remaining / minute_limit) * 100))),
+                        "remaining_pct": max(0, min(100, round((minute_remaining / minute_limit) * 100))),
                         "refresh_message": minute_refresh_str,
                         "status": "normal" if minute_remaining > 2 else "warning"
                     },
@@ -509,23 +509,15 @@ class QuotaTracker:
             try:
                 live_g = self._live_limits.get("groq", {})
 
-                # If no live completion headers recorded in past 300s, ping a 1-token test to extract official live ratelimit headers
+                # Check online status using free metadata endpoint GET /v1/models (consumes 0 tokens)
                 if not live_g or (time.time() - live_g.get("last_updated", 0)) > 300:
                     try:
-                        resp = httpx.post(
-                            "https://api.groq.com/openai/v1/chat/completions",
-                            headers={
-                                "Authorization": f"Bearer {effective_groq_key}",
-                                "Content-Type": "application/json"
-                            },
-                            json={
-                                "model": "qwen/qwen3.8-27b",
-                                "messages": [{"role": "user", "content": "ping"}],
-                                "max_tokens": 1
-                            },
+                        resp = httpx.get(
+                            "https://api.groq.com/openai/v1/models",
+                            headers={"Authorization": f"Bearer {effective_groq_key}"},
                             timeout=3.0
                         )
-                        if resp.status_code in [200, 429]:
+                        if resp.status_code == 200:
                             self.update_live_headers("groq", resp.headers)
                             live_g = self._live_limits.get("groq", {})
                     except Exception:
@@ -638,5 +630,141 @@ class QuotaTracker:
         return metrics
 
 
-# Global singleton instance
+import threading
+from datetime import datetime, timezone
+
+
+class DailyExtractionQuotaManager:
+    """
+    Manages daily VLM extraction quotas and application budgets independently from provider limits.
+    Guarantees thread-safe, persistent tracking and automatic midnight rollover.
+    """
+
+    _lock = threading.RLock()
+
+    def __init__(self, storage_path: Optional[str] = None):
+        self.storage_path = storage_path or os.path.join(settings.HISTORY_DIR, "daily_extraction_quota.json")
+        self.default_papers_per_day = int(os.getenv("MAX_PAPERS_PER_DAY", "15"))
+        self.default_vlm_requests_per_day = int(os.getenv("MAX_VLM_REQUESTS_PER_DAY", "80"))
+        self._ensure_storage()
+
+    def _today_str(self) -> str:
+        return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    def _ensure_storage(self):
+        os.makedirs(os.path.dirname(self.storage_path), exist_ok=True)
+        if not os.path.exists(self.storage_path):
+            self._save_state(self._init_daily_state(self._today_str()))
+
+    def _init_daily_state(self, date_str: str) -> dict:
+        return {
+            "date": date_str,
+            "papers_processed": 0,
+            "vlm_papers_processed": 0,
+            "deterministic_papers_processed": 0,
+            "vlm_requests": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "application_budget": {
+                "papers_per_day": self.default_papers_per_day,
+                "vlm_requests_per_day": self.default_vlm_requests_per_day
+            },
+            "status": "active"
+        }
+
+    def _load_state(self) -> dict:
+        today = self._today_str()
+        try:
+            if os.path.exists(self.storage_path):
+                with open(self.storage_path, "r", encoding="utf-8") as f:
+                    state = json.load(f)
+                    if state.get("date") == today:
+                        return state
+        except Exception:
+            pass
+        # Rollover to a new day
+        new_state = self._init_daily_state(today)
+        self._save_state(new_state)
+        return new_state
+
+    def _save_state(self, state: dict):
+        try:
+            temp_path = f"{self.storage_path}.tmp"
+            with open(temp_path, "w", encoding="utf-8") as f:
+                json.dump(state, f, indent=2)
+            os.replace(temp_path, self.storage_path)
+        except Exception as e:
+            print(f"[QUOTA_MANAGER WARN] Failed saving daily extraction quota: {e}")
+
+    def can_use_vlm(self) -> bool:
+        """Evaluates whether current application budget permits VLM visual requests."""
+        with self._lock:
+            state = self._load_state()
+            budget = state.get("application_budget", {})
+            max_papers = budget.get("papers_per_day", self.default_papers_per_day)
+            max_reqs = budget.get("vlm_requests_per_day", self.default_vlm_requests_per_day)
+
+            vlm_papers = state.get("vlm_papers_processed", 0)
+            vlm_reqs = state.get("vlm_requests", 0)
+
+            return bool(vlm_papers < max_papers and vlm_reqs < max_reqs)
+
+    def record_vlm_request(self, paper_id: str, element_type: str, input_tokens: int = 0, output_tokens: int = 0):
+        """Records a single visual element VLM inference call."""
+        with self._lock:
+            state = self._load_state()
+            state["vlm_requests"] = state.get("vlm_requests", 0) + 1
+            state["input_tokens"] = state.get("input_tokens", 0) + max(0, input_tokens)
+            state["output_tokens"] = state.get("output_tokens", 0) + max(0, output_tokens)
+
+            budget = state.get("application_budget", {})
+            if state["vlm_requests"] >= budget.get("vlm_requests_per_day", self.default_vlm_requests_per_day):
+                state["status"] = "vlm_requests_exhausted"
+
+            self._save_state(state)
+
+    def record_paper_completion(self, paper_id: str, used_vlm: bool):
+        """Records completion of a document extraction, incrementing appropriate category."""
+        with self._lock:
+            state = self._load_state()
+            state["papers_processed"] = state.get("papers_processed", 0) + 1
+            if used_vlm:
+                state["vlm_papers_processed"] = state.get("vlm_papers_processed", 0) + 1
+            else:
+                state["deterministic_papers_processed"] = state.get("deterministic_papers_processed", 0) + 1
+
+            budget = state.get("application_budget", {})
+            max_papers = budget.get("papers_per_day", self.default_papers_per_day)
+            if state.get("vlm_papers_processed", 0) >= max_papers:
+                state["status"] = "daily_quota_exhausted"
+
+            self._save_state(state)
+
+    def get_quota_summary(self) -> dict:
+        """Returns structured daily extraction statistics for API and UI consumers."""
+        with self._lock:
+            state = self._load_state()
+            budget = state.get("application_budget", {})
+            max_papers = budget.get("papers_per_day", self.default_papers_per_day)
+            used_vlm_papers = state.get("vlm_papers_processed", 0)
+            remaining = max(0, max_papers - used_vlm_papers)
+
+            return {
+                "date": state.get("date", self._today_str()),
+                "papers_processed": state.get("papers_processed", 0),
+                "vlm_papers_processed": used_vlm_papers,
+                "deterministic_papers_processed": state.get("deterministic_papers_processed", 0),
+                "vlm_requests": state.get("vlm_requests", 0),
+                "input_tokens": state.get("input_tokens", 0),
+                "output_tokens": state.get("output_tokens", 0),
+                "application_budget_remaining": remaining,
+                "daily_limit": max_papers,
+                "can_use_vlm": bool(remaining > 0 and state.get("status") != "daily_quota_exhausted"),
+                "status": state.get("status", "active")
+            }
+
+
+# Global singleton instances
 quota_tracker = QuotaTracker()
+daily_quota_manager = DailyExtractionQuotaManager()
+

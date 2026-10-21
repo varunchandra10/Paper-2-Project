@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { usePanelStore } from '../../store/panelStore';
 import { 
   type AvatarId, 
+  type MascotPose,
   useMascotTransition, 
   MascotAnimatedSprite 
 } from '../mascot/MascotCompanion';
@@ -10,46 +11,52 @@ import { IconMinimize, IconMaximize, IconMessageSquare } from '../ui/Icons';
 interface MascotBoxProps {
   isOpen: boolean;
   isMaximized: boolean;
+  isDragging?: boolean;
 }
 
-const GEN_Z_QUIPS = [
-  "100% Local Ollama, zero cloud API bills 💅",
-  "Bro parsed a 40-page arXiv paper in 8 seconds 💀",
-  "AST Auto-healing just saved your thesis 🚀",
-  "Feed me a 50-page PDF, I won't choke 🧠",
-  "PyTorch tensors aligned and ready to train ⚡"
-];
-
-export const MascotBox: React.FC<MascotBoxProps> = ({ isOpen, isMaximized }) => {
+export const MascotBox: React.FC<MascotBoxProps> = ({ isOpen, isMaximized, isDragging = false }) => {
   const { 
     isAnalyzing,
     activeMilestoneIndex,
     reportContent,
-    avatarId
+    avatarId,
+    isChatGenerating,
+    isInputThinking,
+    analysisStatus,
+    messages
   } = usePanelStore();
 
   const [isSleeping, setIsSleeping] = useState(false);
-  const [isBubbleVisible, setIsBubbleVisible] = useState(true);
-  const [customQuote, setCustomQuote] = useState<string | null>(null);
+  const [isTired, setIsTired] = useState(false);
+  const isBubbleVisible = true;
   const [isMinimized, setIsMinimized] = useState(false);
 
-  // Inactivity tracking (1 minute idle timeout)
+  // Inactivity tracking (45s tired slump -> 60s sleep with Zzz)
   useEffect(() => {
-    if (!isMaximized || isAnalyzing) {
-      setIsSleeping(false);
-      return;
-    }
-
-    let idleTimeout: ReturnType<typeof setTimeout>;
+    let tiredTimeout: ReturnType<typeof setTimeout>;
+    let sleepTimeout: ReturnType<typeof setTimeout>;
 
     const resetIdleTimer = () => {
       setIsSleeping(false);
-      clearTimeout(idleTimeout);
+      setIsTired(false);
+      clearTimeout(tiredTimeout);
+      clearTimeout(sleepTimeout);
       
-      if (isAnalyzing) return;
+      if (isAnalyzing || isChatGenerating) return;
 
-      idleTimeout = setTimeout(() => {
+      tiredTimeout = setTimeout(() => {
+        setIsTired(true);
+        if (typeof window !== 'undefined' && (window as any).mascotAPI?.setMascotState) {
+          (window as any).mascotAPI.setMascotState('tired');
+        }
+      }, 45000);
+
+      sleepTimeout = setTimeout(() => {
+        setIsTired(false);
         setIsSleeping(true);
+        if (typeof window !== 'undefined' && (window as any).mascotAPI?.setMascotState) {
+          (window as any).mascotAPI.setMascotState('sleep');
+        }
       }, 60000);
     };
 
@@ -63,14 +70,137 @@ export const MascotBox: React.FC<MascotBoxProps> = ({ isOpen, isMaximized }) => 
     resetIdleTimer();
 
     return () => {
-      clearTimeout(idleTimeout);
+      clearTimeout(tiredTimeout);
+      clearTimeout(sleepTimeout);
       events.forEach((event) => {
         window.removeEventListener(event, handleEvent);
       });
     };
-  }, [isMaximized, isAnalyzing]);
+  }, [isAnalyzing, isChatGenerating]);
 
-  // Consume central transition hook
+  // Robust PDF Upload & Ingestion State Machine:
+  // Phase 1: Document catching (1000ms)
+  // Phase 2: Coffee sipping (guaranteed 3.5s minimum while analyzing/digesting)
+  // Phase 3: Prolonged ingestion (>15s) -> confused
+  // Phase 4: Ingestion success -> excited celebration (2.5s)
+  // Phase 5: Smooth return to standing / idle
+  const [isJustUploaded, setIsJustUploaded] = useState(false);
+  const [isCoffeeSipping, setIsCoffeeSipping] = useState(false);
+  const [isLongAnalyzing, setIsLongAnalyzing] = useState(false);
+  const [isIngestionSuccess, setIsIngestionSuccess] = useState(false);
+
+  const prevAnalyzingRef = useRef(false);
+  const activeTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const clearIngestionTimeouts = () => {
+    activeTimeoutsRef.current.forEach((t) => clearTimeout(t));
+    activeTimeoutsRef.current = [];
+  };
+
+  useEffect(() => {
+    // Only trigger sequence on the rising edge of isAnalyzing
+    if (isAnalyzing && !prevAnalyzingRef.current) {
+      clearIngestionTimeouts();
+
+      setIsJustUploaded(true);
+      setIsCoffeeSipping(false);
+      setIsIngestionSuccess(false);
+
+      if (typeof window !== 'undefined' && (window as any).mascotAPI?.setMascotState) {
+        (window as any).mascotAPI.setMascotState('catching');
+      }
+
+      // Step 1: 1.0s of document catching
+      const t1 = setTimeout(() => {
+        setIsJustUploaded(false);
+        setIsCoffeeSipping(true);
+
+        if (typeof window !== 'undefined' && (window as any).mascotAPI?.setMascotState) {
+          (window as any).mascotAPI.setMascotState('having_sipping');
+        }
+
+        // Step 2: 3.5s of coffee sipping
+        const t2 = setTimeout(() => {
+          setIsCoffeeSipping(false);
+
+          // Step 3: Verified celebration
+          setIsIngestionSuccess(true);
+          if (typeof window !== 'undefined' && (window as any).mascotAPI?.setMascotState) {
+            (window as any).mascotAPI.setMascotState('excited');
+          }
+
+          // Step 4: Return to normal idle
+          const t3 = setTimeout(() => {
+            setIsIngestionSuccess(false);
+            if (typeof window !== 'undefined' && (window as any).mascotAPI?.setMascotState) {
+              (window as any).mascotAPI.setMascotState('idle');
+            }
+          }, 2500);
+          activeTimeoutsRef.current.push(t3);
+
+        }, 3500);
+        activeTimeoutsRef.current.push(t2);
+
+      }, 1000);
+      activeTimeoutsRef.current.push(t1);
+    }
+
+    prevAnalyzingRef.current = isAnalyzing;
+  }, [isAnalyzing]);
+
+  // Clean up timers on unmount
+  useEffect(() => {
+    return () => {
+      clearIngestionTimeouts();
+    };
+  }, []);
+
+  // Prolonged ingestion (> 15 seconds) -> confused pose
+  useEffect(() => {
+    if (!isAnalyzing) {
+      setIsLongAnalyzing(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setIsLongAnalyzing(true);
+      if (typeof window !== 'undefined' && (window as any).mascotAPI?.setMascotState) {
+        (window as any).mascotAPI.setMascotState('confused');
+      }
+    }, 15000);
+
+    return () => clearTimeout(timer);
+  }, [isAnalyzing]);
+
+  // Check for rate limit or error in last assistant message
+  const lastMessage = messages[messages.length - 1];
+  const isRateLimited = 
+    analysisStatus === 'error' ||
+    (lastMessage && lastMessage.role === 'assistant' && (
+      lastMessage.content.includes('429') ||
+      lastMessage.content.includes('rate limit') ||
+      lastMessage.content.includes('⚠️')
+    ));
+
+  // Click Easter Egg state
+  const [clickPoseOverride, setClickPoseOverride] = useState<MascotPose | null>(null);
+
+  const handleMascotClick = () => {
+    setIsSleeping(false);
+    setIsTired(false);
+
+    // Cycle playful poses on click without popping up unnecessary text pills
+    const poses: MascotPose[] = ['document_catching', 'waving', 'excited', 'thinking', 'turnaround', 'confused', 'sipping_coffee', 'angry', 'walking'];
+    const chosenPose = poses[Math.floor(Math.random() * poses.length)];
+    
+    const overrideDuration = (chosenPose === 'waving' || chosenPose === 'document_catching') ? 1100 : 2500;
+    setClickPoseOverride(chosenPose);
+    setTimeout(() => {
+      setClickPoseOverride(null);
+    }, overrideDuration);
+  };
+
+  // Consume central transition hook with all integrated triggers
   const activeAvatarId = (avatarId as AvatarId) || 'mr-nerdy';
   const {
     mascotInfo,
@@ -82,19 +212,22 @@ export const MascotBox: React.FC<MascotBoxProps> = ({ isOpen, isMaximized }) => 
     isAnalyzing,
     activeMilestoneIndex,
     reportContent,
-    isSleeping
+    isSleeping,
+    isTired,
+    isChatGenerating,
+    isInputThinking,
+    isLongAnalyzing,
+    isDraggingFile: isDragging,
+    isJustUploaded,
+    isCoffeeSipping,
+    isIngestionSuccess,
+    isRateLimited: !!isRateLimited,
+    customPoseOverride: clickPoseOverride,
+    customSpeechOverride: null
   });
 
-  const handleMascotClick = () => {
-    // Cycle playful quote on tap
-    const randomQuip = GEN_Z_QUIPS[Math.floor(Math.random() * GEN_Z_QUIPS.length)];
-    setCustomQuote(randomQuip);
-    setIsBubbleVisible(true);
-    setIsSleeping(false);
-  };
-
-  // On minimized / docked screen mode, do not render the mascot inside the renderer (the taskbar mascot overlay is active)
-  if (!isMaximized) return null;
+  // In Electron native minimized overlay mode, let the external window handle the mascot
+  // Allowed to render within the in-panel dock for both minimized & maximized screens
 
   /* Minimized Badge State */
   if (isMinimized) {
@@ -115,105 +248,61 @@ export const MascotBox: React.FC<MascotBoxProps> = ({ isOpen, isMaximized }) => 
 
   /* Full Expanded Mascot Box */
   if (isOpen) {
-    const bubbleContent = customQuote || speechText;
+    const bubbleContent = speechText;
 
     return (
-      <div className="relative flex flex-col items-center select-none">
-        
-        {/* Floating Speech Bubble with Pointer Tail */}
-        {isBubbleVisible && (
-          <div className="w-[136px] mb-2 px-2.5 py-1.5 rounded-xl bg-[var(--bg-card)]/95 border app-border text-[9px] font-sans text-[var(--text-main)] shadow-lg backdrop-blur-md flex items-start gap-1.5 relative animate-fade-in group">
-            <IconMessageSquare className="text-[10px] text-[var(--accent)] shrink-0 mt-0.5" />
-            <p className="flex-1 leading-tight select-text selection:bg-[var(--accent-subtle)] line-clamp-3 text-[8px]">
-              {bubbleContent}
-            </p>
-            <button 
-              onClick={(e) => { e.stopPropagation(); setIsBubbleVisible(false); }}
-              className="text-[9px] text-[var(--text-muted)] hover:text-[var(--text-main)] ml-0.5 cursor-pointer shrink-0"
-              title="Dismiss quote"
-            >
-              ✕
-            </button>
-            {/* Bubble Tail */}
-            <div className="absolute -bottom-1 left-5 w-2 h-2 bg-[var(--bg-card)] border-b border-r app-border rotate-45" />
+      <div className="flex flex-col items-center select-none relative group/mascot">
+        {/* Dynamic Speech Bubble (Only shown when a message pill is explicitly active) */}
+        {isBubbleVisible && !!bubbleContent && (
+          <div className={`relative mb-1.5 bg-[var(--bg-card)]/95 backdrop-blur-md border app-border rounded-2xl shadow-lg animate-fade-in group-hover/mascot:border-[var(--accent-border)] transition-colors ${
+            isMaximized
+              ? 'max-w-[200px] p-2'
+              : 'max-w-[155px] p-1.5'
+          }`}>
+            <div className="flex items-start gap-1.5">
+              <IconMessageSquare className={`text-[var(--accent)] shrink-0 mt-0.5 ${
+                isMaximized ? 'w-3.5 h-3.5' : 'w-3 h-3'
+              }`} />
+              <p className={`font-sans leading-tight text-[var(--text-main)] ${
+                isMaximized ? 'text-[11px]' : 'text-[9.5px]'
+              }`}>
+                {bubbleContent}
+              </p>
+            </div>
+
+            {/* Speech bubble tail pointer */}
+            <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-[var(--bg-card)] border-r border-b app-border rotate-45" />
           </div>
         )}
 
-        {/* Main Companion Box Frame - Compact Square (124px x 124px) */}
+        {/* Mascot Interactive Sprite Area */}
         <div 
           onClick={handleMascotClick}
-          className="w-[124px] h-[124px] aspect-square shrink-0 rounded-2xl border app-border bg-[var(--bg-card)]/90 backdrop-blur-md flex flex-col items-center justify-between p-2 relative overflow-hidden shadow-lg group hover:border-[var(--accent)]/50 transition-all duration-200 cursor-pointer"
+          className="relative cursor-pointer transition-transform duration-200 active:scale-95 hover:scale-105"
+          title={`Click to interact with ${mascotInfo.name}`}
         >
-          {/* Status Indicator Pill Header + Minimize Button */}
-          <div className="w-full flex justify-between items-center z-10 px-0.5 pb-0.5">
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[var(--bg-base)]/80 border app-border text-[7px] font-mono font-bold tracking-wider text-[var(--text-main)] backdrop-blur-sm shadow-xs">
-              <span className={`w-1.5 h-1.5 rounded-full ${
-                isAnalyzing 
-                  ? 'bg-amber-400 animate-ping' 
-                  : isSleeping 
-                    ? 'bg-sky-400' 
-                    : 'bg-emerald-400'
-              }`} />
-              {isAnalyzing ? 'ACTIVE' : isSleeping ? 'IDLE' : 'READY'}
-            </span>
+          <MascotAnimatedSprite
+            avatarId={activeAvatarId}
+            pose={currentPose}
+            frameIndex={frameIndex}
+            className="w-19 h-auto"
+          />
 
-            <div className="flex items-center gap-1">
-              {/* Floating Sleep Zzz's */}
-              {isSleeping && (
-                <div className="flex items-center gap-0.5 pointer-events-none mr-1">
-                  <span className="text-[9px] font-mono font-bold text-[var(--accent)] animate-bounce" style={{ animationDelay: '0s', animationDuration: '1.8s' }}>Z</span>
-                  <span className="text-[7px] font-mono font-bold text-[var(--accent)]/70 animate-bounce" style={{ animationDelay: '0.3s', animationDuration: '1.8s' }}>z</span>
-                  <span className="text-[5px] font-mono font-bold text-[var(--accent)]/50 animate-bounce" style={{ animationDelay: '0.6s', animationDuration: '1.8s' }}>z</span>
-                </div>
-              )}
-
-              {/* Minimize Box Button */}
-              <button
-                onClick={(e) => { e.stopPropagation(); setIsMinimized(true); }}
-                className="w-4 h-4 rounded flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-subtle)] transition-colors cursor-pointer"
-                title="Minimize mascot box"
-              >
-                <IconMinimize className="text-[8px]" />
-              </button>
-            </div>
-          </div>
-
-          {/* Mascot Animated Sprite - Centered & Strictly Uncompressed */}
-          <div className="flex-1 flex items-center justify-center w-full overflow-hidden my-0.5">
-            <MascotAnimatedSprite
-              avatarId={activeAvatarId}
-              pose={currentPose}
-              frameIndex={frameIndex}
-              className="h-[74px] transition-transform duration-300 group-hover:scale-105"
-            />
-          </div>
-
-          {/* Mascot Info Footer */}
-          <div className="w-full flex items-center justify-between pt-1 border-t app-border text-[8px] font-mono">
-            <span className="font-bold tracking-wider text-[var(--accent)] uppercase truncate max-w-[70px]">
-              {mascotInfo.name}
-            </span>
-            <span className="text-[7px] text-[var(--text-muted)] uppercase tracking-wider truncate max-w-[50px]">
-              {mascotInfo.role}
-            </span>
-          </div>
+          {/* Quick minimize button on top-right of sprite */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsMinimized(true);
+            }}
+            className="absolute -top-1 -right-1 w-4.5 h-4.5 rounded-full bg-[var(--bg-card)]/80 border app-border text-[var(--text-muted)] hover:text-[var(--text-main)] flex items-center justify-center opacity-0 group-hover/mascot:opacity-100 transition-opacity shadow-xs"
+            title="Minimize mascot"
+          >
+            <IconMinimize className="w-2.5 h-2.5" />
+          </button>
         </div>
       </div>
     );
   }
 
-  /* Collapsed Rail View Mascot Badge */
-  return (
-    <div 
-      title={`${mascotInfo.name} (${isSleeping ? 'Idle' : 'Active'})`}
-      className="w-10 h-10 rounded-xl border app-border bg-[var(--bg-card)]/80 relative overflow-hidden flex items-center justify-center shadow-xs hover:border-[var(--accent)] transition-all duration-200 cursor-pointer group"
-    >
-      <MascotAnimatedSprite
-        avatarId={activeAvatarId}
-        pose={currentPose}
-        frameIndex={frameIndex}
-        className="h-[32px] transition-transform duration-200 group-hover:scale-110"
-      />
-    </div>
-  );
+  return null;
 };
